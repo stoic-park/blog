@@ -1,6 +1,8 @@
 import { baseUrl } from 'app/sitemap'
+import { MetadataRoute } from 'next'
 
-export default function robots() {
+// Robots의 타입 한번 훑어봐
+export default function robots() : MetadataRoute.Robots {
   return {
     rules: [
       {

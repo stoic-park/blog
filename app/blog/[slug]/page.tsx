@@ -60,6 +60,7 @@ export default function Blog({ params }) {
 
   return (
     <section>
+      {/* JSON-LD */}
       <script
         type="application/ld+json"
         suppressHydrationWarning
