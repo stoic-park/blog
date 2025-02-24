@@ -6,11 +6,11 @@ type Theme = "light" | "dark";
 
 export const ThemeSwitch = () => {
     const [theme, setTheme] = useState<Theme>("light")
-    // FIX: localStorage에 initial theme 값이 없는 경우에 대한 예외처리 필요!
+
     useEffect(() => {
         // 시스템의 다크모드 설정 확인
         const savedTheme = localStorage.getItem('theme');
-        
+        // localStorage에 initial theme 값이 없는 경우에 대한 예외처리
         if(!savedTheme) {
             const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
             const nextTheme = isDark ? "dark" : "light";

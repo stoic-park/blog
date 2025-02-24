@@ -12,15 +12,15 @@ import { themeControl } from "../utils/themeControl"
 export const metadata: Metadata = {
   metadataBase: new URL(baseUrl),
   title: {
-    default: 'Next.js Portfolio Starter',
-    template: '%s | Next.js Portfolio Starter',
+    default: 'blog, stoic-park',
+    template: '%s | blog, stoic-park',
   },
-  description: 'This is my portfolio.',
+  description: 'blog, stoic-park.',
   openGraph: {
-    title: 'My Portfolio',
-    description: 'This is my portfolio.',
+    title: 'blog, stoic-park',
+    description: 'blog, stoic-park',
     url: baseUrl,
-    siteName: 'My Portfolio',
+    siteName: 'stoic-park blog',
     locale: 'en_US',
     type: 'website',
   },
