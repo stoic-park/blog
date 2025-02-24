@@ -1,6 +1,5 @@
 import { baseUrl } from 'app/sitemap'
-import { getBlogPosts } from 'app/blog/utils'
-
+import { getBlogPosts } from 'app/post/utils'
 
 // baseURL/rss
 
@@ -9,7 +8,7 @@ import { getBlogPosts } from 'app/blog/utils'
 // - 블로그 포스트, 뉴스 기사, 팟캐스트 등 정기적으로 업데이트되는 컨텐츠에 주로 사용
 // - RSS 리더를 통해 여러 사이트의 업데이트된 컨텐츠를 한 곳에서 확인 가능
 // - XML 형식을 사용하여 기계가 읽을 수 있는 표준화된 형태로 제공
-// 
+//
 // 주요 태그 설명:
 // <channel> - RSS 피드의 웹사이트 정보를 담는 컨테이너
 // <item> - 개별 컨텐츠 항목 (예: 블로그 포스트)
@@ -37,9 +36,9 @@ export async function GET() {
           <link>${baseUrl}/blog/${post.slug}</link>
           <description>${post.metadata.summary || ''}</description>
           <pubDate>${new Date(
-            post.metadata.publishedAt
+            post.metadata.publishedAt,
           ).toUTCString()}</pubDate>
-        </item>`
+        </item>`,
     )
     .join('\n')
 
