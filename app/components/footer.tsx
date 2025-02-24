@@ -1,3 +1,5 @@
+import Link from 'next/link'
+
 function ArrowIcon() {
   return (
     <svg
@@ -53,9 +55,20 @@ export default function Footer() {
           </a>
         </li>
       </ul>
-      <p className="mt-8 text-neutral-600 dark:text-neutral-300">
-        © {new Date().getFullYear()} MIT Licensed
-      </p>
+      <div className="lg:sticky lg:top-20 flex justify-between items-center">
+        <p className="mt-8 text-neutral-600 dark:text-neutral-300">
+          copyright © stoic-park
+        </p>
+        <p className="mt-8 text-neutral-600 dark:text-neutral-300">
+          <Link
+            key={'sourcecode'}
+            href={'https://github.com/stoic-park/blog'}
+            className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex items-center"
+          >
+            소스코드
+          </Link>
+        </p>
+      </div>
     </footer>
   )
 }
