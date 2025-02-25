@@ -48,7 +48,7 @@ export default function RootLayout({
     <html
       lang="en"
       className={cx(
-        'text-black bg-white dark:text-white dark:bg-black',
+        'text-black bg-white dark:text-white dark:bg-black h-full',
         GeistSans.variable,
         GeistMono.variable,
       )}
@@ -58,14 +58,14 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: `(${themeControl.toString()})()` }}
         />
       </head>
-      <body className="antialiased max-w-xl mx-4 mt-8 lg:mx-auto">
+      <body className="antialiased min-h-screen max-w-xl mx-4 lg:mx-auto flex flex-col h-full">
         <div className="relative w-full h-12 mb-8">
           <div className="absolute inset-0 blur-xl opacity-50"></div>
           <div className="relative z-10 w-full h-full"></div>
         </div>
-        <main className="flex-auto min-w-0 mt-6 flex flex-col px-2 md:px-0">
+        <main className="flex flex-col flex-1 px-2 md:px-0">
           <Navbar />
-          {children}
+          <div className="flex-grow">{children}</div>
           <Footer />
           <Analytics />
           <SpeedInsights />

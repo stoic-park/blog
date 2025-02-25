@@ -3,16 +3,14 @@ import { BlogPosts } from 'app/components/posts'
 export default function Page() {
   return (
     <section>
-      <h1 className="mb-8 text-2xl font-semibold tracking-tighter">
-        코드와 사람을 잇는 개발자
-      </h1>
-      {/* <p className="mb-4">
-        {`I'm a Vim enthusiast and tab advocate, finding unmatched efficiency in
-        Vim's keystroke commands and tabs' flexibility for personal viewing
-        preferences. This extends to my support for static typing, where its
-        early error detection ensures cleaner code, and my preference for dark
-        mode, which eases long coding sessions by reducing eye strain.`}
-      </p> */}
+      <p>4년차, 코드와 사람을 잇는 프론트엔드 개발자 박성택입니다.</p>
+      <br />
+      <p>
+        단순한 개발을 넘어
+        <br />
+        함께하는 사람들과 소통을 중심으로 보다 나은 결과를 향해 나아가고
+        싶습니다
+      </p>
       <div className="my-8">
         <BlogPosts />
       </div>
