@@ -12,6 +12,7 @@ export default function Page() {
         싶습니다
       </p>
       <div className="my-8">
+        <div className="mb-2">최신 포스트</div>
         <BlogPosts />
       </div>
     </section>
