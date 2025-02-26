@@ -1,7 +1,6 @@
-import Image from 'next/image'
 import Link from 'next/link'
 import { FaGithub, FaLinkedin } from 'react-icons/fa' // Font Awesome icons
-import { HiDocument } from 'react-icons/hi' // Heroicons
+import { RiNotionFill } from 'react-icons/ri'
 
 export const metadata = {
   title: 'About',
@@ -22,6 +21,7 @@ export default function Page() {
           <div className="flex justify-center gap-6 pt-4">
             <Link
               href="https://github.com/stoic-park"
+              title="github"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
@@ -30,14 +30,16 @@ export default function Page() {
             </Link>
             <Link
               href="https://bit.ly/42fCINr"
+              title="resume"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
             >
-              <HiDocument size={28} />
+              <RiNotionFill size={28} />
             </Link>
             <Link
               href="https://www.linkedin.com/in/sungtaek-park-8734341a8/"
+              title="linkedIn"
               target="_blank"
               rel="noopener noreferrer"
               className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
