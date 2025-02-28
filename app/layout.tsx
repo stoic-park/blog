@@ -58,7 +58,7 @@ export default function RootLayout({
           dangerouslySetInnerHTML={{ __html: `(${themeControl.toString()})()` }}
         />
       </head>
-      <body className="antialiased min-h-screen max-w-xl mx-4 lg:mx-auto flex flex-col h-full">
+      <body className="antialiased min-h-screen max-w-3xl mx-4 lg:mx-auto flex flex-col h-full">
         <main className="flex flex-col flex-1 px-2 md:px-0">
           <div className="relative w-full h-12 mb-8">
             <div className="absolute inset-0 blur-xl opacity-50"></div>
