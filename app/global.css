@@ -10,7 +10,7 @@
 
 :root {
   --sh-class: #2d5e9d;
-  --sh-identifier: #354150;
+  --sh-identifier: #1e88e5;
   --sh-sign: #8996a3;
   --sh-string: #007f7a;
   --sh-keyword: #e02518;
@@ -65,7 +65,6 @@ html {
 
 .prose pre {
   @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
-  @apply bg-neutral-800;
 }
 
 .prose code {
