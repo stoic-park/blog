@@ -1,0 +1,68 @@
+---
+title: 'Vite vs Next.js: 무엇을 선택해야 할까?'
+publishedAt: '2025-03-05'
+summary: 'Vite와 Next.js의 차이점과 장단점을 비교하고, 어떤 상황에서 더 적합한지 살펴봅니다.'
+---
+
+## Vite vs Next.js: 무엇이 다를까?
+
+프론트엔드 개발을 할 때, Vite와 Next.js는 각각 강력한 기능을 제공하는 도구입니다. 하지만 사용 목적과 철학이 다르기 때문에 프로젝트에 맞는 선택이 중요합니다.
+
+이 글에서는 **Vite와 Next.js의 차이점**을 살펴보고, 어떤 경우에 적절한 선택인지 알아보겠습니다.
+
+## Vite란?
+
+Vite는 **빠른 개발 서버와 최적화된 번들링을 제공하는 최신 프론트엔드 빌드 도구**입니다. 주요 특징은 다음과 같습니다:
+
+- **ESM 기반 개발 서버**: 즉각적인 HMR(Hot Module Replacement) 지원
+- **빠른 개발 속도**: 전체 번들링 없이 필요한 모듈만 처리
+- **플러그인 시스템 지원**: 기존 Rollup 플러그인을 활용 가능
+
+Vite는 주로 SPA(Single Page Application) 개발에 최적화되어 있으며, React, Vue, Svelte 등 다양한 프레임워크를 지원합니다.
+
+## Next.js란?
+
+Next.js는 **React 기반의 풀스택 프레임워크**로, 서버 사이드 렌더링(SSR), 정적 사이트 생성(SSG), API 라우팅 등 강력한 기능을 제공합니다. 주요 특징은 다음과 같습니다:
+
+- **SSR(Server-Side Rendering) 및 SSG(Static Site Generation) 지원**
+- **자동 코드 스플리팅과 최적화된 번들링**
+- **파일 기반 라우팅**을 통한 직관적인 페이지 관리
+- **서버리스 API 라우트 지원**
+
+Next.js는 대규모 애플리케이션이나 SEO 최적화가 필요한 웹사이트 개발에 적합합니다.
+
+## Vite vs Next.js 비교
+
+<Table
+  data={{
+    headers: ['비교 항목', 'Vite', 'Next.js'],
+    rows: [
+      ['주요 목적', '빠른 개발 환경', '서버 사이드 렌더링 & SEO'],
+      ['번들러', 'Rollup 기반', 'Webpack (Turbopack 지원)'],
+      ['HMR 지원', '매우 빠름', '빠름'],
+      ['서버 사이드 렌더링', '미지원', '지원'],
+      ['정적 사이트 생성', '가능 (플러그인 필요)', '기본 지원'],
+      ['API 라우트', '미지원', '지원'],
+    ],
+  }}
+  className="w-full border-collapse border border-gray-300 text-left text-sm"
+/>
+
+## 언제 Vite를 선택해야 할까?
+
+- 빠른 개발 환경이 필요할 때 (빠른 HMR 및 서버 시작 속도)
+- SPA(Single Page Application) 개발이 필요할 때
+- CSR(Client-Side Rendering)이 충분한 경우
+
+## 언제 Next.js를 선택해야 할까?
+
+- SEO 최적화가 중요한 경우
+- 서버 사이드 렌더링(SSR)이 필요한 프로젝트
+- API 라우트를 활용해야 하는 경우
+
+## 결론
+
+- **빠른 개발 경험**이 필요하다면 **Vite**
+- **SEO 및 서버 렌더링**이 중요하다면 **Next.js**
+
+각 도구는 장점과 단점이 있으며, 프로젝트 요구 사항에 맞는 선택이 중요합니다.
