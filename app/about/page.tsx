@@ -57,15 +57,8 @@ export default function Page() {
               <div className="group">
                 <div className="mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold group-hover:text-blue-600 transition-colors">
-                      <a
-                        href="https://onepredict.ai/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="hover:underline"
-                      >
-                        원프레딕트, Frontend Developer
-                      </a>
+                    <h3 className="text-xl font-semibold">
+                      원프레딕트, Frontend Developer
                     </h3>
                   </div>
                   <span className="text-sm text-gray-500">
