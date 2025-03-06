@@ -1,0 +1,88 @@
+---
+title: 'Page Router vs App Router'
+publishedAt: '2025-03-06'
+summary: 'Next.js의 App Router에 대한 개념과 Page Router와의 차이점을 알아보자'
+---
+
+## 개요
+
+최근 **Next.js**를 접하게 되면서 자연스레 **App Router**로 라우팅을 접하게 됐습니다.
+다만 여러 레퍼런스를 참고할 때 **Page Router**에 대한 내용도 자주 등장하곤 합니다.
+그래서 오늘은 **App Router**와 **Page Router**의 차이점을 정리해보려고 합니다.
+
+## App Router란?
+
+Next.js 13에서 새롭게 도입된 **App Router**는 기존 **Page Router**보다 유연하고 현대적인 방식으로 라우팅을 관리할 수 있도록 설계되었습니다.
+
+### 특징
+
+- **폴더 기반 라우팅**: `app/` 디렉토리를 기반으로 라우팅이 자동으로 설정됩니다.
+- **서버 컴포넌트 지원**: 클라이언트 컴포넌트와 서버 컴포넌트를 함께 사용할 수 있습니다.
+- **React Server Components(RSC)**: 데이터를 서버에서 직접 처리하여 클라이언트로 전달할 수 있습니다.
+- **레이아웃 기능 지원**: 전역적인 레이아웃을 손쉽게 관리할 수 있습니다.
+- **병렬 라우팅 및 인터셉트 가능**: 더 강력한 라우팅 기능을 제공합니다.
+
+### 사용 예시
+
+```tsx
+// app/page.tsx
+export default function Home() {
+  return <h1>Welcome to App Router</h1>
+}
+```
+
+## Page Router란?
+
+기존의 **Page Router**는 Next.js 초기부터 제공되던 방식으로, 파일 기반의 라우팅 시스템입니다.
+
+### 특징
+
+- **파일 기반 라우팅**: `pages/` 디렉토리에 파일을 생성하면 해당 경로로 자동 라우팅됩니다.
+- **getStaticProps, getServerSideProps 지원**: 데이터를 미리 가져오거나, 요청마다 새로운 데이터를 불러올 수 있습니다.
+- **Client-side Rendering (CSR) 위주**: 클라이언트에서 주로 처리하며, 필요에 따라 서버 렌더링도 지원합니다.
+
+### 사용 예시
+
+```tsx
+// pages/index.tsx
+export default function Home() {
+  return <h1>Welcome to Page Router</h1>
+}
+```
+
+## 차이점
+
+<Table
+  data={{
+    headers: ['비교 항목', 'App Router (`app/`)', 'Page Router (`pages/`)'],
+    rows: [
+      ['라우팅 방식', '폴더 기반 라우팅', '파일 기반 라우팅'],
+      [
+        '데이터 페칭',
+        'React Server Components 사용',
+        'getStaticProps, getServerSideProps 사용',
+      ],
+      ['서버 컴포넌트', '지원 (기본)', '미지원'],
+      ['레이아웃 관리', 'layout.tsx로 전역 관리', '_app.tsx로 관리'],
+      ['병렬 라우팅', '지원', '미지원'],
+      [
+        '유지보수성',
+        '향후 표준으로 자리잡을 예정',
+        '기존 코드베이스 유지 시 유용',
+      ],
+    ],
+  }}
+  className="w-full border-collapse border border-gray-300 text-left text-sm"
+/>
+
+## 결론
+
+Next.js 13 이후로 **App Router**가 등장하면서 더욱 유연하고 강력한 라우팅을 제공하게 되었습니다.
+특히 서버 컴포넌트를 활용한 최적화가 가능해졌으며, 레이아웃 관리도 더 쉬워졌습니다.
+다만, 기존 프로젝트에서는 여전히 **Page Router**가 널리 사용되고 있으므로, 프로젝트의 특성에 맞게 선택하는 것이 중요합니다.
+
+만약 새로운 프로젝트를 시작한다면, **App Router**를 사용하는 것이 권장됩니다.
+
+## Reference
+
+- [Next.js 공식 문서](https://nextjs.org/docs)
