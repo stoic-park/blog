@@ -52,24 +52,163 @@ export default function Home() {
 
 ## 차이점
 
+1. **디렉토리 구조**
+
+   - Page Router: /pages 디렉토리 사용
+   - App Router: /app 디렉토리 사용
+
+2. **렌더링 방식**
+
+   - Page Router: 기본적으로 클라이언트 컴포넌트
+   - App Router: 기본적으로 서버 컴포넌트
+
+3. **데이터 페칭**
+
+   ```tsx
+   // Page Router - pages/posts/[id].tsx
+   export async function getStaticProps({ params }) {
+     const post = await fetchPost(params.id)
+     return { props: { post } }
+   }
+
+   // App Router - app/posts/[id]/page.tsx
+   async function PostPage({ params }: { params: { id: string } }) {
+     const post = await fetchPost(params.id)
+     return <div>{post.title}</div>
+   }
+   ```
+
+4. **라우팅 훅 사용**
+
+   ```tsx
+   // Page Router
+   import { useRouter } from 'next/router'
+
+   function Component() {
+     const router = useRouter()
+
+     return (
+       <div>
+         Current path: {router.pathname}
+         Query: {router.query.id}
+         <button onClick={() => router.push('/about')}>Go to About</button>
+       </div>
+     )
+   }
+
+   // App Router
+   import { useRouter, usePathname, useSearchParams } from 'next/navigation'
+
+   function Component() {
+     const router = useRouter()
+     const pathname = usePathname()
+     const searchParams = useSearchParams()
+
+     return (
+       <div>
+         Current path: {pathname}
+         Query: {searchParams.get('id')}
+         <button onClick={() => router.push('/about')}>Go to About</button>
+       </div>
+     )
+   }
+   ```
+
+5. **레이아웃 구현**
+
+   ```tsx
+   // Page Router - pages/_app.tsx
+   function MyApp({ Component, pageProps }) {
+     return (
+       <Layout>
+         <Component {...pageProps} />
+       </Layout>
+     )
+   }
+
+   // App Router - app/layout.tsx
+   export default function RootLayout({
+     children,
+   }: {
+     children: React.ReactNode
+   }) {
+     return (
+       <html lang="en">
+         <body>
+           <nav>Navigation</nav>
+           {children}
+         </body>
+       </html>
+     )
+   }
+   ```
+
+6. **에러 처리**
+
+   ```tsx
+   // Page Router - pages/404.js
+   export default function Custom404() {
+     return <h1>404 - Page Not Found</h1>
+   }
+
+   // App Router - app/not-found.tsx
+   export default function NotFound() {
+     return <h1>404 - Page Not Found</h1>
+   }
+   ```
+
+7. **동적 라우트**
+
+   ```tsx
+   // Page Router - pages/posts/[...slug].tsx
+   function Post() {
+     const router = useRouter()
+     const { slug } = router.query // ['a', 'b', 'c']
+     return <p>Post: {slug.join('/')}</p>
+   }
+
+   // App Router - app/posts/[...slug]/page.tsx
+   function Post({ params }: { params: { slug: string[] } }) {
+     return <p>Post: {params.slug.join('/')}</p>
+   }
+   ```
+
+8. **로딩 상태**
+
+   ```tsx
+   // Page Router
+   function Post() {
+     const router = useRouter()
+
+     if (router.isFallback) {
+       return <div>Loading...</div>
+     }
+     return <div>Content</div>
+   }
+
+   // App Router - app/posts/loading.tsx
+   export default function Loading() {
+     return <div>Loading...</div>
+   }
+   ```
+
+## 주요 API 차이점 정리
+
 <Table
   data={{
-    headers: ['비교 항목', 'App Router (`app/`)', 'Page Router (`pages/`)'],
+    headers: ['기능', 'Page Router', 'App Router'],
     rows: [
-      ['라우팅 방식', '폴더 기반 라우팅', '파일 기반 라우팅'],
+      ['라우팅 훅', 'next/router', 'next/navigation'],
       [
         '데이터 페칭',
-        'React Server Components 사용',
-        'getStaticProps, getServerSideProps 사용',
+        'getStaticProps/getServerSideProps',
+        'async 컴포넌트 + fetch',
       ],
-      ['서버 컴포넌트', '지원 (기본)', '미지원'],
-      ['레이아웃 관리', 'layout.tsx로 전역 관리', '_app.tsx로 관리'],
-      ['병렬 라우팅', '지원', '미지원'],
-      [
-        '유지보수성',
-        '향후 표준으로 자리잡을 예정',
-        '기존 코드베이스 유지 시 유용',
-      ],
+      ['페이지 정의', 'pages/about.tsx', 'app/about/page.tsx'],
+      ['레이아웃', '_app.tsx, _document.tsx', 'layout.tsx'],
+      ['에러 페이지', '_error.tsx, 404.tsx', 'error.tsx, not-found.tsx'],
+      ['로딩 상태', '수동 구현 필요', 'loading.tsx'],
+      ['메타데이터', 'Head 컴포넌트', 'metadata 객체/generateMetadata'],
     ],
   }}
   className="w-full border-collapse border border-gray-300 text-left text-sm"
