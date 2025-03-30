@@ -2,7 +2,7 @@
 title: 'Page Router vs App Router'
 publishedAt: '2025-03-06'
 summary: 'Next.js의 App Router에 대한 개념과 Page Router와의 차이점을 알아보자'
-tags: 'Next.js, React'
+tags: '#Next.js, #React'
 ---
 
 ## 개요
@@ -28,7 +28,7 @@ Next.js 13에서 새롭게 도입된 **App Router**는 기존 **Page Router**보
 ```tsx
 // app/page.tsx
 export default function Home() {
-  return <h1>Welcome to App Router</h1>
+ return <h1>Welcome to App Router</h1>
 }
 ```
 
@@ -47,7 +47,7 @@ export default function Home() {
 ```tsx
 // pages/index.tsx
 export default function Home() {
-  return <h1>Welcome to Page Router</h1>
+ return <h1>Welcome to Page Router</h1>
 }
 ```
 
@@ -68,14 +68,14 @@ export default function Home() {
    ```tsx
    // Page Router - pages/posts/[id].tsx
    export async function getStaticProps({ params }) {
-     const post = await fetchPost(params.id)
-     return { props: { post } }
+    const post = await fetchPost(params.id)
+    return { props: { post } }
    }
 
    // App Router - app/posts/[id]/page.tsx
    async function PostPage({ params }: { params: { id: string } }) {
-     const post = await fetchPost(params.id)
-     return <div>{post.title}</div>
+    const post = await fetchPost(params.id)
+    return <div>{post.title}</div>
    }
    ```
 
@@ -86,32 +86,32 @@ export default function Home() {
    import { useRouter } from 'next/router'
 
    function Component() {
-     const router = useRouter()
+    const router = useRouter()
 
-     return (
-       <div>
-         Current path: {router.pathname}
-         Query: {router.query.id}
-         <button onClick={() => router.push('/about')}>Go to About</button>
-       </div>
-     )
+    return (
+     <div>
+      Current path: {router.pathname}
+      Query: {router.query.id}
+      <button onClick={() => router.push('/about')}>Go to About</button>
+     </div>
+    )
    }
 
    // App Router
    import { useRouter, usePathname, useSearchParams } from 'next/navigation'
 
    function Component() {
-     const router = useRouter()
-     const pathname = usePathname()
-     const searchParams = useSearchParams()
+    const router = useRouter()
+    const pathname = usePathname()
+    const searchParams = useSearchParams()
 
-     return (
-       <div>
-         Current path: {pathname}
-         Query: {searchParams.get('id')}
-         <button onClick={() => router.push('/about')}>Go to About</button>
-       </div>
-     )
+    return (
+     <div>
+      Current path: {pathname}
+      Query: {searchParams.get('id')}
+      <button onClick={() => router.push('/about')}>Go to About</button>
+     </div>
+    )
    }
    ```
 
@@ -120,27 +120,27 @@ export default function Home() {
    ```tsx
    // Page Router - pages/_app.tsx
    function MyApp({ Component, pageProps }) {
-     return (
-       <Layout>
-         <Component {...pageProps} />
-       </Layout>
-     )
+    return (
+     <Layout>
+      <Component {...pageProps} />
+     </Layout>
+    )
    }
 
    // App Router - app/layout.tsx
    export default function RootLayout({
-     children,
+    children,
    }: {
-     children: React.ReactNode
+    children: React.ReactNode
    }) {
-     return (
-       <html lang="en">
-         <body>
-           <nav>Navigation</nav>
-           {children}
-         </body>
-       </html>
-     )
+    return (
+     <html lang="en">
+      <body>
+       <nav>Navigation</nav>
+       {children}
+      </body>
+     </html>
+    )
    }
    ```
 
@@ -149,12 +149,12 @@ export default function Home() {
    ```tsx
    // Page Router - pages/404.js
    export default function Custom404() {
-     return <h1>404 - Page Not Found</h1>
+    return <h1>404 - Page Not Found</h1>
    }
 
    // App Router - app/not-found.tsx
    export default function NotFound() {
-     return <h1>404 - Page Not Found</h1>
+    return <h1>404 - Page Not Found</h1>
    }
    ```
 
@@ -163,14 +163,14 @@ export default function Home() {
    ```tsx
    // Page Router - pages/posts/[...slug].tsx
    function Post() {
-     const router = useRouter()
-     const { slug } = router.query // ['a', 'b', 'c']
-     return <p>Post: {slug.join('/')}</p>
+    const router = useRouter()
+    const { slug } = router.query // ['a', 'b', 'c']
+    return <p>Post: {slug.join('/')}</p>
    }
 
    // App Router - app/posts/[...slug]/page.tsx
    function Post({ params }: { params: { slug: string[] } }) {
-     return <p>Post: {params.slug.join('/')}</p>
+    return <p>Post: {params.slug.join('/')}</p>
    }
    ```
 
@@ -179,40 +179,40 @@ export default function Home() {
    ```tsx
    // Page Router
    function Post() {
-     const router = useRouter()
+    const router = useRouter()
 
-     if (router.isFallback) {
-       return <div>Loading...</div>
-     }
-     return <div>Content</div>
+    if (router.isFallback) {
+     return <div>Loading...</div>
+    }
+    return <div>Content</div>
    }
 
    // App Router - app/posts/loading.tsx
    export default function Loading() {
-     return <div>Loading...</div>
+    return <div>Loading...</div>
    }
    ```
 
 ## 주요 API 차이점 정리
 
 <Table
-  data={{
-    headers: ['기능', 'Page Router', 'App Router'],
-    rows: [
-      ['라우팅 훅', 'next/router', 'next/navigation'],
-      [
-        '데이터 페칭',
-        'getStaticProps/getServerSideProps',
-        'async 컴포넌트 + fetch',
-      ],
-      ['페이지 정의', 'pages/about.tsx', 'app/about/page.tsx'],
-      ['레이아웃', '_app.tsx, _document.tsx', 'layout.tsx'],
-      ['에러 페이지', '_error.tsx, 404.tsx', 'error.tsx, not-found.tsx'],
-      ['로딩 상태', '수동 구현 필요', 'loading.tsx'],
-      ['메타데이터', 'Head 컴포넌트', 'metadata 객체/generateMetadata'],
-    ],
-  }}
-  className="w-full border-collapse border border-gray-300 text-left text-sm"
+ data={{
+  headers: ['기능', 'Page Router', 'App Router'],
+  rows: [
+   ['라우팅 훅', 'next/router', 'next/navigation'],
+   [
+    '데이터 페칭',
+    'getStaticProps/getServerSideProps',
+    'async 컴포넌트 + fetch',
+   ],
+   ['페이지 정의', 'pages/about.tsx', 'app/about/page.tsx'],
+   ['레이아웃', '_app.tsx, _document.tsx', 'layout.tsx'],
+   ['에러 페이지', '_error.tsx, 404.tsx', 'error.tsx, not-found.tsx'],
+   ['로딩 상태', '수동 구현 필요', 'loading.tsx'],
+   ['메타데이터', 'Head 컴포넌트', 'metadata 객체/generateMetadata'],
+  ],
+ }}
+ className="w-full border-collapse border border-gray-300 text-left text-sm"
 />
 
 ## 결론

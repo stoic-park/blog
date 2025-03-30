@@ -2,7 +2,7 @@
 title: 'Next.js 블로그에 다크모드 적용하기'
 publishedAt: '2025-02-23'
 summary: 'Next.js로 만든 블로그에 다크모드를 구현하는 과정을 공유합니다. Tailwind CSS의 다크모드 기능과 React의 상태관리를 활용하여 구현했습니다.'
-tags: 'Next.js, Tailwind, React'
+tags: '#Next.js, #Tailwind, #React'
 ---
 
 # Next.js + tailwindCSS 블로그에 다크모드 적용하기
@@ -38,16 +38,16 @@ const [theme, setTheme] = useState<Theme>('light')
 
 ```typescript
 useEffect(() => {
-  const savedTheme = localStorage.getItem('theme')
-  if (!savedTheme) {
-    // 시스템 설정 기반 초기 테마 설정
-    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-    const nextTheme = isDark ? 'dark' : 'light'
-    applyTheme(nextTheme)
-    return
-  }
-  const currentTheme = localStorage.getItem('theme') as Theme
-  applyTheme(currentTheme)
+ const savedTheme = localStorage.getItem('theme')
+ if (!savedTheme) {
+  // 시스템 설정 기반 초기 테마 설정
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+  const nextTheme = isDark ? 'dark' : 'light'
+  applyTheme(nextTheme)
+  return
+ }
+ const currentTheme = localStorage.getItem('theme') as Theme
+ applyTheme(currentTheme)
 }, [])
 ```
 
@@ -55,13 +55,13 @@ useEffect(() => {
 
 ```typescript
 const applyTheme = (nextTheme: Theme) => {
-  localStorage.setItem('theme', nextTheme)
-  setTheme(nextTheme)
-  if (nextTheme === 'dark') {
-    document.documentElement.classList.add('dark')
-  } else {
-    document.documentElement.classList.remove('dark')
-  }
+ localStorage.setItem('theme', nextTheme)
+ setTheme(nextTheme)
+ if (nextTheme === 'dark') {
+  document.documentElement.classList.add('dark')
+ } else {
+  document.documentElement.classList.remove('dark')
+ }
 }
 ```
 
