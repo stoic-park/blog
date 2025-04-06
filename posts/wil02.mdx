@@ -1,0 +1,99 @@
+---
+title: '[항해 플러스 프론트엔드 5기] 2주차 회고'
+publishedAt: '2025-04-06'
+summary: '항해 플러스 프론트엔드 5기 2주차 회고'
+tags: '#항해플러스, #프론트엔드, #항해99'
+---
+
+이전 글 보기
+
+- [1주차 회고](https://stoic-park.vercel.app/post/wil01)
+
+## 이번 주 돌아보기
+
+이번주 과제는 React의 virtualDOM을 구현하는 과제였습니다. 가상돔을 구현하기 위해 아래와 같은 관련된 랜더 관련 함수들을 직접 구현하는 과정을 거쳤습니다.
+
+```
+📦lib
+┣ 📜createElement.js
+┣ 📜createHashRouter.js
+┣ 📜createObserver.js
+┣ 📜createRouter.js
+┣ 📜createStorage.js
+┣ 📜createStore.js
+┣ 📜createVNode.js
+┣ 📜eventManager.js
+┣ 📜index.js
+┣ 📜normalizeVNode.js
+┣ 📜renderElement.js
+┗ 📜updateElement.js
+```
+
+개인적으로 지난주 시간 계획에 대한 아쉬움이 있었기 때문에 이번주는 과제 외에도 시간 계획을 잘 잡고 과제를 진행하려고 노력했습니다만, 막상 금요일 과제 제출 전까지 고통 받고 있는 나를 보면서 아직 시간 계획이 부족한 것 같다는 생각이 들었습니다.
+하지만, 이번주에는 과제와 함께 제공된 관련 학습자료를 충분히 참고하고 진행을 했더니 과제를 진행하는데 있어서 지난주보다 훨씬 수월했던 점은 나아졌다고 생각합니다.
+한번에 많은 것이 좋아지지 않더라도 조금씩 나아지고 있다고 생각합니다! 3주차도 열심히 해보겠습니다!
+
+### 기술적 성장
+
+1. 테스트 코드를 보고 기댓값과 실제값을 비교해가면서 코드를 작성하는 방법에 대해 저번주보다 익숙해진 것 같습니다
+2. virtualDOM과 diff알고리즘에 대한 동작 원리에 대해 조금이나마 이해하게 된 것 같습니다
+
+### 코드 품질
+
+**리팩토링이 필요한 부분**
+좋아요 토글 함수를 작성하면서(handleClickLike)
+
+1. 함수 내에서 직접 globalStore에 있는 값을 컨트롤 하는 방법과
+2. 해당 부분을 globalStore의 액션으로 작성하고 해당 액션을 불러와서 동작하게 했을 때
+   다르게 동작했습니다.
+
+```jsx
+// 1. 내부에서 직접
+const handleClickLike = (id) => {
+ if (!loggedIn) {
+  alert('로그인 후 이용해주세요')
+  return
+ }
+
+ const updatedPosts = posts.map((post) => {
+  if (post.id === id) {
+   const isLikedIndex = post.likeUsers.findIndex(
+    (user) => user === currentUser.username,
+   )
+   const newLikeUsers =
+    isLikedIndex >= 0
+     ? post.likeUsers.filter((user) => user !== currentUser.username)
+     : [...post.likeUsers, currentUser.username]
+   return {
+    ...post,
+    likeUsers: newLikeUsers,
+   }
+  }
+  return post
+ })
+
+ globalStore.setState({
+  posts: updatedPosts,
+ })
+}
+
+// 2. action으로 불러와서
+const handleClickLike = (id) => {
+ if (!loggedIn) {
+  alert('로그인 후 이용해주세요')
+  return
+ }
+ globalStore.actions.toggleLike(id)
+}
+```
+
+2번과 같이 코드를 작성했을 때
+![화면 기록 2025-04-04 오전 3 17 54](https://github.com/user-attachments/assets/26e38b7b-1ff8-45cd-b5ce-34aae29bb39f)
+위와 같이 동작하는 신기한 현상이 있다
+
+- 1번 방식으로 테스트를 통과하긴 했지만 2번이 왜이렇게 동작하는지 내 코드를 까보는 시간을 가져야겠습니다.
+
+### 학습 효과 분석
+
+1. 테스트 코드를 따라 유틸함수를 작성하면서 동작 원리에 대한 이해도가 높아졌습니다.
+2. virtualDOM, diff알고리즘 관련 글을 더 찾아봐야겠습니다.
