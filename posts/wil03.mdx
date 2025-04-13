@@ -1,0 +1,170 @@
+---
+title: '[항해 플러스 프론트엔드 5기] 3주차 회고'
+publishedAt: '2025-04-13'
+summary: '항해 플러스 프론트엔드 5기 3주차 회고'
+tags: '#항해플러스, #프론트엔드, #항해99'
+---
+
+이전 글 보기
+
+- [1주차 회고](https://stoic-park.vercel.app/post/wil01)
+- [2주차 회고](https://stoic-park.vercel.app/post/wil02)
+
+## 이번 주 돌아보기
+
+리액트의 꽃이라 할 수 있는 React Hook을 직접 구현해보고, 리액트에서 얕은 비교, 깊은 비교의 쓰임, 메모이제이션에 대해서 알아보는 3주차였습니다!
+
+## 학습한 개념
+
+### 1. 리액트에서 얕은 비교
+
+- 얕은 비교(shallow comparison)은 객체의 참조값만 비교하는 방식입니다. 깊은 비교와는 다르게 두 객체가 같은 참조하는지 여부만 비교합니다.
+- 리액트에서는 얕은 비교를 통해 리렌더링 여부를 결정합니다.
+
+```
+// 과제에서 구현한 shallowEquals 와 deepEquals 의 차이
+
+  // shallowEquals
+  ...
+  if (isObject(objA) && isObject(objB)) {
+    const keysA = Object.keys(objA) as (keyof T)[];
+    const keysB = Object.keys(objB) as (keyof T)[];
+
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+    // 얕은 비교
+    return keysA.every((key) => objB[key] === objA[key]);
+  }
+
+
+  // deepEquals
+  ...
+  if (isObject(objA) && isObject(objB)) {
+    const keysA = Object.keys(objA) as (keyof T)[];
+    const keysB = Object.keys(objB) as (keyof T)[];
+
+    if (keysA.length !== keysB.length) {
+      return false;
+    }
+    // 깊은 비교를 통해 객체를 재귀적으로 비교
+    return keysA.every((key) => deepEquals(objA[key], objB[key]));
+  }
+
+```
+
+- 얕은 비교와 깊은 비교를 직접 구현해봤습니다. 평소 어렴풋이 알고 있던 개념들을 직접 구현해보는 것이 이 코스의 큰 장점인 것 같습니다.
+
+### 2. 리액트 훅의 직접 구현
+
+- 이번 과제를 통해 비교 함수와, hooks, hocs 등을 직접 구현했습니다.
+- 리액트에 익숙하지만, 익숙한 훅들을 직접 구현해면서 리액트 훅의 동작 원리에 대해 이해할 수 있었습니다.
+
+```markdown
+<!-- 이번 과제에서 구현한 내용 -->
+
+📦@lib
+┣ 📂equalities
+┃ ┣ 📜deepEquals.ts
+┃ ┣ 📜index.ts
+┃ ┣ 📜shallowEquals.ts
+┃ ┗ 📜utils.ts
+┣ 📂hocs
+┃ ┣ 📜deepMemo.ts
+┃ ┣ 📜index.ts
+┃ ┗ 📜memo.ts
+┣ 📂hooks
+┃ ┣ 📜index.ts
+┃ ┣ 📜useCallback.ts
+┃ ┣ 📜useDeepMemo.ts
+┃ ┣ 📜useMemo.ts
+┃ ┣ 📜useRef.ts
+┃ ┗ 📜useState.ts
+┗ 📜index.ts
+```
+
+### 3. 메모이제이션을 통한 리랜더링 개선
+
+- memo, useMemo, useCallback을 활용해 리랜더링 개선에 대해 다시 한번 짚어볼 수 있었습니다.
+
+## 학습 효과
+
+### 1. hoc에서 useRef(hook)을 사용할 수 없는 이유
+
+- memo를 구현하면서, 조건에 `1. 이전 props를 저장할 ref 생성` 이라는 조건이 있어서 무의식적으로 먼저 구현한 useRef를 쓰려고 했다가 아래와 같은 에러 문구를 확인했습니다.
+
+```markdown
+React Hook "useRef" is called in function "memo" that is neither a React function component nor a custom React Hook function.
+React component names must start with an uppercase letter. React Hook names must start with the word "use"
+```
+
+- 리액트 훅이 잘못된 위치에서 사용했다는 문구인데, HOC와 훅과 리액트 훅이 어떨 때에 쓰이는지 비교해봤습니다.
+- useRef와 HOC가 어떻게 쓰이는지에 대해,
+
+  - 고차 컴포넌트(HOC, Higher Order Component)는 컴포넌트 로직을 재사용하기 위한 React의 고급 기술입니다. 고차 컴포넌트(HOC)는 React API의 일부가 아니며, React의 구성적 특성에서 나오는 패턴입니다.
+  - useRef는 렌더링과 상관없이 값을 유지하고, 주로 DOM요소나 값을 참조하는 상황에서 사용하고, HOC는 컴포넌트의 내부 상태나 DOM요소에 직접 접근하거나 변경하지 않고, 래핑된 컴포넌트의 기능을 확장하거나 수정하는데 사용됩니다.
+
+- 훅 규칙, React 함수 내에서 Hook을 호출해야 합니다.
+
+  - 리액트에서는 내부적으로 훅들을 호출 순서에 따라 상태를 저장하기 때문에 호출 순서를 보장하기 위해서 규칙을 지켜야 합니다.
+
+### 2. context를 쓰는 이유에 대해 말할 수 있게 됐다.
+
+- 과제 Q&A 시간을 통해 Context를 쓰는 이유에 대한 의견을 들었다
+
+  - Context는 의존성 주입을 위해서 사용되는 경우가 많아요.
+    - 디자인 시스템에서 많이 사용된답니다.
+    - 부모 컴포넌트가 가지고 잇는 정보를, 자식 컴포넌트에게 자연스럽게 전달할 떄
+
+### 3. react dev tool을 통한 렌더링 비용 추적하는 방법
+
+- 이것도 Q&A 시간에 사용법을 볼 수 있었습니다.
+- 기존에는 메모이제이션을 통해 리팩토링을 진행해보긴 했지만, 구체적으로 시각적으로 확인하는 방법에 대한 아쉬움이 있었는데, 간접적으로 경험해볼 수 있었습니다.
+
+## 멘토링 내용
+
+- 과제를 진행하면서 deepEquals를 바탕으로 만든 함수, deepMemo, useDeepMemo가 실무에서는 어떻게 쓰이고 있는지가 궁금했고, 과제 제출하면서 질문으로 남기고 피드백을 받을 수 있었습니다.
+
+  <Image
+   src="/images/wil03feedback.png"
+   alt="테스트 결과 스크린샷"
+   width={800}
+   height={400}
+  />
+
+### Q. deepMemo, useDeepMemo는 실제로 언제 사용할까?
+
+- 이번 과제를 통해 `deepEquals`를 기반으로 한 `deepMemo`, `useDeepMemo`를 직접 구현해보았다.
+- 그렇다면 실제로 리액트 개발 과정에서 이러한 훅들을 사용하는 경우가 있을까?
+
+- 일치성 vs 동등성
+
+  - `deepMemo`, `useDeepMemo`는 **"동등성 비교"** 가 필요한 상황에서 유용하다.
+  - React는 기본적으로 **일치성(참조)** 비교(`===`)를 통해 상태 변경 여부를 감지한다.
+  - 하지만 실제 개발에서는 **값은 동일하지만 참조는 다른** 객체들이 자주 등장한다.
+  - API로 동일한 데이터를 받아도 매번 새로운 객체로 생성되기 때문에 `===` 비교에서는 다르게 인식된다.
+
+- 언제 필요한가?
+
+  - API 응답 데이터를 내부에서 가공해서 사용하고 있을 때,
+  - **같은 값의 데이터가 반복해서 들어오는 경우**, 불필요한 가공이나 렌더링을 방지하기 위해 `deepEquals` 기반 비교가 필요하다. 이럴 때 `deepMemo` 또는 `useDeepMemo`를 사용하면 성능 최적화에 도움이 된다.
+
+- 주의할 점
+
+  - `deepEquals`는 **값 전체를 순회하며 비교**하므로 **성능 비용**이 크다.
+  - 반대로 일치성 비교는 **비교 자체는 빠르지만, 참조를 유지**하기 위한 추가 코드나 상태 관리 비용이 발생한다.
+
+- 왜 React는 일치성 비교를 할까?
+
+  - React가 **불변성(immutability)** 을 핵심 철학으로 삼고 있기 때문이다.
+  - **참조가 바뀌면 새로운 값**으로 인식하는 것이 훨씬 효율적인 비교 방식이며, 이는 **함수형 프로그래밍의 주요 개념**이기도 하다.
+
+## 회고
+
+- React가 익숙하지만, 익숙하다고 해서 잘 안다는 것은 아니라는 생각을 다시금 하게 됐습니다.
+- 이번 주 마무리 하면서, 참고자료들을 다시 보며 정리하는 시간을 가지겠습니다.
+
+## reference
+
+- [React 공식 - Hook의 규칙](https://ko.legacy.reactjs.org/docs/hooks-rules.html)
+- [React 공식 - 고차 컴포넌트](https://ko.legacy.reactjs.org/docs/higher-order-components.html)
