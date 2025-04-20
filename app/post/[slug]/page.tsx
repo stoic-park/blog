@@ -4,96 +4,98 @@ import { formatDate, getBlogPosts } from 'app/post/utils'
 import { baseUrl } from 'app/sitemap'
 
 export async function generateStaticParams() {
-  let posts = getBlogPosts()
+ let posts = getBlogPosts()
 
-  return posts.map((post) => ({
-    slug: post.slug,
-  }))
+ return posts.map((post) => ({
+  slug: post.slug,
+ }))
 }
 
 export function generateMetadata({ params }) {
-  let post = getBlogPosts().find((post) => post.slug === params.slug)
-  if (!post) {
-    return
-  }
+ let post = getBlogPosts().find((post) => post.slug === params.slug)
+ if (!post) {
+  return
+ }
 
-  let {
-    title,
-    publishedAt: publishedTime,
-    summary: description,
-    image,
-  } = post.metadata
-  let ogImage = image
-    ? image
-    : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+ let {
+  title,
+  publishedAt: publishedTime,
+  summary: description,
+  image,
+ } = post.metadata
+ let ogImage = image
+  ? image
+  : `${baseUrl}/og?title=${encodeURIComponent(title)}`
 
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      type: 'article',
-      publishedTime,
-      url: `${baseUrl}/blog/${post.slug}`,
-      images: [
-        {
-          url: ogImage,
-        },
-      ],
+ return {
+  title,
+  description,
+  openGraph: {
+   title,
+   description,
+   type: 'article',
+   publishedTime,
+   url: `${baseUrl}/blog/${post.slug}`,
+   images: [
+    {
+     url: ogImage,
     },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-      images: [ogImage],
-    },
-  }
+   ],
+  },
+  twitter: {
+   card: 'summary_large_image',
+   title,
+   description,
+   images: [ogImage],
+  },
+ }
 }
 
 export default function Blog({ params }) {
-  let post = getBlogPosts().find((post) => post.slug === params.slug)
+ let post = getBlogPosts().find((post) => post.slug === params.slug)
 
-  if (!post) {
-    notFound()
-  }
+ if (!post) {
+  notFound()
+ }
 
-  return (
-    <section>
-      {/* JSON-LD */}
-      <script
-        type="application/ld+json"
-        suppressHydrationWarning
-        dangerouslySetInnerHTML={{
-          __html: JSON.stringify({
-            '@context': 'https://schema.org',
-            '@type': 'BlogPosting',
-            headline: post.metadata.title,
-            datePublished: post.metadata.publishedAt,
-            dateModified: post.metadata.publishedAt,
-            description: post.metadata.summary,
-            image: post.metadata.image
-              ? `${baseUrl}${post.metadata.image}`
-              : `/og?title=${encodeURIComponent(post.metadata.title)}`,
-            url: `${baseUrl}/blog/${post.slug}`,
-            author: {
-              '@type': 'Person',
-              name: 'My Portfolio',
-            },
-          }),
-        }}
-      />
-      <h1 className="title font-semibold text-2xl tracking-tighter">
-        {post.metadata.title}
-      </h1>
-      <div className="flex justify-between items-center mt-2 mb-8 text-sm">
-        <p className="text-sm text-neutral-600 dark:text-neutral-400">
-          {formatDate(post.metadata.publishedAt)}
-        </p>
-      </div>
-      <article className="prose">
-        <CustomMDX source={post.content} />
-      </article>
-    </section>
-  )
+ return (
+  <section>
+   {/* JSON-LD */}
+   <script
+    type="application/ld+json"
+    suppressHydrationWarning
+    dangerouslySetInnerHTML={{
+     __html: JSON.stringify({
+      '@context': 'https://schema.org',
+      '@type': 'BlogPosting',
+      headline: post.metadata.title,
+      datePublished: post.metadata.publishedAt,
+      dateModified: post.metadata.publishedAt,
+      description: post.metadata.summary,
+      image: post.metadata.image
+       ? `${baseUrl}${post.metadata.image}`
+       : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+      url: `${baseUrl}/blog/${post.slug}`,
+      author: {
+       '@type': 'Person',
+       name: 'Stoic Park',
+      },
+     }),
+    }}
+   />
+   <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
+    {post.metadata.title}
+   </h1>
+   <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
+    <span className="text-sm">Stoic Park</span>
+    <span className="mx-2">·</span>
+    <time className="text-sm" dateTime={post.metadata.publishedAt}>
+     {formatDate(post.metadata.publishedAt)}
+    </time>
+   </div>
+   <article className="prose dark:prose-invert max-w-none prose-lg">
+    <CustomMDX source={post.content} />
+   </article>
+  </section>
+ )
 }
