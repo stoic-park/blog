@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation'
 import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/post/utils'
 import { baseUrl } from 'app/sitemap'
+import { SeriesNavigation } from 'app/components/SeriesNavigation'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -94,6 +95,7 @@ export default function Blog({ params }) {
     </time>
    </div>
    <article className="prose dark:prose-invert max-w-none prose-lg">
+    <SeriesNavigation post={post} />
     <CustomMDX source={post.content} />
    </article>
   </section>

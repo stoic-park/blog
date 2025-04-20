@@ -53,7 +53,7 @@ html {
 }
 
 .prose h2 {
- @apply text-2xl font-semibold border-b pb-2 mb-4 mt-8 text-neutral-900 dark:text-neutral-100;
+ @apply text-2xl font-semibold pb-2 mb-4 mt-8 text-neutral-900 dark:text-neutral-100;
 }
 
 .prose h3 {
@@ -163,7 +163,12 @@ html {
 }
 
 .prose a {
- @apply underline transition-all decoration-neutral-400 dark:decoration-neutral-600 underline-offset-2 decoration-[0.1em];
+ @apply transition-all;
+ text-decoration: none;
+}
+
+.prose a:hover {
+ @apply text-blue-600 dark:text-blue-400;
 }
 
 .prose .anchor:after {

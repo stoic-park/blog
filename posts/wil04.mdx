@@ -1,11 +1,14 @@
 ---
 title: '[항해 플러스 프론트엔드 5기] 4주차 회고'
 publishedAt: '2025-04-20'
-summary: '항해 플러스 프론트엔드 5기 4주차 회고: 클린 코드 작성법과 코드 컨벤션, ESLint와 Prettier 설정, 코드 리팩토링 방법에 대한 상세 가이드'
-tags: '#항해플러스, #프론트엔드, #항해99',
-author: 'Stoic Park',
-category: '회고',
+summary: '항해 플러스 프론트엔드 5기 4주차 회고'
+tags: '#항해플러스, #프론트엔드, #항해99'
+author: 'Stoic Park'
+category: '항해 플러스 프론트엔드 5기'
 readingTime: '5분'
+series:
+ name: '항해 플러스 프론트엔드 5기'
+ order: 4
 ---
 
 ## 이번 주 돌아보기
@@ -30,8 +33,7 @@ expect(클린코드_학습(수강생)).toEqual({
 })
 ```
 
-- 발제 영상 다시보기
-  - https://velog.io/@teo/cleancode
+- [https://velog.io/@teo/cleancode](https://velog.io/@teo/cleancode)
 - 이번 과제 핵심은 점진적으로 할 수 있는 것을 익히는 것
 
 - 이번 과제는 기본과제, 심화과제별로 필수적으로 지켜야할 사항들을 체크 포인트로 제시되어있어서 체크리스트를 하나씩 따라가는 방식으로 진행을 해보려고 한다
@@ -43,8 +45,8 @@ expect(클린코드_학습(수강생)).toEqual({
 ### ISSUE. eslint 설치시 globals 패키지 추가
 
 - globals 란?
-  - globals는 ESLint에서 전역 변수들을 정의하고 관리하는데 사용됩니다
-  - 브라우저의 window, Node.js의 global 등의 전역 객체나 변수들을 ESLint가 인식할 수 있게 해줍니다
+  - globals는 ESLint에서 전역 변수들을 정의하고관리하는데 사용됩니다
+  - 브라우저의window, Node.js의global등의 전역 객체나 변수들을 ESLint가 인식할 수 있게 해줍니다
   - https://www.npmjs.com/package/globals
   - eslint 9 버전 부터는 globals 패키지를 추가해줘야 한다!
 
