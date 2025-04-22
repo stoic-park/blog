@@ -17,6 +17,11 @@ export const metadata: Metadata = {
  },
  description:
   'Stoic Park의 개발 블로그입니다. 웹 개발, JavaScript, React, Next.js 관련 기술 포스트를 공유합니다.',
+ icons: {
+  icon: '/favicon/favicon-16x16.png',
+  shortcut: '/favicon/favicon-16x16.png',
+  apple: '/favicon/apple-touch-icon.png',
+ },
  openGraph: {
   title: 'Stoic Park - 개발 블로그',
   description:
