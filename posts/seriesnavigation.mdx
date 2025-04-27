@@ -1,0 +1,193 @@
+---
+title: 'Next.js 블로그에 시리즈 네비게이션 구현'
+publishedAt: '2025-04-22'
+summary: 'Next.js 블로그에서 연관된 포스트들을 시리즈로 묶어 네비게이션하는 방법을 알아보자'
+tags: '#Next.js, #React, #MDX, #Navigation'
+author: 'Stoic Park'
+readingTime: '5분'
+---
+
+## 개요
+
+최근 항해에서 회고를 주마다 발행하고 있는데, 기본 기능만을 구현한 제 블로그에서는 시리즈 기능이 없어 아쉬운 느낌이 있었습니다. 그래서 이번에는 시리즈 네비게이션을 직접 구현해보도록 하겠습니다!
+
+## 시리즈 네비게이션이란?
+
+시리즈 네비게이션은 연관된 포스트들을 하나의 시리즈로 묶어서 보여주는 기능입니다. 주요 특징은 다음과 같습니다:
+
+- 시리즈에 속한 모든 포스트 목록 표시
+- 현재 포스트의 위치 표시
+- 이전/다음 포스트로의 이동 버튼
+- 시리즈 이름 표시
+
+## 구현 방법
+
+### 1. 메타데이터 설정
+
+먼저 각 포스트의 메타데이터에 시리즈 정보를 추가합니다. MDX 파일의 frontmatter에 다음과 같이 작성합니다:
+
+```mdx
+---
+title: '포스트 제목'
+publishedAt: '2025-03-07'
+summary: '포스트 요약'
+series:
+ name: '시리즈 이름'
+ order: 1
+---
+```
+
+### 2. SeriesNavigation 컴포넌트 구현
+
+시리즈 네비게이션을 위한 React 컴포넌트를 구현합니다. 핵심 로직은 다음과 같습니다:
+
+```tsx
+import Link from 'next/link'
+import { getBlogPosts } from 'app/post/utils'
+
+type Post = {
+ metadata: {
+  title: string
+  publishedAt: string
+  summary: string
+  series?: {
+   name: string
+   order: number
+  }
+ }
+ slug: string
+ content: string
+}
+
+export function SeriesNavigation({ post }: { post: Post }) {
+ if (!post.metadata.series) return null
+
+ const allPosts = getBlogPosts()
+ const seriesPosts = allPosts
+  .filter((p) => p.metadata.series?.name === post.metadata.series?.name)
+  .sort(
+   (a, b) => (a.metadata.series?.order || 0) - (b.metadata.series?.order || 0),
+  )
+
+ const currentIndex = seriesPosts.findIndex((p) => p.slug === post.slug)
+ const prevPost = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null
+ const nextPost =
+  currentIndex < seriesPosts.length - 1 ? seriesPosts[currentIndex + 1] : null
+
+ return (
+  <div className="my-8 p-8 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
+   <h2 className="text-2xl font-bold mb-10 text-neutral-900 dark:text-neutral-100">
+    {post.metadata.series.name}
+   </h2>
+   <div className="flex flex-col space-y-3">
+    {seriesPosts.map((p, index) => (
+     <Link
+      key={p.slug}
+      href={`/post/${p.slug}`}
+      className={`flex items-center no-underline ${
+       p.slug === post.slug
+        ? 'text-blue-500 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded'
+        : 'text-neutral-800 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-neutral-100'
+      }`}
+     >
+      <span className="mr-3">{index + 1}.</span>
+      {p.metadata.title}
+     </Link>
+    ))}
+   </div>
+   <div className="flex items-center justify-center gap-8 mt-6">
+    {prevPost ? (
+     <Link
+      href={`/post/${prevPost.slug}`}
+      className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-blue-500 hover:text-white hover:border-transparent transition-all"
+     >
+      ←
+     </Link>
+    ) : (
+     <span className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-50">
+      ←
+     </span>
+    )}
+    <span className="text-sm text-neutral-500 dark:text-neutral-400">
+     {currentIndex + 1}/{seriesPosts.length}
+    </span>
+    {nextPost ? (
+     <Link
+      href={`/post/${nextPost.slug}`}
+      className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-blue-500 hover:text-white hover:border-transparent transition-all"
+     >
+      →
+     </Link>
+    ) : (
+     <span className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-50">
+      →
+     </span>
+    )}
+   </div>
+  </div>
+ )
+}
+```
+
+### 3. 포스트 페이지에 컴포넌트 추가
+
+시리즈 네비게이션 컴포넌트를 포스트 페이지에 추가합니다:
+
+```tsx
+// app/post/[slug]/page.tsx
+import { SeriesNavigation } from 'app/components/SeriesNavigation'
+
+export default function Blog({ params }) {
+ let post = getBlogPosts().find((post) => post.slug === params.slug)
+
+ if (!post) {
+  notFound()
+ }
+
+ return (
+  <section>
+   <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
+    {post.metadata.title}
+   </h1>
+   <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
+    <span className="text-sm">Stoic Park</span>
+    <span className="mx-2">·</span>
+    <time className="text-sm" dateTime={post.metadata.publishedAt}>
+     {formatDate(post.metadata.publishedAt)}
+    </time>
+   </div>
+   <article className="prose dark:prose-invert max-w-none prose-lg">
+    <SeriesNavigation post={post} />
+    <CustomMDX source={post.content} />
+   </article>
+  </section>
+ )
+}
+```
+
+## 주요 기능 설명
+
+1. **시리즈 필터링**: `getBlogPosts()`로 가져온 모든 포스트 중에서 현재 포스트와 같은 시리즈에 속한 포스트들만 필터링합니다.
+
+2. **정렬**: 시리즈 내의 포스트들을 `order` 값에 따라 정렬합니다.
+
+3. **이전/다음 포스트**: 현재 포스트의 인덱스를 기준으로 이전과 다음 포스트를 찾아 링크를 제공합니다.
+
+4. **UI/UX**:
+   - 현재 포스트는 파란색으로 강조
+   - 이전/다음 버튼은 화살표로 직관적 표현
+   - 현재 위치를 분수 형태로 표시 (예: 2/5)
+   - 다크 모드 지원
+
+## 사용 예시
+
+이 포스트는 "Next.js 블로그 만들기" 시리즈의 일부입니다. 시리즈의 다른 포스트들도 같은 방식으로 연결되어 있으며, 각 포스트의 상단에서 시리즈 네비게이션을 확인할 수 있습니다.
+
+## 결론
+
+시리즈 네비게이션을 구현함으로써 연관된 포스트들을 체계적으로 관리하고, 사용자가 쉽게 탐색할 수 있게 되었습니다. 특히 Next.js와 MDX를 사용하면 메타데이터를 통해 시리즈 정보를 쉽게 관리할 수 있으며, React 컴포넌트를 통해 유연한 UI를 구현할 수 있습니다.
+
+## Reference
+
+- [Next.js 공식 문서](https://nextjs.org/docs)
+- [MDX 공식 문서](https://mdxjs.com/)

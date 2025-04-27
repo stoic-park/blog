@@ -1,0 +1,272 @@
+---
+title: '[항해 플러스 프론트엔드 5기] 5주차 회고'
+publishedAt: '2025-04-27'
+summary: '항해 플러스 프론트엔드 5기 5주차 회고'
+tags: '#항해플러스, #프론트엔드, #항해99'
+author: 'Stoic Park'
+category: '항해 플러스 프론트엔드 5기'
+readingTime: '5분'
+series:
+ name: '항해 플러스 프론트엔드 5기'
+ order: 5
+---
+
+## 1. 이번 주 돌아보기
+
+이번 주는 디자인 패턴과 함수형 프로그래밍에 대해 알아보는 시간이었습니다.
+특히 함수형 프로그래밍에 대해서는 평소 관심을 갖고 있었기 때문에 흥미로운 시간이였습니다.
+
+## 2. 관심 갖고 진행했던 부분들
+
+이번 과제는 시작을 어떻게 해야하는가 부터 많은 생각을 하게 하는 과제였습니다.
+리팩토링에 대한 개념이 부족하다보니 생기는 당연한 문제이지 않을까 하는 생각이 들었습니다.
+그래서 단순히 컴포넌트를 분리하는 것부터 시작해보자 라는 생각으로 과제를 시작하게 됐습니다.
+
+### 컴포넌트 분리하기
+
+refactoring을 위한 코드에는, 기능이 비어있는 부분들이 있어서 우선 기능완성을 위해 비어있는 코드들을 작성했습니다.
+기능을 완성하다보니, 코드들을 분리해주면 좋겠다 하는 부분들이 보여서 컴포넌트를 분리하는 것으로 리팩토링을 시작하면 되겠구나 싶었습니다.
+
+이번 주차에는 React에서 계층을 분리하는 중요한 기준으로 `엔티티`를 강조했습니다.
+
+```markdown
+React의 주요 역할계층은 Component, hook, function 등이 있습니다. 그리고 주요 분류 기준은 **엔티티**가 되어 줍니다.
+
+- 엔티티를 다루는 상태와 그렇지 않은 상태 - cart, isCartFull vs isShowPopup
+- 엔티티를 다루는 컴포넌트와 훅 - CartItemView, useCart(), useProduct()
+- 엔티티를 다루지 않는 컴포넌트와 훅 - Button, useRoute, useEvent 등
+- 엔티티를 다루는 함수와 그렇지 않은 함수 - calculateCartTotal(cart) vs capaitalize(str)
+
+이번 과제의 목표는 이러한 계층을 이해하고 분리하여 정리정돈을 하는 기준이나 방법등을 습득하는데 있습니다.
+```
+
+엔티티에 대한 개념이 모호한 상태로 시작했지만, 과제를 진행하면서 엔티티에 대한 개념을 명확하게 잡을 수 있었습니다.
+
+```markdown
+📦refactoring
+┣ 📂components
+┃ ┣ 📂cart // CartPage.tsx 를 구성하는 컴포넌트들을 따로 분리
+┃ ┃ ┣ 📜CartItemInfo.tsx
+┃ ┃ ┣ 📜CartList.tsx
+┃ ┃ ┣ 📜CartListItem.tsx
+┃ ┃ ┣ 📜QuantityControls.tsx
+┃ ┃ ┗ 📜RemoveButton.tsx
+┃ ┣ 📂coupon
+┃ ┃ ┣ 📜ApplyCoupon.tsx
+┃ ┃ ┣ 📜CouponList.tsx
+┃ ┃ ┣ 📜CouponListItem.tsx
+┃ ┃ ┣ 📜CouponManagement.tsx
+┃ ┃ ┗ 📜NewCouponAddForm.tsx
+┃ ┣ 📂order
+┃ ┃ ┗ 📜OrderSummary.tsx
+┃ ┗ 📂product
+┃ ┃ ┣ 📜AddToCartButton.tsx
+┃ ┃ ┣ 📜DiscountDisplay.tsx
+┃ ┃ ┣ 📜DiscountList.tsx
+┃ ┃ ┣ 📜NewProductAddForm.tsx
+┃ ┃ ┣ 📜ProductDisplay.tsx
+┃ ┃ ┣ 📜ProductList.tsx
+┃ ┃ ┣ 📜ProductListItem.tsx
+┃ ┃ ┣ 📜ProductManagement.tsx
+┃ ┃ ┣ 📜ProductManagementList.tsx
+┃ ┃ ┣ 📜ProductManagementListItem.tsx
+┃ ┃ ┗ 📜StockDisplay.tsx
+┣ 📂constants
+┃ ┣ 📜coupon.ts
+┃ ┗ 📜product.ts
+┣ 📂hooks
+┃ ┣ 📂utils
+┃ ┃ ┣ 📜cartUtils.ts
+┃ ┃ ┣ 📜commonUtils.ts
+┃ ┃ ┗ 📜discountUtils.ts
+┃ ┣ 📜index.ts
+┃ ┣ 📜useAuth.ts
+┃ ┣ 📜useCart.ts
+┃ ┣ 📜useCoupon.ts
+┃ ┣ 📜useCouponHandler.ts
+┃ ┣ 📜useDiscountHandler.ts
+┃ ┣ 📜useLocalStorage.ts
+┃ ┣ 📜useProduct.ts
+┃ ┣ 📜useProductAddHandler.ts
+┃ ┣ 📜useProductEditHandler.ts
+┃ ┗ 📜useToggleAccordionHandler.ts
+┣ 📂models
+┃ ┗ 📜cart.ts
+┣ 📂pages
+┃ ┣ 📜AdminPage.tsx
+┃ ┗ 📜CartPage.tsx
+┣ 📂provider
+┃ ┣ 📜CartProvider.tsx
+┃ ┣ 📜CouponProvider.tsx
+┃ ┣ 📜ProductProvider.tsx
+┃ ┗ 📜index.ts
+┣ 📜App.tsx
+┗ 📜main.tsx
+```
+
+엔티티를 생각하며 분리해본 디렉토리 구조입니다.
+비즈니스 관심사를 다루는지 여부가 디렉토리 구조에 중요한 기준이 되었습니다.
+
+### 추상화는 어디까지?
+
+컴포넌트를 분리하고, 순수함수를 분리하는 과정을 거치면서 추상화는 어디까지 해야하는가에 대해서 많은 고민을 하게 됐습니다.
+
+- props로 내려주는 부분은 어디까지 해야하는가
+- 추상화는 위에서부터 시작해야하는가, 아래에서부터 시작해야하는가
+  크게는 이 두가지에 대한 고민을 하게 됐고, 결론적으로는 3가지 관점에서 중요시하는 것을 중심으로 적절하게 분리하는 것이 좋겠다는 생각이 들었습니다.
+
+1. **계산과 렌더링의 분리**: 계산 로직은 순수 함수로 분리
+2. **적절한 수준의 추상화**: 모든 계산을 최상위로 올리지 않고, 관련된 데이터와 가까운 곳에서 처리
+3. **재사용성과 테스트 용이성**: 계산 로직을 독립적으로 테스트하고 재사용 가능하게 만들기
+
+```typescript
+export const ProductListItem = ({ product, cart, onAddToCart }: ProductListItemProps) => {
+    const maxDiscountPercentage = getMaxDiscountPercentage(product.discounts);
+    const remainingStock = getRemainingStock(product, cart);
+
+    return (
+        <div key={product.id} data-testid={`product-${product.id}`} className="bg-white p-3 rounded shadow">
+            // 렌더링 부분을 세분화 했다
+            <ProductDisplay name={product.name} price={product.price} />
+            <StockDisplay remainingStock={remainingStock} />
+            <DiscountDisplay maxDiscountPercentage={maxDiscountPercentage} discounts={product.discounts} />
+            <AddToCartButton remainingStock={remainingStock} onAddToCart={onAddToCart} product={product} />
+        </div>
+    );
+};
+```
+
+### Context 분리하기
+
+단일 책임을 갖도록 컴포넌트들을 분리하다가, 렌더링을 담당하는 컴포넌트는 순수하게 랜더링만 담당하고, 비즈니스 로직을 분리해준다면 깔끔한 모습을 갖출 수 있겠다라는 생각이 들었습니다.
+그 과정에서 Context를 분리해주는 게 좋겠다고 생각했습니다.
+
+```typescript
+export const CartPage = () => {
+  return (
+    <div className="container mx-auto p-4">
+      <h1 className="text-3xl font-bold mb-6">장바구니</h1>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <ProductList />
+        <div>
+          <h2 className="text-2xl font-semibold mb-4">장바구니 내역</h2>
+          <CartList />
+          <CouponApply />
+          <CartOrderSummary />
+        </div>
+      </div>
+    </div>
+  );
+};
+
+```
+
+이렇게 분리해주면 비즈니스 로직을 분리해줄 수 있고, 렌더링을 담당하는 컴포넌트는 순수하게 랜더링만 담당하게 됩니다.
+
+### Handler 함수 분리하기
+
+비즈니스 로직을 분리하는 과정에서 handler 함수들을 어떻게 분리해야할지 고민이 많았습니다.
+
+산개된 handler들은 어디로? 어떻게?
+
+```typescript
+// AdminPage.tsx
+const {
+ editingProduct,
+ setEditingProduct,
+ handleEditProduct,
+ handleProductNameUpdate,
+ handlePriceUpdate,
+ handleEditComplete,
+ handleStockUpdate,
+} = useProductEditHandler()
+
+const {
+ showNewProductForm,
+ setShowNewProductForm,
+ newProduct,
+ setNewProduct,
+ handleAddNewProduct,
+} = useProductAddHandler()
+
+const { newDiscount, setNewDiscount, handleAddDiscount, handleRemoveDiscount } =
+ useDiscountHandler()
+
+const { newCoupon, setNewCoupon, handleAddCoupon } = useCouponHandler()
+
+const { openProductIds, toggleProductAccordion } = useToggleAccordionHandler()
+```
+
+같은 기능을 담당하는 같은 관심사를 갖는 핸들러들을 묶어 훅으로 분리해봤습니다.
+이렇게 분리해주면 비즈니스 로직을 분리해줄 수 있고, 렌더링을 담당하는 컴포넌트는 순수하게 랜더링만 담당하게 됩니다.
+
+다만, 이렇게 분리하게 되면 handler가 use~훅에 묶여있게 되는데, 확장성을 고려했을 때 좋은 구조는 아닐수도 있다는 코치님의 리뷰가 있었습니다.
+이 부분에 대해서는 좀 더 고민해보고 리팩토링을 진행해보면 좋겠다는 생각이 들었습니다.
+
+<Image
+ src="/images/wil05review.png"
+ alt="코치님 리뷰"
+ width={800}
+ height={600}
+ className="rounded-lg shadow-lg"
+/>
+
+### renderHook을 통한 테스트 코드 작성
+
+이번 과제에서는 직접 구현한 함수들에 대해서 테스트 코드를 자유롭게 작성해보는 부분도 있었습니다.
+
+커스텀 훅에 대한 테스트 코드를 작성하는 과정에서 아래와 같은 에러 메세지를 확인했는데,
+
+```
+Warning: Invalid hook call. Hooks can only be called inside of the body of a function component. This could happen for one of the following reasons:
+1. You might have mismatching versions of React and the renderer (such as React DOM)
+2. You might be breaking the Rules of Hooks
+3. You might have more than one copy of React in the same app
+See https://reactjs.org/link/invalid-hook-call for tips about how to debug and fix this problem.
+```
+
+이 메세지는 커스텀 훅이 컴포넌트 내부에서 호출되지 않았음을 의미합니다.
+훅 안에서는 React 함수형 컴포넌트에서 사용하는 API를 사용하기 때문에 발생한 에러였습니다(제가 작성한 코드도 안에서 useState를 사용하고 있습니다.)
+
+React Hooks Testing Library의 `renderHook` 함수에 React Hook 함수를 호출하는 코드를 인자로 넘기면 result 속성을 담고 있는 객체를 반환합니다.
+이 result 객체는 current 속성을 갖는데, 이 속성을 통해서 해당 React Hook 함수의 반환값에 직접 접근할 수 있습니다.
+아래는 renderHook 을 사용해서 개선한 테스트 코드입니다.
+
+```typescript
+describe('useToggleAccordionHandler', () => {
+ describe('toggleProductAccordion', () => {
+  test('상품 아이디를 클릭하면 상품 아이디가 표시된다.', () => {
+   const { result } = renderHook(() => useToggleAccordionHandler())
+   act(() => {
+    result.current.toggleProductAccordion('1')
+   })
+   expect(result.current.openProductIds.has('1')).toBe(true)
+  })
+  test('상품 아이디를 한번더 클릭하면 상품 아이디가 사라진다.', () => {
+   const { result } = renderHook(() => useToggleAccordionHandler())
+   act(() => {
+    result.current.toggleProductAccordion('1')
+   })
+   expect(result.current.openProductIds.has('1')).toBe(true)
+   act(() => {
+    result.current.toggleProductAccordion('1')
+   })
+   expect(result.current.openProductIds.has('1')).toBe(false)
+  })
+ })
+})
+```
+
+## 3. 과제를 다시 해보면 더 잘 할 수 있었겠다 아쉬운 점이 있다면 무엇인가요?
+
+- 리팩토링 과제를 하면서 무엇부터 해야하는가에 대한 판단 기준이 깔끔하게 서지 않았습니다.
+- 실제 리팩토링을한다고 했을 때, 머릿속에서 따다다닥 그려지면 좋겠는데! 아직은 익숙하지 않아서인지 조금 더디다가 과제를 진행하면서 조금은 익숙해진 것 같아서 아쉬우면서도 좋은 경험이였습니다.
+- 리팩토링의 전체적인 과정을 그릴 수 있다면 좋겠습니다.
+
+## 4. 다음주를 맞이하는 각오
+
+다음주는 FSD 디자인 패턴에 대한 주제를 다루게 됐습니다.
+발제를 통해 맛본 FSD는 저에게는 매우 생소한 단어와 개념들이었는데, 이번 주에 배운 내용들을 바탕으로 조금 더 깊이 있게 이해해보고 싶습니다.
+리팩토링에 대한 어색함이 조금은 옅어지는 듯한 느낌이 드는 것처럼, FSD에 대한 어색함도 조금씩 옅어지길 바랍니다.
+
+다음주도 화이팅!
