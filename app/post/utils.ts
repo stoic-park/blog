@@ -7,6 +7,7 @@ type Metadata = {
  summary: string
  image?: string
  tags?: string[]
+ readingTime?: string
  series?: {
   name: string
   order: number
