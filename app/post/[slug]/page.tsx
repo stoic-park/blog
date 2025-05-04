@@ -3,6 +3,8 @@ import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/post/utils'
 import { baseUrl } from 'app/sitemap'
 import { SeriesNavigation } from 'app/components/SeriesNavigation'
+import { extractTocFromMdx } from 'app/post/utils'
+import { TocSidebar } from 'app/components/ToCSiderbar'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -59,6 +61,9 @@ export default function Blog({ params }) {
   notFound()
  }
 
+ // 목차 데이터 추출
+ const toc = extractTocFromMdx(post.content)
+
  return (
   <section>
    {/* JSON-LD */}
@@ -95,8 +100,15 @@ export default function Blog({ params }) {
     </time>
    </div>
    <article className="prose dark:prose-invert max-w-none prose-lg">
-    <SeriesNavigation post={post} />
-    <CustomMDX source={post.content} />
+    {/* <SeriesNavigation post={post} />
+    <CustomMDX source={post.content} /> */}
+    <div style={{ flex: 1 }}>
+     <SeriesNavigation post={post} />
+     <CustomMDX source={post.content} />
+    </div>
+    <div style={{ width: 250, marginLeft: 32 }}>
+     <TocSidebar toc={toc} />
+    </div>
    </article>
   </section>
  )

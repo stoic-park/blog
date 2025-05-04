@@ -78,18 +78,20 @@ html {
 }
 
 .prose code {
- @apply px-1.5 py-0.5 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100;
+ @apply px-2 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100;
  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
- font-size: 85%;
+ font-size: 95%;
+ line-height: 1.6;
 }
 
 .prose pre {
  @apply p-4 rounded-lg overflow-x-auto my-4;
  background-color: #f6f8fa;
  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
- font-size: 85%;
- line-height: 1.45;
+ font-size: 95%;
+ line-height: 1.7;
  border: 1px solid #e1e4e8;
+ padding: 1.5em 1.5em;
 }
 
 .prose pre code {

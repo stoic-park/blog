@@ -126,3 +126,28 @@ export function formatDate(date: string, includeRelative = false) {
 
  return `${fullDate} (${formattedDate})`
 }
+
+// utils/toc.ts
+export function extractTocFromMdx(mdxContent: string) {
+ const headingRegex = /^(#{1,6})\s+(.*)$/gm
+ const toc: { level: number; text: string; id: string }[] = []
+ let match
+ while ((match = headingRegex.exec(mdxContent)) !== null) {
+  const level = match[1].length
+  const text = match[2].trim()
+  const id = slugify(text)
+  toc.push({ level, text, id })
+ }
+ return toc
+}
+
+export function slugify(str: string) {
+ return str
+  .toString()
+  .toLowerCase()
+  .trim()
+  .replace(/\s+/g, '-')
+  .replace(/&/g, '-and-')
+  .replace(/[^\w\-]+/g, '')
+  .replace(/\-\-+/g, '-')
+}
