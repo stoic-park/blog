@@ -100,15 +100,15 @@ export default function Blog({ params }) {
     </time>
    </div>
    <article className="prose dark:prose-invert max-w-none prose-lg">
-    {/* <SeriesNavigation post={post} />
-    <CustomMDX source={post.content} /> */}
-    <div style={{ flex: 1 }}>
+    <SeriesNavigation post={post} />
+    <CustomMDX source={post.content} />
+    {/* <div style={{ flex: 1 }}>
      <SeriesNavigation post={post} />
      <CustomMDX source={post.content} />
     </div>
     <div style={{ width: 250, marginLeft: 32 }}>
      <TocSidebar toc={toc} />
-    </div>
+    </div> */}
    </article>
   </section>
  )

@@ -12,22 +12,22 @@ import { themeControl } from '../utils/themeControl'
 export const metadata: Metadata = {
  metadataBase: new URL(baseUrl),
  title: {
-  default: 'Stoic Park - 개발 블로그',
+  default: '박성택 개발 블로그',
   template: '%s | Stoic Park Blog',
  },
  description:
-  'Stoic Park의 개발 블로그입니다. 웹 개발, JavaScript, React, Next.js 관련 기술 포스트를 공유합니다.',
+  '박성택의 개발 블로그입니다. 웹 개발, JavaScript, React, Next.js 관련 기술 포스트를 공유합니다.',
  icons: {
   icon: '/favicon/favicon-16x16.png',
   shortcut: '/favicon/favicon-16x16.png',
   apple: '/favicon/apple-touch-icon.png',
  },
  openGraph: {
-  title: 'Stoic Park - 개발 블로그',
+  title: '박성택 개발 블로그',
   description:
-   'Stoic Park의 개발 블로그입니다. 웹 개발, JavaScript, React, Next.js 관련 기술 포스트를 공유합니다.',
+   '박성택의 개발 블로그입니다. 웹 개발, JavaScript, React, Next.js 관련 기술 포스트를 공유합니다.',
   url: baseUrl,
-  siteName: 'Stoic Park Blog',
+  siteName: '박성택 개발 블로그',
   locale: 'ko_KR',
   type: 'website',
   images: [
@@ -50,7 +50,11 @@ export const metadata: Metadata = {
   },
  },
  keywords: [
-  'Stoic Park',
+  '박성택',
+  '박성택 개발 블로그',
+  'stoic-park',
+  'frontend',
+  '프론트엔드',
   '개발 블로그',
   '웹 개발',
   'JavaScript',
