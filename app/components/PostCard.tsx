@@ -17,7 +17,7 @@ export function PostCard({ slug, metadata }: PostCardProps) {
  return (
   <Link
    href={`/post/${slug}`}
-   className="flex bg-white dark:bg-neutral-900 rounded-xl overflow-hidden hover:bg-neutral-50 dark:hover:bg-neutral-800 transition-colors"
+   className="flex bg-neutral-100 dark:bg-neutral-900 rounded-xl overflow-hidden hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
   >
    {metadata.image && (
     <div className="relative w-72 h-48">
