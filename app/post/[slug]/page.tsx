@@ -5,6 +5,7 @@ import { baseUrl } from 'app/sitemap'
 import { SeriesNavigation } from 'app/components/SeriesNavigation'
 import { extractTocFromMdx } from 'app/post/utils'
 import { TocSidebar } from 'app/components/ToCSiderbar'
+import DemoPdfBox from '../../components/DemoPdfBox'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -101,7 +102,7 @@ export default function Blog({ params }) {
    </div>
    <article className="prose dark:prose-invert max-w-none prose-lg">
     <SeriesNavigation post={post} />
-    <CustomMDX source={post.content} />
+    <CustomMDX source={post.content} components={{ DemoPdfBox }} />
     {/* <div style={{ flex: 1 }}>
      <SeriesNavigation post={post} />
      <CustomMDX source={post.content} />
