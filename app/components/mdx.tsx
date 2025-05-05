@@ -4,6 +4,9 @@ import { MDXRemote } from 'next-mdx-remote/rsc'
 import { highlight } from 'sugar-high'
 import React from 'react'
 import { slugify } from 'app/post/utils'
+import { CodeBlock } from './CustomComponents/CodeBlock'
+import { PreBlock } from './CustomComponents/PreBlock'
+
 function Table({ data }) {
  let headers = data.headers.map((header, index) => (
   <th key={index} className="px-4 py-2 bg-gray-400 text-left font-semibold">
@@ -52,10 +55,10 @@ function RoundedImage(props) {
  return <Image alt={props.alt} className="rounded-lg" {...props} />
 }
 
-function Code({ children, ...props }) {
- let codeHTML = highlight(children)
- return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
-}
+// function Code({ children, ...props }) {
+//  let codeHTML = highlight(children)
+//  return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
+// }
 
 function createHeading(level) {
  const Heading = ({ children }) => {
@@ -88,7 +91,9 @@ let components = {
  h6: createHeading(6),
  Image: RoundedImage,
  a: CustomLink,
- code: Code,
+ code: CodeBlock,
+ pre: PreBlock,
+ //  code: Code,
  Table,
 }
 
