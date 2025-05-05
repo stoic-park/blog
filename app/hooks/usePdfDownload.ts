@@ -1,4 +1,4 @@
-import { RefObject, useRef, useState, useEffect, useCallback } from 'react'
+import { RefObject, useCallback, useState } from 'react'
 import html2canvas from 'html2canvas'
 import jsPDF from 'jspdf'
 
@@ -11,114 +11,57 @@ export const usePdfDownload = <T extends HTMLElement>({
  filename?: string
  onBeforeDownload?: () => Promise<void> | void
 }) => {
- const jsPDFRef = useRef<jsPDF | null>(null)
- const [pixelRatio, setPixelRatio] = useState(window.devicePixelRatio)
  const [loading, setLoading] = useState(false)
 
- useEffect(() => {
-  jsPDFRef.current = new jsPDF('p', 'mm', 'a4')
- }, [])
-
- useEffect(() => {
-  const handleResize = () => {
-   setPixelRatio(window.devicePixelRatio)
-  }
-  window.addEventListener('resize', handleResize)
-  return () => window.removeEventListener('resize', handleResize)
- }, [])
-
  const download = useCallback(async () => {
-  if (!ref.current) return
-  setLoading(true)
+  if (!ref.current || typeof window === 'undefined') return
 
   try {
-   await document.fonts.ready
-   if (onBeforeDownload) await onBeforeDownload()
+   setLoading(true)
 
-   const doc = jsPDFRef.current
-   const element = ref.current
+   // 다운로드 전 실행할 작업이 있다면 실행
+   if (onBeforeDownload) {
+    await onBeforeDownload()
+   }
 
-   // 컨텐츠의 실제 크기를 가져옵니다
-   const width = element.offsetWidth
-   const height = element.offsetHeight
-
-   // A4 비율에 맞게 스케일을 계산합니다
-   const A4_WIDTH_MM = 210
-   const A4_HEIGHT_MM = 297
-   const pxPerMm = 72 / 25.4
-
-   // 컨텐츠의 비율을 유지하면서 A4에 맞게 스케일을 조정
-   const scale =
-    Math.min(
-     (A4_WIDTH_MM * pxPerMm) / width,
-     (A4_HEIGHT_MM * pxPerMm) / height,
-    ) * 2 // 2배 해상도로 캡처
-
-   const canvas = await html2canvas(element, {
+   // 고해상도 대응을 위한 scale 설정
+   const scale = window.devicePixelRatio
+   const canvas = await html2canvas(ref.current, {
     scale,
     useCORS: true,
     logging: false,
-    allowTaint: true,
-    backgroundColor: '#ffffff',
    })
 
-   const imgWidth = canvas.width
-   const imgHeight = canvas.height
-   const pageHeight = A4_HEIGHT_MM * pxPerMm
+   // PDF 생성
+   const pdf = new jsPDF({
+    orientation: 'portrait',
+    unit: 'mm',
+    format: 'a4',
+   })
 
-   let remainingHeight = imgHeight
-   let positionY = 0
-   let pageNum = 0
+   // 이미지 크기 계산
+   const imgWidth = 210 // A4 width in mm
+   const imgHeight = (canvas.height * imgWidth) / canvas.width
 
-   while (remainingHeight > 0) {
-    const sliceHeight = Math.min(pageHeight, remainingHeight)
+   // PDF에 이미지 추가
+   pdf.addImage(
+    canvas.toDataURL('image/jpeg', 1.0),
+    'JPEG',
+    0,
+    0,
+    imgWidth,
+    imgHeight,
+   )
 
-    const pageCanvas = document.createElement('canvas')
-    const pageCtx = pageCanvas.getContext('2d')!
-
-    pageCanvas.width = imgWidth
-    pageCanvas.height = sliceHeight
-
-    pageCtx.drawImage(
-     canvas,
-     0,
-     positionY,
-     imgWidth,
-     sliceHeight,
-     0,
-     0,
-     imgWidth,
-     sliceHeight,
-    )
-
-    const pageImgData = pageCanvas.toDataURL('image/jpeg', 1.0)
-    if (pageNum > 0) doc?.addPage()
-
-    // PDF 페이지 크기를 컨텐츠에 맞게 조정
-    const pdfWidth = A4_WIDTH_MM
-    const pdfHeight = (sliceHeight / imgWidth) * pdfWidth
-
-    doc?.addImage(
-     pageImgData,
-     'JPEG',
-     0,
-     0,
-     pdfWidth,
-     pdfHeight,
-     undefined,
-     'FAST',
-    )
-
-    remainingHeight -= sliceHeight
-    positionY += sliceHeight
-    pageNum++
-   }
-
-   doc?.save(filename)
+   // PDF 저장
+   pdf.save(filename)
+  } catch (error) {
+   console.error('PDF 다운로드 중 오류 발생:', error)
+   throw error
   } finally {
    setLoading(false)
   }
  }, [ref, filename, onBeforeDownload])
 
- return { download, loading, zoom: 1 / pixelRatio }
+ return { download, loading }
 }

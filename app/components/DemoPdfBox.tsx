@@ -1,11 +1,27 @@
-// components/DemoPdfBox.tsx
 'use client'
-import { useRef } from 'react'
+
+import { useRef, useState, useEffect } from 'react'
 import { usePdfDownload } from 'app/hooks/usePdfDownload'
 
 export default function DemoPdfBox() {
  const ref = useRef<HTMLDivElement>(null)
- const { download, loading } = usePdfDownload({ ref, filename: 'demo.pdf' })
+ const [isClient, setIsClient] = useState(false)
+ const { download, loading } = usePdfDownload({
+  ref,
+  filename: 'demo.pdf',
+ })
+
+ useEffect(() => {
+  setIsClient(true)
+ }, [])
+
+ if (!isClient) {
+  return (
+   <div className="p-6 bg-white rounded shadow-md text-center">
+    <p className="text-gray-500">PDF 다운로드 기능을 로딩 중입니다...</p>
+   </div>
+  )
+ }
 
  return (
   <div className="space-y-4">

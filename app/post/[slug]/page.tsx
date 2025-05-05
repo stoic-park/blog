@@ -4,7 +4,6 @@ import { formatDate, getBlogPosts } from 'app/post/utils'
 import { baseUrl } from 'app/sitemap'
 import { SeriesNavigation } from 'app/components/SeriesNavigation'
 import { extractTocFromMdx } from 'app/post/utils'
-import { TocSidebar } from 'app/components/ToCSiderbar'
 import DemoPdfBox from '../../components/DemoPdfBox'
 
 export async function generateStaticParams() {
