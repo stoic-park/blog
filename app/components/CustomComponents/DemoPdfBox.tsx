@@ -25,7 +25,11 @@ export default function DemoPdfBox() {
 
  return (
   <div className="space-y-4">
-   <div ref={ref} className="p-6 bg-white rounded shadow-md text-center">
+   <div
+    ref={ref}
+    className="p-6 bg-white rounded shadow-md text-center"
+    style={{ backgroundColor: 'white' }}
+   >
     <h2 className="text-xl font-semibold">이 박스를 PDF로 저장할 수 있어요!</h2>
     <p className="text-gray-500">스타일, 폰트, 배경 모두 캡처됩니다.</p>
    </div>

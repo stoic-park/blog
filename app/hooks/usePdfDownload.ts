@@ -30,6 +30,7 @@ export const usePdfDownload = <T extends HTMLElement>({
     scale,
     useCORS: true,
     logging: false,
+    backgroundColor: '#fff',
    })
 
    // PDF 생성

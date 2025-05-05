@@ -2,9 +2,10 @@ import { notFound } from 'next/navigation'
 import { CustomMDX } from 'app/components/mdx'
 import { formatDate, getBlogPosts } from 'app/post/utils'
 import { baseUrl } from 'app/sitemap'
-import { SeriesNavigation } from 'app/components/SeriesNavigation'
+import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigation'
 import { extractTocFromMdx } from 'app/post/utils'
-import DemoPdfBox from '../../components/DemoPdfBox'
+import DemoPdfBox from '../../components/CustomComponents/DemoPdfBox'
+import Giscus from 'app/components/CustomComponents/Giscus'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -102,13 +103,7 @@ export default function Blog({ params }) {
    <article className="prose dark:prose-invert max-w-none prose-lg">
     <SeriesNavigation post={post} />
     <CustomMDX source={post.content} components={{ DemoPdfBox }} />
-    {/* <div style={{ flex: 1 }}>
-     <SeriesNavigation post={post} />
-     <CustomMDX source={post.content} />
-    </div>
-    <div style={{ width: 250, marginLeft: 32 }}>
-     <TocSidebar toc={toc} />
-    </div> */}
+    <Giscus />
    </article>
   </section>
  )
