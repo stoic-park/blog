@@ -1,0 +1,196 @@
+---
+title: 'Figma 디자인 토큰을 vanilla-extract로 변환하기'
+publishedAt: '2025-05-05'
+summary: 'Figma 디자인 토큰을 vanilla-extract로 변환한 자동화 경험을 공유합니다.'
+tags: '#Figma, #vanilla-extract, #React, #디자인토큰, #디자인시스템'
+author: 'Stoic Park'
+readingTime: '5분'
+draft: true
+---
+
+디자인 시스템을 코드로 옮기는 과정에서 가장 시간이 많이 들고 반복적인 작업 중 하나는 **디자인 토큰을 개발 코드에 반영하는 일**입니다.
+
+저희 팀은 Figma에서 [**Tokens Studio for Figma**](https://tokens.studio/) 플러그인을 통해 색상, 여백, 폰트 등의 토큰을 관리하고 있었는데,  
+이를 vanilla-extract 스타일로 변환하는 작업은 매번 수동으로 작성해야 했고,  
+구조가 바뀌거나 값이 수정될 때마다 다시 정리해야 하는 번거로움이 있었습니다.
+
+그래서 이를 자동화해보기로 했습니다.
+
+## 🎨 Tokens Studio for Figma란?
+
+> **Tokens Studio**는 Figma 내에서 디자인 토큰을 생성·편집·관리할 수 있는 강력한 플러그인입니다.
+
+디자이너는 Tokens Studio를 통해 색상, 타이포그래피, 간격, 그림자 등 다양한 스타일 정보를 **디자인 토큰**으로 정의하고,  
+이를 JSON 형태로 export하여 개발자와 쉽게 공유할 수 있습니다.
+
+![토큰 종류 설정 화면](https://tse3.mm.bing.net/th?id=OIP.wRPDh2Pje15forSnX-RZ_gHaEG&pid=Api)
+
+**핵심 기능:**
+
+- 다계층 토큰 구조 관리 (`color.primary`, `spacing.large` 등)
+- JSON으로 export (Style Dictionary 포맷 포함)
+- GitHub 연동 가능
+- Typography, Shadows, Border 등 확장 가능
+
+Figma 내에서 바로 사용할 수 있으며, 디자인 시스템을 개발과 연결하는 실질적인 다리 역할을 합니다.
+
+## 📦 도입 배경
+
+디자인 시스템을 처음 도입했을 당시, 디자이너 분이 Figma 경험이 없었기 때문에  
+피그마에 있는 UI를 보며 프론트엔드 팀이 직접 스타일을 입히는 방식으로 작업을 진행했습니다.
+
+하지만 이런 방식은 **디자인 시스템의 이점을 살리지 못하고**,  
+디자이너와 개발자 사이의 **의도 전달 오차**도 잦아졌습니다.
+
+특히 문제가 되었던 점은 다음과 같았습니다:
+
+1. 디자이너의 Figma 사용 러닝커브
+2. 디자인 변경사항을 매번 수작업으로 코드에 반영해야 함
+3. 협업 비용 증가
+
+당시 디자이너가 1명이고 여러 제품을 동시에 맡고 있어, **디자인 시스템에 리소스를 많이 투자하기 어려운 상황**이었습니다.  
+그럼에도 불구하고, **프론트엔드 팀 내부적으로는 디자인 시스템에 대한 갈망이 있었고**,  
+최대한 리소스를 덜 들이면서도 도입할 수 있는 방안을 고민했습니다.
+
+그 결과, **Tokens Studio for Figma**를 도입하게 되었습니다.
+
+## ✍️ 수동 방식 기반 스크립트 개발
+
+Tokens Studio에서는 다음과 같은 구조의 JSON을 export할 수 있습니다:
+
+```json
+{
+ "color": {
+  "primary": { "value": "#FF0000" },
+  "secondary": { "value": "#00FF00" }
+ }
+}
+```
+
+그러나 vanilla-extract에서는 다음과 같은 형태의 코드가 필요합니다:
+
+```ts
+export const vars = createGlobalTheme(':root', {
+ color: {
+  primary: '#FF0000',
+  secondary: '#00FF00',
+ },
+})
+```
+
+이를 수작업으로 매번 변환하는 것은 비효율적이기 때문에,  
+JSON 파일을 읽어 자동으로 vanilla-extract 코드로 변환하는 스크립트를 작성했습니다.
+
+### 🧪 변환 스크립트 요약
+
+```ts
+// 1. JSON 구조 평탄화
+function flattenTokens(json: any, path: string[] = []) {
+ return Object.entries(json).flatMap(([key, value]) => {
+  if (value?.value) {
+   return [{ path: [...path, key], value: value.value }]
+  }
+  return flattenTokens(value, [...path, key])
+ })
+}
+
+// 2. 중첩 구조로 복원
+function nestTokens(flatTokens: { path: string[]; value: string }[]) {
+ const nested: Record<string, any> = {}
+ for (const { path, value } of flatTokens) {
+  let curr = nested
+  path.forEach((key, idx) => {
+   if (idx === path.length - 1) {
+    curr[key] = value
+   } else {
+    curr[key] = curr[key] || {}
+    curr = curr[key]
+   }
+  })
+ }
+ return nested
+}
+
+// 3. vanilla-extract 코드 생성
+function generateThemeCode(nested: object) {
+ return `import { createGlobalTheme } from '@vanilla-extract/css';
+
+export const vars = createGlobalTheme(':root', ${JSON.stringify(nested, null, 2)});
+`
+}
+```
+
+### ⚙️ 스크립트 실행 예시
+
+```ts
+import fs from 'fs'
+
+const raw = JSON.parse(fs.readFileSync('./tokens.json', 'utf-8'))
+const flat = flattenTokens(raw)
+const nested = nestTokens(flat)
+const output = generateThemeCode(nested)
+
+fs.writeFileSync('./styles/tokens.css.ts', output)
+```
+
+## 🛠 변환 결과 및 적용 방식
+
+이 스크립트를 통해 매번 `tokens.json`만 갱신하면 `tokens.css.ts` 파일이 자동으로 생성되고,  
+아래처럼 프로젝트 코드에 바로 사용할 수 있습니다:
+
+```ts
+import { vars } from './tokens.css.ts'
+
+style({
+ backgroundColor: vars.color.primary,
+})
+```
+
+디자인 토큰을 **일관성 있게 유지**할 수 있었고,  
+수정사항도 쉽게 반영할 수 있어 **디자인 시스템 유지보수 비용을 줄일 수 있었습니다**.
+
+## 🤖 GitHub Actions 기반 자동화 도입
+
+추후, 개인적으로 GitHub Actions를 활용해  
+디자인팀이 `tokens.json`을 갱신할 때마다 `tokens.css.ts`가 자동 생성되도록 개선해보았습니다.
+
+```yaml
+# .github/workflows/generate-tokens.yml
+name: Generate Tokens
+
+on:
+  push:
+    paths:
+      - 'design-tokens/tokens.json'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 18
+      - run: npm ci
+      - run: npm run generate:tokens
+      - run: git config user.name 'github-actions'
+      - run: git config user.email 'actions@github.com'
+      - run: git add styles/tokens.css.ts
+      - run: git commit -m 'chore: auto generate tokens' || echo "No changes"
+      - run: git push
+```
+
+이렇게 자동화하고 나니 디자인 시스템이 **더 유연하게 유지관리**되고,  
+디자인-개발 간 협업 비용도 줄어드는 효과를 체감할 수 있었습니다.
+
+## ✅ 마무리 및 회고
+
+- **Tokens Studio**를 통해 디자이너가 관리한 디자인 토큰을
+- **간단한 Node 스크립트**로 vanilla-extract 코드로 변환하고
+- **GitHub Actions**로 자동화까지 확장한 경험을 통해
+
+**실제 디자인 시스템 구축/유지보수 시 발생하는 문제들을 자연스럽게 해결**할 수 있었습니다.
+
+디자인-개발 협업을 체계화하고 싶은 팀이라면 Tokens Studio와 vanilla-extract 조합을 적극 추천드립니다.
+
+향후에는 Tokens Studio의 API나 Style Dictionary 기반의 확장도 검토하고 있습니다.
