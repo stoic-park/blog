@@ -8,6 +8,7 @@ type Metadata = {
  image?: string
  tags?: string[]
  readingTime?: string
+ draft?: boolean
  series?: {
   name: string
   order: number
@@ -88,7 +89,14 @@ function getMDXData(dir) {
 }
 
 export function getBlogPosts() {
- return getMDXData(path.join(process.cwd(), 'posts'))
+ const posts = getMDXData(path.join(process.cwd(), 'posts'))
+
+ // 프로덕션 환경에서는 draft: true인 포스트를 필터링
+ if (process.env.NODE_ENV === 'production') {
+  return posts.filter((post) => !post.metadata.draft)
+ }
+
+ return posts
 }
 
 export function formatDate(date: string, includeRelative = false) {
