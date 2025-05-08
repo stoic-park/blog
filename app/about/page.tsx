@@ -15,7 +15,7 @@ export default function Page() {
     <div className="border-b pb-8 text-center">
      <h1 className="text-4xl font-bold tracking-tight mb-4">박성택</h1>
      <p className="text-xl text-gray-600 dark:text-gray-400 mb-4">
-      4년차 프론트엔드 개발자
+      프론트엔드 개발자
      </p>
      {/* Social Links */}
      <div className="flex justify-center gap-6 pt-4">
