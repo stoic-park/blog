@@ -99,11 +99,12 @@ html {
 }
 
 .prose blockquote {
- @apply pl-4 border-l-4 border-neutral-300 dark:border-neutral-600 my-4;
+ @apply pl-4 border-l-4 my-4;
  color: theme('colors.neutral.700');
  background-color: #f8f9fa;
  padding: 1rem;
  border-radius: 0.25rem;
+ border-color: theme('colors.neutral.300');
 }
 
 .prose ul {
@@ -145,8 +146,8 @@ html {
   border-color: theme('colors.neutral.800');
  }
 
- .prose blockquote {
-  background-color: theme('colors.neutral.900');
+ .prose blockquote p {
+  color: theme('colors.neutral.300') !important;
  }
 }
 
@@ -280,4 +281,8 @@ table {
 .prose pre + p,
 .prose pre + ul {
  @apply mt-4;
+}
+
+.prose blockquote {
+ @apply pl-4 border-l-4 my-4 bg-neutral-100 text-neutral-700 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-600;
 }
