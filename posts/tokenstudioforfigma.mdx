@@ -1,11 +1,11 @@
 ---
 title: 'Figma 디자인 토큰을 vanilla-extract로 변환하기'
-publishedAt: '2025-05-05'
+publishedAt: '2025-03-05'
 summary: 'Figma 디자인 토큰을 vanilla-extract로 변환한 자동화 경험을 공유합니다.'
 tags: '#Figma, #vanilla-extract, #React, #디자인토큰, #디자인시스템'
 author: 'Stoic Park'
 readingTime: '5분'
-draft: true
+draft: false
 ---
 
 디자인 시스템을 코드로 옮기는 과정에서 가장 시간이 많이 들고 반복적인 작업 중 하나는 **디자인 토큰을 개발 코드에 반영하는 일**입니다.
@@ -170,39 +170,6 @@ export const buttonStyle = style({
 이처럼 디자인 시스템이 점점 확장될수록 토큰 기반 스타일 관리가 더욱 유리하며, 컴포넌트 재사용성과 유지보수성을 높이는 데 큰 역할을 합니다.
 
 ---
-
-### 📸 사용 예시 스크린샷 소개
-
-### 🖼️ Tokens Studio 설정 화면
-
-<Image
- src="/images/tokens_image_1.jpg"
- alt="Tokens Studio 토큰 설정 화면"
- width={800}
- height={450}
-/>
-
-Tokens Studio에서 색상, 타이포그래피, 간격 등의 토큰을 정의하고 관리하는 화면입니다. 실제 디자인 토큰이 어떻게 시각화되고 구성되는지를 확인할 수 있습니다.
-
-### 🖼️ 토큰 JSON 내보내기
-
-<Image
- src="/images/tokens_image_2.jpg"
- alt="Tokens Studio JSON Export 화면"
- width={800}
- height={450}
-/>
-
-정의된 토큰을 JSON 형식으로 내보내는 과정입니다. 이 데이터를 기반으로 vanilla-extract 테마 파일을 자동 생성할 수 있습니다.
-
-### 🖼️ 디자인 토큰 적용 전후 UI 예시
-
-<Image
- src="/images/tokens_image_3.jpg"
- alt="디자인 토큰 적용 전후 UI"
- width={800}
- height={450}
-/>
 
 컴포넌트에 토큰을 적용하기 전과 후의 UI 예시입니다. 색상, 간격 등이 토큰을 통해 일관되게 적용된 모습을 확인할 수 있습니다.
 
