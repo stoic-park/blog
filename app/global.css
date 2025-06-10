@@ -133,7 +133,7 @@ html {
 
 .prose img {
  @apply max-w-full rounded-lg my-4;
- border: 1px solid #e1e4e8;
+ /* border: 1px solid #e1e4e8; */
 }
 
 .prose hr {
