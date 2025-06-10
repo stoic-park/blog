@@ -132,7 +132,7 @@ html {
 }
 
 .prose img {
- @apply max-w-full rounded-lg my-4;
+ @apply max-w-full rounded-sm my-4;
  /* border: 1px solid #e1e4e8; */
 }
 
@@ -285,4 +285,9 @@ table {
 
 .prose blockquote {
  @apply pl-4 border-l-4 my-4 bg-neutral-100 text-neutral-700 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-600;
+}
+
+.prose del {
+ text-decoration: line-through;
+ color: #888;
 }
