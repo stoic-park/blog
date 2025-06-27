@@ -1,0 +1,285 @@
+---
+title: '프론트엔드 개발자의 Cursor.ai 사용기'
+publishedAt: '2025-06-26'
+summary: 'Cursor.ai 에 대해서 알아보자'
+tags: '#Cursor.ai, #AI, #Cursor'
+author: 'Stoic Park'
+readingTime: '5분'
+---
+
+최근 동료 개발자들과 대화를 나누다 보면 자연스럽게 AI 툴 이야기가 나옵니다.
+
+작년까지만 해도 **"코파일럿이 코드를 대신 짜준다더라"**, **"피그마 디자인을 자동으로 React 컴포넌트로 만들어준다더라"** 같은 소문들이 들려왔습니다.
+그때는 속으로 **'아직은 시기상조 아닐까?'** 하며 다소 방어적인 태도를 보였던 것 같습니다.
+
+실제로 피그마 디자인을 리액트 컴포넌트로 만들어주는 툴을 사용했을 때, 아직 사용함에 있어서 아쉬운 부분들이 많이 다가와, 아직이구나 하는 생각이 들었더랬습니다.
+그래서 오늘은 프론트엔드 개발자인 제가 Cursor AI를 어떻게 활용하고 있는지 스스로 돌아보는 시간을 가져보려 합니다.
+
+하지만 지금은 어떨까요?
+
+노트북을 켜고 작업을 시작할 때면 자연스럽게 Cursor AI를 실행하고 채팅창을 여는 것이 일상이 되었습니다.
+
+예전에는 구글 검색으로 자료를 찾고 투두리스트를 작성하며 하루를 시작했다면, 이제는 GPT와 Cursor AI를 켜고 마치 오랜 동료와 대화하듯 작업을 시작합니다.
+
+그래서 오늘은 프론트엔드 개발자인 제가 Cursor AI를 어떻게 활용하고 있는지 스스로 돌아보는 시간을 가져보려 합니다.
+
+분명 저보다 훨씬 능숙하게 사용하시는 분들이 많을 테지만, 혹시 이 글을 읽는 누군가가 작은 꿀팁이라도 얻어가실 수 있다면 좋겠다는 마음으로 경험을 공유해보겠습니다.
+
+<div className="flex flex-col items-center justify-center p-8">
+ <Image
+  src="/images/cursor_image02.png"
+  alt="Cursor.ai"
+  width={800}
+  height={400}
+  className="p-4"
+ />
+ <span>Cursor.ai 공식 홈페이지</span>
+</div>
+
+## 1. Cursor.ai란 무엇인가?
+
+> Built to make you extraordinarily productive, Cursor is the best way to code with AI.
+
+**Cursor.ai**는 Visual Studio Code 기반의 코드 에디터에 **GPT-4** 및 **Claude**와 같은 최신 AI 모델을 통합한 도구입니다.
+기존 GitHub Copilot과 가장 크게 다른 점은 **맥락 인식 능력**입니다. Cursor는 프로젝트의 전체 구조를 이해하고, 더 일관된 코드 제안과 리팩토링을 수행할 수 있습니다.
+
+### Cursor.ai의 특징
+
+Cursor.ai 가 자랑하는 특징들에 대해서 간단히 알아보겠습니다.
+
+<Table
+ data={{
+  headers: ['기능', '설명'],
+  rows: [
+   [
+    'Tab',
+    '강력한 자동 완성 기능, 최근 변경 사항을 고려해 여러 줄에 걸쳐 수정 사항을 제안',
+   ],
+   ['Agent', '코드에 대한 질문 및 리팩토링 요청 가능'],
+   ['Inline Edit', '실시간 코드 자동완성'],
+  ],
+ }}
+ className="w-full border-collapse border border-gray-300 text-left text-sm"
+/>
+
+---
+
+## 3. 왜 프론트엔드 개발자에게 적합할까?
+
+저는 다음과 같은 경우에 Cursor.ai의 도움을 받고 있습니다.
+
+> 내가 할 수 있는 것부터, 할 수 없는 것 까지!
+
+많은 부분에서 Cursor.ai를 사용하곤 합니다.
+
+전체적으로 돌아보면 아래와 같은 부분에서 프론트엔드 개발자들은 도움을 받을 수 있습니다.
+
+- **즉각적인 피드백 루프**: 브라우저에서 코드 결과를 빠르게 검증 가능
+- **패턴 기반 구조**: React 등 컴포넌트 기반 프레임워크에 익숙
+- **생태계 지식 내장**: npm, Tailwind, Formik 등 다양한 라이브러리에 대한 사전 지식
+- **UI 반복 작업의 자동화**: CRUD, Modal, Form 등 자주 쓰이는 패턴을 빠르게 생성
+
+---
+
+## 4. 사용 예시
+
+다양한 곳에서 Cursor.ai의 도움을 받을 수 있지만, 저는 주로 아래와 같은 부분에서 도움을 받고 있습니다.
+
+### 리팩토링
+
+> 요청: "이 코드의 상태 관리 로직을 커스텀 훅으로 분리해줘."
+
+```javascript
+// hooks/useUser.js
+export const useUser = () => {
+ const [user, setUser] = useState(null)
+ const [loading, setLoading] = useState(false)
+ const [error, setError] = useState(null)
+
+ const fetchUser = useCallback(async (userId) => {
+  setLoading(true)
+  setError(null)
+  try {
+   const response = await api.getUser(userId)
+   setUser(response.data)
+  } catch (err) {
+   setError(err.message)
+  } finally {
+   setLoading(false)
+  }
+ }, [])
+
+ return { user, loading, error, fetchUser }
+}
+```
+
+### 테스트 코드 자동 생성
+
+번거로운? 테스트 코드를 작성함에 있어서 특히나 많은 도움을 받을 수 있습니다.
+저는 주로 반복적인 내용이 포함된 단위 테스트 코드를 작성할 때에 많은 도움을 받을 수 있었습니다.
+필수로 들어가야할 조건을 명시해준다면 높은 정확도의 테스트 코드를 뚝딱. 생성할 수 있습니다.
+
+> 요청: "로딩, 성공, 에러 상태를 테스트하는 코드를 작성해줘."
+
+```javascript
+// UserProfile.test.jsx
+import { render, screen, waitFor } from '@testing-library/react'
+import { UserProfile } from './UserProfile'
+import * as api from '../api'
+
+jest.mock('../api')
+
+describe('UserProfile', () => {
+ beforeEach(() => {
+  jest.clearAllMocks()
+ })
+
+ it('displays loading state initially', () => {
+  render(<UserProfile userId="123" />)
+  expect(screen.getByText('Loading...')).toBeInTheDocument()
+ })
+
+ it('displays user data on successful fetch', async () => {
+  const mockUser = { id: '123', name: 'John Doe', email: 'john@example.com' }
+  api.getUser.mockResolvedValue({ data: mockUser })
+
+  render(<UserProfile userId="123" />)
+
+  await waitFor(() => {
+   expect(screen.getByText('John Doe')).toBeInTheDocument()
+   expect(screen.getByText('john@example.com')).toBeInTheDocument()
+  })
+ })
+
+ it('displays error message on fetch failure', async () => {
+  api.getUser.mockRejectedValue(new Error('Failed to fetch user'))
+
+  render(<UserProfile userId="123" />)
+
+  await waitFor(() => {
+   expect(screen.getByText('Failed to fetch user')).toBeInTheDocument()
+  })
+ })
+})
+```
+
+### UI 구조화 자동화
+
+> 요청: "아바타, 개인정보, 소셜 링크로 구성된 프로필 편집 폼을 만들어줘. 섹션별 컴포넌트로 분리해줘."
+
+→ 자동으로 디렉토리 및 파일 구조 생성:
+
+```
+components/
+├── ProfileEditForm/
+│   ├── index.jsx
+│   ├── AvatarUpload.jsx
+│   ├── PersonalInfo.jsx
+│   ├── SocialLinks.jsx
+│   └── ProfileEditForm.styles.js
+```
+
+---
+
+## 5. 주요 기능
+
+### @명령어로 멀티 컨텍스트 지정하기
+
+제가 커서를 사용하면서 가장 마음에 드는 부분 중 하나입니다.
+
+`@` 명령어를 통해서 진행할 작업과 연관된 여러 파일들을 명시해주면 커서는 그 파일들을 참고하여 작업을 진행합니다.
+
+```text
+@components/Button.jsx
+@src/utils
+@package.json
+```
+
+> 예: "@components/Button.jsx 이 버튼 컴포넌트와 일관성 있는 스타일로 Input 컴포넌트를 만들어줘."
+
+<div className="flex flex-col items-center justify-center p-8">
+ <Image
+  src="/images/cursor_image01.png"
+  alt="멀티 컨텍스트 지정"
+  width={400}
+  height={200}
+  className="p-4"
+ />
+</div>
+
+### Cursor Rules로 프로젝트 가이드라인 설정하기
+
+Cursor Rules는 프로젝트의 코딩 스타일과 규칙을 AI에게 알려주는 설정입니다. `.cursorrules` 파일을 프로젝트 루트에 생성하여 사용할 수 있습니다.
+
+```text
+# .cursorrules 예시
+- TypeScript를 사용하세요
+- 함수형 컴포넌트를 선호합니다
+- Tailwind CSS를 사용하세요
+- 컴포넌트는 PascalCase로 명명하세요
+- 훅은 use로 시작하세요
+- 에러 처리는 try-catch를 사용하세요
+- 테스트 코드는 Jest와 React Testing Library를 사용하세요
+```
+
+이렇게 설정해두면 AI가 코드를 생성할 때 프로젝트의 일관된 스타일을 유지할 수 있습니다.
+
+### Composer로 기능 통합 요청하기
+
+> 요청: "Redux Toolkit 기반 쇼핑카트 기능 구현. 상태 관리, localStorage 연동, 수량 변경, 삭제, TypeScript 적용, 반응형 디자인 포함해줘."
+
+→ 생성되는 예시 파일:
+
+- `store/cartSlice.ts`
+- `components/Cart/CartItem.tsx`
+- `components/Cart/CartSummary.tsx`
+- `hooks/useLocalStorage.ts`
+- `types/cart.ts`
+
+### CLI로 프로젝트 통합
+
+터미널에서 `cursor .` 명령어를 실행하면 현재 디렉토리를 Cursor에서 열 수 있습니다.
+
+```bash
+cursor .
+```
+
+이 명령어는 다음과 같은 상황에서 유용합니다:
+
+- **프로젝트 초기 설정**: 새 프로젝트를 Cursor로 열 때
+- **기존 프로젝트 열기**: 이미 작업 중인 프로젝트를 Cursor에서 계속 작업할 때
+- **AI 컨텍스트 제공**: 전체 프로젝트 구조를 AI가 이해할 수 있게 해줌
+
+Cursor는 프로젝트의 전체 구조를 파악하고, `package.json`, 설정 파일들, 기존 코드들을 모두 참고하여 더 정확한 제안을 할 수 있습니다.
+
+---
+
+## 6. 마치며
+
+저는 Cursor.ai를 이렇게 표현하고 싶습니다.
+
+**나만의 페어프로그래밍 듀오!**
+
+고민과 행동 사이의 시간을 명확히 단축시켜주고, 반복적인 구현을 줄이고, 개발자가 더 중요한 일에 집중할 수 있게 도와줍니다.
+
+특히 프론트엔드 개발자인 저는 많은 도움을 받고 있습니다.
+
+하지만 진행을 하면서 느끼는 것은, 여전히 코드의 정확성, 보안성, 사용성 부분에서 **명확한 개발자의 판단**이 필요하다는 것입니다.
+
+커서와 대화를 하다보면 가끔 말이 통하지 않을 때가 많습니다.
+
+사이가 안 좋아지기도 하는데요?
+
+화를 삭히고 보면 결국 내가 제대로 지시하지 못했구나 하는 결론에 도달하게 됩니다.
+
+이러한 부분에서 프론트엔드 개발자는 단순 커서가 아니더라도 AI 도구를 잘! 사용할 줄 알아야 한다고 생각합니다.
+
+하단에 도움이 될만한 링크를 첨부해 두겠습니다. 보다 슬기로운 Cursor.ai 생활이 되길 바래봅니다..!
+
+{/* > **다음 글 예고**: Cursor vs Copilot vs WindSurf – 어떤 AI 도구가 나에게 맞을까? */}
+
+### 레퍼런스
+
+- [Cursor.ai 공식 홈페이지](https://www.cursor.com/)
+- [12 Tips for Smarter Cursor Usage](https://www.stdy.blog/12-tips-for-smarter-cursor-usage/)
+- [개발 속도를 10배 올리는 Cursor AI 세팅법](https://digitalbourgeois.tistory.com/1425)
