@@ -1,12 +1,20 @@
 ---
 title: 'MCP 맛보기'
 publishedAt: '2025-07-16'
-summary: 'MCP에 대해서, '
-tags: '#MCP, #AI'
+summary: 'MCP에 대해서 그리고 Figma MCP + Cursor로 UI컴포넌트 생성해보기'
+tags: '#MCP, #AI, #Figma, #Cursor, #Frontend'
 author: 'Stoic Park'
 readingTime: '5분'
-draft: true
 ---
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="100%"
+  height="auto"
+  alt="Image"
+  src="/images/2025-07-23-11-55-07.png"
+ />
+</div>
 
 ## MCP가 뭘까
 
@@ -129,15 +137,16 @@ LLM에 대해서 잘 모르는 제가 이해한 바로 비유해서 설명해보
 ## MCP 사용해보기
 
 어느정도 MCP에 대해서 알게 된 것 같습니다.
+
 그렇다면 실제로는 어떻게 사용되는지 한번 알아보도록 하겠습니다.
 
-제가 사용하는 AI 에디터인 Cursor.ai 를 기준으로 살펴보도록 하겠습니다.
+제가 사용하는 AI 에디터인 `Cursor.ai` 를 기준으로 살펴보겠습니다.
 
 {/* 그럼 MCP 관점에서 Cursor가 어떤 식으로 동작하고, 어떻게 Claude나 GPT와 연결되는지를 예시로 설명드릴게요. */}
 
-MCP 관점에서 Cursor는 Claude, GPT-4, Mixtral 등을 백엔드로 사용하는 AI 기반 코드 에디터 입니다.
+MCP 관점에서 `Cursor`는 `Claude`, `GPT-4`, `Mixtral` 등을 백엔드로 사용하는 AI 기반 코드 에디터 입니다.
 
-그 자체로 MCP 호스트 역할을 하는 것이지요!
+그 자체로 <strong>MCP 호스트 역할</strong>을 하는 것이지요!
 
 내가 작성한 코드를 읽고 AI에게 질문을 할 수 있는 인터페이스를 제공합니다!
 
@@ -184,100 +193,264 @@ MCP 관점에서 Cursor는 Claude, GPT-4, Mixtral 등을 백엔드로 사용하�
 이런 컨텍스트가 MCP를 통해 Claude에게 구조화된 형태로 전달되기 때문에,
 Claude는 더 정교한 응답을 해줄 수 있습니다.
 
-다시보면,
+돌이켜보면 Cursor를 사용하는것 자체가 MCP 를 사용하는 상태라고 볼 수 있습니다!!
 
-cursor를 사용하는것 자체가 MCP 를 적용한 상태라고 볼 수 있습니다.
+{/* 내가..? 이미지 추가 */}
 
-MCP가 뭐야뭐야 어떻게 사용하는거야 했지만
+<div
+ style={{
+  display: 'flex',
+  justifyContent: 'center',
+  flexDirection: 'column',
+  alignItems: 'center',
+ }}
+>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-09-38-05.png"
+ />
+ <div>내가 .. MCP를 사용하고 있었다고..?</div>
+</div>
 
-사실은 이미 이런 형태로 사용하고 있었던 것이지요!
-
-```
-[Cursor 에디터] (MCP Host)
- └─ 내 코드, 파일 구조, 콘솔 로그
-       ↓
-[MCP 클라이언트]
- └─ Context Pack 생성 및 Claude에게 전달
-       ↓
-[Claude] (LLM Provider)
- └─ 코드를 충분히 이해한 후 응답 생성
-```
-
-음..
-
-{/* 작성중... */}
+MCP가 뭐야뭐야 어떻게 사용하는거야 호들갑을 떨었지만 사실은 이미 이런 형태로 사용하고 있었던 것이지요!
 
 ## 프론트엔드에서의 MCP
 
-MCP에 대해서 알아보면서 가장 관심있게 보고 있는 주제입니다.
+MCP에 대해서 알아보면서 가장 관심있게 보고 있는 주제입니다. 사실 오늘 이 포스트를 작성하게 된 가장 큰 이유가 바로 이 내용이었습니다.
 
-부족한 배경지식이지만, 구글링을 하다보면 다양한 프론트엔드 관점에서의 MCP 활용 예시들이 나오는데요!
+MCP에 대해 궁금함을 해소하고자 구글링을 하다보면 감사하게도 다양한 프론트엔드 관점에서의 MCP 활용 예시들이 나오는데요!
 
-조금씩 훑어보면서, 프론트엔드 관점에서의 MCP 활용 예시들을 알아보도록 하겠습니다.
+그 중에서 맘에 쏙드는 예시를 하나 따라해보면서 프론트엔드에서 MCP를 활용하는 방법을 알아보면 좋을 것 같습니다!!
 
-작성중...
+제 마음에 쏙 들었던 것은 바로 Figma MCP를 활용하는 방법이었습니다!!
+
+이제는 대체 불가능한 툴이 되가는 Figma..! 이전부터 피그마를 사용해오고 있지만 아직 사이가 어색하긴 한데요..
+
+MCP에 대해 공부하는 겸 이참에 조금 더 친해져보는 일방적인 시간을 가져보도록 하겠습니다!
+
+### Figma MCP를 활용해 UI 컴포넌트 개발하기
+
+이전 회사에서 디자인 시스템을 도입함과 동시에 피그마를 사용하게 됐었습니다
+
+당시에 동료 개발자들과, 피그마를 처음 접하면서 리액트 컴포넌트를 자동으로 만들어준데!! 라는 말에 혹해서 이것저것 시도해봤던 기억이 납니다.
+
+하지만, 당시에 피그마를 리액트 컴포넌트로 가져오려면 디자이너가 디자인시스템을 피그마에서 구현할 때, 우리가 생각하는 구조와 일치하게 만들어야 하는 등 신경써야 할 것들이 많았습니다
+
+당시 디자이너 분과 피그마의 올바른 사용법과 디자인 시스템, 디자인 토큰 등에 대해 수많은 토론..을 해야했던 기억이 납니다.
+
+결론적으로는 자동적으로 리액트 컴포넌트를 만들어주는 것은 어려웠습니다. 우리가 타협한 결과에 맞춰서 우리가 구현하고, 조금의 자동화를 섞는 것이 당시의 한계였습니다.
+
+하나의 버튼 컴포넌트를 탄생시키기까지 소요되는 자원이 너무 크고, 그것을 회사가 기다려주기엔 너무 비용이 컸던 것으로 기억합니다.
+
+그러나!!
+
+이제는 피그마 MCP를 활용해 프론트엔드 개발자의 숙제 중 하나인 UI 컴포넌트를 효율적으로 개발하는 방법을 소개해보려 합니다.
+
+바로 [Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP)를 사용해 그 피그마와의 간극을 좁혀보는 것입니다!!!!
+
+#### 1. Cursor 와 Figma MCP 연결하기
+
+[Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP)는 Cursor와 같은 AI 에디터를 피그마와 연결해주는 MCP로, 피그마의 노드 주소를 프롬프트에 추가하면 UI를 인식해 코드로 전환할 수 있습니다..!
+
+[framelink.ai](https://www.framelink.ai/) 에서 영상과 함께 알아볼 수 있습니다.
+
+##### 1. 설치 및 연결
+
+먼저 피그마 토큰이 필요합니다
+
+피그마 -> settings -> security -> personal access tokens 에서 토큰을 생성합니다
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-18-28.png"
+ />
+</div>
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-20-38.png"
+ />
+</div>
+
+다음으로는 Cursor 설정에서 MCP 서버를 추가해줍니다
+
+cursor -> 기본설정 -> Cursor Settings -> Tools&Intergrations -> MCP Tools -> New MCP Server
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-23-36.png"
+ />
+</div>
+
+```json
+{
+ "mcpServers": {
+  "Framelink Figma MCP": {
+   "command": "npx",
+   "args": [
+    "-y",
+    "figma-developer-mcp",
+    "--figma-api-key=피그마_액세스_토큰",
+    "--stdio"
+   ]
+  }
+ }
+}
+```
+
+위와 같이 서버를 추가하고 앞서 발급했던 토큰 정보를 기입해주면 됩니다.
+
+정상적으로 연결됐다면 초록불이 나타납니다..!
+
+<div
+ style={{ display: 'flex', justifyContent: 'center', marginBottom: '20px' }}
+>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-25-18.png"
+ />
+</div>
+
+##### 2. Figma MCP로 컴포넌트 개발 뚝딱하기
+
+설정이 완료됐다면, 테스트를 위해 Figma에 [Material UI](https://www.figma.com/community/file/912837788133317724/material-ui-for-figma-and-mui-x)의 피그마 템플릿을 통해 간단한 컴포넌트를 추가해보겠습니다
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-34-45.png"
+ />
+</div>
+
+이미지와 같이 노드정보를 가져오고,
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-35-59.png"
+ />
+</div>
+
+커서에게 노드 정보를 전달하고 원하는 작업을 명령하면 됩니다!!
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-37-02.png"
+ />
+</div>
+
+그렇게 되면 아래와 같이 생성된 버튼 컴포넌트를 확인할 수가 있습니다..!
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-37-39.png"
+ />
+</div>
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <img
+  width="400"
+  height="200"
+  alt="Image"
+  src="/images/2025-07-23-11-37-54.png"
+ />
+</div>
+
+짧게 알아본 것만으로도 참으로 흥미롭지 아니할수가 없습니다..!
+
+이전에 피그마로 꿈꿨던 현실과 가까워진 것 같은 기분이 듭니다.
+
+물론 실무에서 사용하려면 더 신경써야 할 부분들이 있겠지만
+
+디자인 시스템이 잘 구축되어있고, 피그마 디자인이 정해진 규칙을 따르고 있다면
+
+충분히 실무에서도 사용해봄직하지 않나요..?
 
 ## MCP 도입시 주의할 점
 
-작성중...
+앞서 알아본 것처럼 MCP는 프론트엔드 개발에서도 중요한 역할을 하고 있고, 앞으로가 더 기대되는 기술임에 틀림 없습니다
 
-## 앞으로의 전망과 나의 생각
+하지만! 아직 부족한 점도 있고 특히나 주의해야 할 부분이 있습니다
 
-작성중...
+### 1. 데이터 보안과 권한 관리
 
-```
+MCP는 LLM에게 컨텍스트를 전달하기 위해 내부 데이터에 접근합니다
 
-MCP의 구조 살펴보기
-→ 현재 그림과 설명 기반으로 구조 설명 (이미 잘 작성됨)
-→ 각 구성 요소의 역할을 조금 더 실사용 시나리오로 설명 추가
+이러한 과정에서
 
-MCP의 실제 활용 예시
+- 의도하지 않은 정보 유출은 없는가?
+- 민감한 정보는 없는가?
+- 권한 제어가 가능한가?
 
-Claude + VS Code (코드 컨텍스트 제공)
+등 사용자가 관리해야 할 부분이 존재합니다
 
-Local PDF를 기반으로 답변하는 RAG 앱
+### 2. LLM 공급자에 따른 대응
 
-Slack에서 LLM이 사내 문서를 기반으로 응답하도록 구성
-→ 간단한 시나리오 그림이나 YAML/JSON 예제 추가
+MCP는 다양한 LLM 공급자를 유연하게 교체할 수 있도록 설계되어 있습니다.
+하지만 실제로는 Claude, GPT-4, Mixtral 등 각 모델마다 응답 방식, 제한 사항, 요금 정책이 다릅니다.
+예를 들어, Claude는 context window가 넓지만 tool 사용에 제약이 있을 수 있고,
+GPT-4는 context 처리량이나 요청 지연(latency) 이슈가 발생할 수 있습니다.
+모델에 따라 RAG 구조에 더 적합한 경우도 있고, agent task 처리에 강점을 보이기도 합니다.
+MCP는 하위 호환성을 제공하지만,
+실제 사용하는 모델에 따라 context pack 구성이나 툴 호출 전략을 달리 설계하는 것이 필요합니다.
 
-프론트엔드 개발자 입장에서 본 MCP
+### 3. 개발·배포 환경과의 통합
 
-LLM 기반 기능을 UI에 통합할 때 필요한 컨텍스트 연결
+MCP는 개발자 로컬 환경이나 엔터프라이즈 내부 인프라에서 동작합니다.
+이 과정에서 다음과 같은 실무 환경 요소와의 통합 이슈가 발생할 수 있습니다.
 
-예: 웹 앱에서 사용자 세션 로그를 LLM에게 전달
+- 로컬 dev server와의 포트 충돌
+- 에디터(예: Cursor)나 IDE별 MCP 클라이언트 설정 차이
+- CI/CD 환경에서의 MCP 테스트 전략 미비
+- 사내 프록시 또는 VPN 환경에서의 네트워크 제한
 
-브라우저 extension, 로컬 서버 기반 프록시 등과 연동 가능성
+초기에는 개인 환경에서 실험적으로 도입한 뒤, 구성 요소를 점진적으로 팀 개발 환경에 적용하는 것이 좋아보입니다.
 
-fetch 또는 websocket을 통해 MCP 서버와 통신하는 구조
+## 마치며
 
-MCP 빠르게 따라하기
+최근 포스트를 통해 `Cursor.ai`와 `MCP` 등 AI 도구들을 통한 개발에 대해서 조금씩 알아보고 있습니다
 
-공식 MCP 예제 저장소 클론
+때마다 참 신기하면서도 묘한 것이
 
-로컬 MCP 서버 실행, 클라이언트 설정, Claude 또는 GPT와 연동
+앞으로 어떤 자세로 개발을 해야하는지에 대해서 다시 생각하는 계기가 되는 것 같습니다
 
-실습 코드 조각 (config.yaml, routes, tools.json 등)
+새로운 기술과 도구의 도입과 교체가 빠르게 이루어지는 현재 시장에서
 
-CLI 도구나 SDK가 있다면 함께 소개
+작은 시야에 갇히지 않고 유연하게 대처할 수 있는 자세를 가져야겠습니다..!
 
-MCP를 도입할 때 주의할 점
+물론 새로운 기술에 무조건 혹하지 않고 장단점을 명확히 구분할 줄 아는 그런 개발자가 되보겠습니다
 
-보안 (LLM과 연결된 민감한 데이터)
+또 다른 주제로 돌아오겠습니다.
 
-네트워크 환경 (로컬 vs 원격)
+그럼 이만!
 
-LLM 공급자별 차이 (Anthropic, OpenAI 등)
+## 참고 자료나
 
-앞으로의 전망과 나의 생각
-
-프론트엔드 개발자가 LLM과 연결될 UI/UX를 설계할 때
-
-단순 프롬프트가 아니라, "컨텍스트 흐름"까지 설계하게 될 것
-
-MCP는 그 흐름을 표준화해주는 핵심 기술이라는 인사이트 공유
-
-```
-
-```
-
-```
+- [MCP 가이드 문서](https://docs.anthropic.com/en/mcp/latest/overview)
+- [[번역] 모델 컨텍스트 프로토콜(MCP)이란 무엇인가요?](https://velog.io/@surim014/model-context-protocol)
+- [Figma MCP로 UI 컴포넌트 개발 효율화하기](https://devocean.sk.com/blog/techBoardDetail.do?ID=167571&boardType=techBlog)
+- [Figma-Context-MCP](https://github.com/GLips/Figma-Context-MCP)
+- [Cursor와 Figma로 경험하는 Model Context Protocol(MCP)](https://www.reese-log.com/cursor-figma-model-context-protocol)
