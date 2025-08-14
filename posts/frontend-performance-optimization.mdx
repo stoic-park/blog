@@ -8,518 +8,124 @@ readingTime: '20분'
 draft: true
 ---
 
-## 개요
+# 개요
 
-프론트엔드 성능 최적화는 단순히 코드를 빠르게 만드는 것이 아닙니다. 사용자 경험을 향상시키고, 비즈니스 성과를 높이는 핵심 요소입니다.
+프론트엔드 성능 최적화라는 단어는.. 개발을 시작하면서 지금까지 항상 마음의 짐처럼 가지고 가는 단어인 것 같습니다
+저의 경우 실무에서 프로젝트를 진행하다보면 성능에 대한 부분을 신경쓰지 못하고 기한에 맞춰 마무리를 진행하거나, 리팩토링의 과제로 넘겨야 했던 경우들이 존재했기 때문에 더욱더 아쉬움으로 다가오는 것 같은데요
+돌이켜보면 성능 최적화에 대한 명확한 기준이나 가이드 없이, 주어진 상황에서 할 수 있는 성능 개선을 위한 방법들을 적용하고
+스스로에게 성능 최적화를 진행했다 라고 했던 경우가 많았던 것 같습니다(양심고백)
 
-이 글에서는 성능 측정부터 실제 최적화 방법, AI 도구 활용까지 프론트엔드 성능 최적화의 전 과정을 다룹니다. 글을 마치면 성능 병목을 찾고 해결할 수 있는 실무 역량을 갖추게 됩니다.
+최근 항해 플러스 프론트엔드 5기를 수료하면서, 프론트엔드 성능 최적화에 대한 학습을 진행했었는데요
 
-## 성능 측정 방법
+거기서 배운 내용들 너머로 프론트엔드 성능 최적화 카탈로그를 따라서 단계별로 정리해보면서, 저만의 가이드 문서를 만들고, 성능 최적화에 대한 내용을 정리해두면 좋을 것 같아서 이 글을 시작해봅니다.
 
-### 핵심 웹 바이탈 (Core Web Vitals)
+## 1. 소개 (Introduction)
 
-성능 최적화의 첫 단계는 현재 상태를 정확히 측정하는 것입니다. Google이 제안하는 핵심 웹 바이탈을 중심으로 살펴보겠습니다.
+이 글은 프론트엔드 성능 최적화의 필요성과 그 방법에 대해 다루고 있습니다. 
+실무하면서 성능 최적화라는 관문에 부딪혔던 저와 같은 사람들에게 도움이 되길 바라는 마음으로 작성합니다.
+기본적인 프론트엔드 경험이 있으면 더 좋을 것 같습니다.
 
-#### LCP (Largest Contentful Paint)
+- 목적: 프론트엔드 성능 최적화의 필요성과 효과
+- 대상 독자: 실무에서 웹 성능 개선이 필요한 프론트엔드 개발자
+- 적용 범위: 코드, 인프라, 통합 접근 3단계
+- 선행 조건: HTML/CSS/JavaScript 기본 이해, 빌드 환경 경험
 
-페이지의 주요 콘텐츠가 로드되는 시간을 측정합니다.
+## 2. 사전 준비 (Before You Begin)
 
-```javascript
-// LCP 측정 예제
-new PerformanceObserver((entryList) => {
- for (const entry of entryList.getEntries()) {
-  console.log('LCP:', entry.startTime)
- }
-}).observe({ entryTypes: ['largest-contentful-paint'] })
-```
+- 성능 측정을 위한 도구 설치
+  - Lighthouse, WebPageTest, Chrome DevTools
 
-**목표**: 2.5초 이하
+- 현재 성능 진단
+  - TTI, LCP, CLS, FID 지표 확인
 
-#### INP (Interaction to Next Paint)
+- 최적화 목표 설정
+  - 예: LCP 2.5초 이하, TTI 3초 이하
 
-사용자 상호작용부터 다음 프레임 렌더링까지의 시간을 측정합니다.
+## 3. 단계별 최적화 가이드
 
-```javascript
-// INP 측정 예제
-new PerformanceObserver((entryList) => {
- for (const entry of entryList.getEntries()) {
-  console.log('INP:', entry.processingStart - entry.startTime)
- }
-}).observe({ entryTypes: ['interaction'] })
-```
+이 글에서는 코드 레벨에서의 성능 최적화를 주로 다룰 예정입니다.
 
-**목표**: 200ms 이하
+### Step 1. 코드 레벨 최적화
 
-#### CLS (Cumulative Layout Shift)
+1. JavaScript 최적화
+   - 코드 분할 & 레이지 로딩 (React.lazy, dynamic import)
+   - 불필요한 렌더링 최소화 (React.memo, useMemo)
+   - 이벤트 델리게이션
+   - 디바운싱 / 쓰로틀링
+   - 메모리 누수 방지 (클린업 함수, 이벤트 해제)
 
-페이지 로딩 중 레이아웃 변화량을 측정합니다.
+2. CSS 최적화
+   - 크리티컬 CSS 인라인화
+   - GPU 친화적 애니메이션 (transform, opacity)
+   - 불필요한 스타일 제거
 
-```javascript
-// CLS 측정 예제
-let clsValue = 0
-new PerformanceObserver((entryList) => {
- for (const entry of entryList.getEntries()) {
-  clsValue += entry.value
- }
- console.log('CLS:', clsValue)
-}).observe({ entryTypes: ['layout-shift'] })
-```
+3. HTML 최적화
+   - DOM 구조 단순화
+   - 시맨틱 태그 활용
 
-**목표**: 0.1 이하
+4. 리소스 최적화
+   - 이미지 포맷(WebP, AVIF)
+   - 폰트 서브셋 및 프리로드
+   - 스프라이트 이미지
 
-### 성능 측정 도구
+5. 렌더링 최적화
+   - 가상 스크롤링
+   - 레이아웃 스래싱 방지 (getBoundingClientRect 호출 최소화)
+   - will-change 속성 활용
 
-#### Chrome DevTools Performance 탭
+6. 프레임워크별 최적화
+   - React, Vue, Angular에서 적용할 수 있는 특화 기법
 
-가장 기본적이면서도 강력한 도구입니다.
+### Step 2. 인프라 레벨 최적화
 
-1. **Performance 탭 열기**: F12 → Performance
-2. **기록 시작**: Record 버튼 클릭
-3. **사용자 행동 시뮬레이션**: 페이지 조작
-4. **기록 중지**: Stop 버튼 클릭
-5. **분석**: Flame Chart, Summary 탭 확인
+1. 서버 최적화
+   - SSR, SSG 활용
+   - API 응답 최적화 (압축, 필드 최소화)
 
-#### Lighthouse
+2. 네트워크 최적화
+   - CDN 적용
+   - HTTP/2, HTTP/3 사용
+   - Brotli/Gzip 압축
 
-종합적인 성능 분석 도구입니다.
+3. 캐싱 전략
+   - 브라우저 캐시 설정 (Cache-Control, ETag)
+   - 서비스 워커를 통한 캐싱
+   - 메모리 캐시, 디스크 캐시 병행
 
-```bash
-# CLI 설치
-npm install -g lighthouse
+4. 로드 밸런싱
+   - 트래픽 분산 및 장애 대응
 
-# 성능 측정
-lighthouse https://example.com --output html --output-path ./report.html
-```
+5. 데이터베이스 최적화
+   - 쿼리 성능 개선, 인덱스 활용
 
-#### WebPageTest
+6. 컨테이너·마이크로서비스
+   - Docker, Kubernetes 활용
 
-실제 네트워크 환경에서의 성능을 측정합니다.
+7. 클라우드 서비스
+   - Auto-scaling, 서버리스 아키텍처
 
-## 코드 레벨 최적화 방법
+### Step 3. 통합적 접근
 
-### React 컴포넌트 최적화
+1. 성능 모니터링
+   - 실시간 모니터링 도구 (New Relic, Datadog)
+   - 로그 분석 및 지표 추적
 
-#### React.memo 활용
+2. 보안 최적화
+   - HTTPS, CSP 설정
 
-불필요한 리렌더링을 방지합니다.
+3. PWA 적용
+   - 오프라인 지원
+   - 푸시 알림
 
-```tsx
-// 최적화 전
-const ExpensiveComponent = ({ data }) => {
- return <div>{/* 복잡한 렌더링 로직 */}</div>
-}
+## 4. 체크리스트
 
-// 최적화 후
-const ExpensiveComponent = React.memo(({ data }) => {
- return <div>{/* 복잡한 렌더링 로직 */}</div>
-})
-```
-
-#### useMemo와 useCallback 활용
-
-계산 비용이 큰 연산과 함수를 메모이제이션합니다.
-
-```tsx
-const MyComponent = ({ items, onItemClick }) => {
- // 계산 비용이 큰 연산 메모이제이션
- const expensiveValue = useMemo(() => {
-  return items.reduce((acc, item) => acc + item.value, 0)
- }, [items])
-
- // 함수 메모이제이션
- const handleClick = useCallback(
-  (id) => {
-   onItemClick(id)
-  },
-  [onItemClick],
- )
-
- return (
-  <div>
-   <p>Total: {expensiveValue}</p>
-   {items.map((item) => (
-    <button key={item.id} onClick={() => handleClick(item.id)}>
-     {item.name}
-    </button>
-   ))}
-  </div>
- )
-}
-```
-
-#### 컴포넌트 분할과 지연 로딩
-
-초기 로딩 시간을 단축합니다.
-
-```tsx
-// 지연 로딩 예제
-const LazyComponent = lazy(() => import('./HeavyComponent'))
-
-const App = () => {
- return (
-  <Suspense fallback={<div>Loading...</div>}>
-   <LazyComponent />
-  </Suspense>
- )
-}
-```
-
-### 번들 최적화
-
-#### Tree Shaking
-
-사용하지 않는 코드를 제거합니다.
-
-```javascript
-// webpack.config.js
-module.exports = {
- mode: 'production', // Tree Shaking 활성화
- optimization: {
-  usedExports: true,
-  sideEffects: false,
- },
-}
-```
-
-#### Code Splitting
-
-번들을 여러 개로 분할합니다.
-
-```tsx
-// 동적 import를 통한 코드 분할
-const Dashboard = lazy(() => import('./Dashboard'))
-const Settings = lazy(() => import('./Settings'))
-
-// 라우트 기반 코드 분할
-const routes = [
- {
-  path: '/dashboard',
-  component: lazy(() => import('./Dashboard')),
- },
- {
-  path: '/settings',
-  component: lazy(() => import('./Settings')),
- },
-]
-```
-
-#### 번들 분석
-
-webpack-bundle-analyzer로 번들 크기를 분석합니다.
-
-```bash
-# 설치
-npm install --save-dev webpack-bundle-analyzer
-
-# 분석 실행
-npm run build
-npx webpack-bundle-analyzer build/static/js/*.js
-```
-
-### 이미지 및 리소스 최적화
-
-#### 이미지 포맷 최적화
-
-```tsx
-// WebP 지원 확인 및 폴백
-const OptimizedImage = ({ src, alt, ...props }) => {
- return (
-  <picture>
-   <source srcSet={`${src}.webp`} type="image/webp" />
-   <img src={src} alt={alt} {...props} />
-  </picture>
- )
-}
-```
-
-#### 이미지 지연 로딩
-
-```tsx
-// Intersection Observer를 활용한 지연 로딩
-const LazyImage = ({ src, alt }) => {
- const [isLoaded, setIsLoaded] = useState(false)
- const imgRef = useRef()
-
- useEffect(() => {
-  const observer = new IntersectionObserver(
-   ([entry]) => {
-    if (entry.isIntersecting) {
-     imgRef.current.src = src
-     setIsLoaded(true)
-     observer.disconnect()
-    }
-   },
-   { threshold: 0.1 },
-  )
-
-  if (imgRef.current) {
-   observer.observe(imgRef.current)
-  }
-
-  return () => observer.disconnect()
- }, [src])
-
- return (
-  <img ref={imgRef} alt={alt} className={isLoaded ? 'loaded' : 'loading'} />
- )
-}
-```
-
-## 실제 최적화 사례
-
-### 케이스 스터디 1: 리스트 렌더링 최적화
-
-**문제 상황**: 10,000개의 아이템을 렌더링할 때 스크롤이 끊기는 현상
-
-**해결 방법**: 가상화(Virtualization) 적용
-
-```tsx
-import { FixedSizeList as List } from 'react-window'
-
-const VirtualizedList = ({ items }) => {
- const Row = ({ index, style }) => (
-  <div style={style}>
-   <ListItem item={items[index]} />
-  </div>
- )
-
- return (
-  <List height={400} itemCount={items.length} itemSize={50} width="100%">
-   {Row}
-  </List>
- )
-}
-```
-
-**개선 결과**:
-
-- 렌더링 시간: 2000ms → 50ms
-- 메모리 사용량: 500MB → 50MB
-- 스크롤 성능: 부드러운 60fps
-
-### 케이스 스터디 2: 번들 크기 최적화
-
-**문제 상황**: 메인 번들 크기가 2MB로 초과
-
-**해결 과정**:
-
-1. **번들 분석**
-
-```bash
-npx webpack-bundle-analyzer build/static/js/*.js
-```
-
-2. **불필요한 라이브러리 제거**
-
-```javascript
-// lodash 전체 대신 필요한 함수만 import
-// Before
-import _ from 'lodash'
-
-// After
-import debounce from 'lodash/debounce'
-import throttle from 'lodash/throttle'
-```
-
-3. **외부 라이브러리 CDN 활용**
-
-```html
-<!-- React와 ReactDOM을 CDN으로 로드 -->
-<script
- crossorigin
- src="https://unpkg.com/react@18/umd/react.production.min.js"
-></script>
-<script
- crossorigin
- src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"
-></script>
-```
-
-**개선 결과**:
-
-- 번들 크기: 2MB → 800KB
-- 초기 로딩 시간: 3초 → 1.2초
-- Lighthouse 성능 점수: 45 → 85
-
-## AI 도구를 활용한 최적화
-
-### Cursor.ai 활용 방법
-
-#### 코드 분석 및 최적화 제안
-
-Cursor.ai는 코드를 분석하여 성능 병목을 자동으로 감지하고 개선안을 제시합니다.
-
-**활용 시나리오**:
-
-1. **성능 병목 감지**: 복잡한 컴포넌트에서 불필요한 리렌더링 지점 발견
-2. **메모이제이션 제안**: useMemo, useCallback 적용이 필요한 부분 자동 감지
-3. **번들 최적화**: 큰 라이브러리 사용 시 더 가벼운 대안 제안
-
-**실제 사용 예시**:
-
-```tsx
-// Cursor.ai가 제안한 최적화
-const ExpensiveComponent = ({ data, onUpdate }) => {
- // AI가 자동으로 useMemo 제안
- const processedData = useMemo(() => {
-  return data.map((item) => ({
-   ...item,
-   processed: heavyComputation(item),
-  }))
- }, [data])
-
- // AI가 자동으로 useCallback 제안
- const handleUpdate = useCallback(
-  (id) => {
-   onUpdate(id)
-  },
-  [onUpdate],
- )
-
- return (
-  <div>
-   {processedData.map((item) => (
-    <Item key={item.id} item={item} onUpdate={handleUpdate} />
-   ))}
-  </div>
- )
-}
-```
-
-#### 성능 최적화 프롬프트 활용
-
-```
-"이 React 컴포넌트의 성능을 최적화해주세요.
-특히 리렌더링 최적화와 메모리 사용량을 개선하고 싶습니다."
-```
-
-### GitHub Copilot 활용
-
-#### 자동 최적화 제안
-
-```tsx
-// Copilot이 제안한 최적화 코드
-const OptimizedList = ({ items, onItemClick }) => {
- // 자동으로 React.memo 제안
- const MemoizedItem = React.memo(({ item, onClick }) => (
-  <div onClick={() => onClick(item.id)}>{item.name}</div>
- ))
-
- // 자동으로 useCallback 제안
- const handleClick = useCallback(
-  (id) => {
-   onItemClick(id)
-  },
-  [onItemClick],
- )
-
- return (
-  <div>
-   {items.map((item) => (
-    <MemoizedItem key={item.id} item={item} onClick={handleClick} />
-   ))}
-  </div>
- )
-}
-```
-
-### AI 기반 코드 리뷰 도구
-
-#### SonarQube + AI 플러그인
-
-- 성능 관련 코드 스멜 자동 감지
-- 메모리 누수 가능성 분석
-- 최적화 기회 자동 제안
-
-#### DeepCode
-
-- 실시간 성능 최적화 제안
-- 보안 취약점과 함께 성능 이슈 분석
-
-## 성능 모니터링 및 지속적 개선
-
-### 성능 메트릭 추적 시스템
-
-```javascript
-// 성능 메트릭 수집
-class PerformanceMonitor {
- constructor() {
-  this.metrics = {}
- }
-
- measureLCP() {
-  new PerformanceObserver((entryList) => {
-   const entries = entryList.getEntries()
-   const lastEntry = entries[entries.length - 1]
-   this.metrics.lcp = lastEntry.startTime
-   this.sendMetrics()
-  }).observe({ entryTypes: ['largest-contentful-paint'] })
- }
-
- measureINP() {
-  new PerformanceObserver((entryList) => {
-   let maxINP = 0
-   for (const entry of entryList.getEntries()) {
-    const inp = entry.processingStart - entry.startTime
-    maxINP = Math.max(maxINP, inp)
-   }
-   this.metrics.inp = maxINP
-   this.sendMetrics()
-  }).observe({ entryTypes: ['interaction'] })
- }
-
- sendMetrics() {
-  // 분석 서버로 메트릭 전송
-  fetch('/api/metrics', {
-   method: 'POST',
-   body: JSON.stringify(this.metrics),
-  })
- }
-}
-```
-
-### 알림 설정 및 대응 프로세스
-
-```javascript
-// 성능 임계값 모니터링
-const PERFORMANCE_THRESHOLDS = {
- LCP: 2500, // 2.5초
- INP: 200, // 200ms
- CLS: 0.1, // 0.1
-}
-
-const checkPerformance = (metrics) => {
- Object.entries(metrics).forEach(([key, value]) => {
-  if (value > PERFORMANCE_THRESHOLDS[key]) {
-   sendAlert(`${key} 성능 임계값 초과: ${value}`)
-  }
- })
-}
-```
-
-## 마무리
-
-프론트엔드 성능 최적화는 한 번의 작업이 아닌 지속적인 과정입니다.
-
-### 실무 체크리스트
-
-- [ ] 핵심 웹 바이탈 측정 및 모니터링
-- [ ] React 컴포넌트 최적화 (memo, useMemo, useCallback)
-- [ ] 번들 크기 분석 및 최적화
-- [ ] 이미지 및 리소스 최적화
-- [ ] AI 도구를 활용한 자동 최적화
-- [ ] 성능 메트릭 추적 시스템 구축
-- [ ] 정기적인 성능 감사 및 개선
-
-### 추가 학습 리소스
-
-- [Web.dev Performance](https://web.dev/performance/)
-- [React Performance](https://react.dev/learn/render-and-commit)
-- [Chrome DevTools Performance](https://developer.chrome.com/docs/devtools/performance/)
-- [Lighthouse CI](https://github.com/GoogleChrome/lighthouse-ci)
-
-성능 최적화는 사용자 경험을 향상시키는 가장 직접적인 방법입니다. 이 글에서 다룬 방법들을 실무에 적용하여 더 빠르고 반응성 좋은 웹 애플리케이션을 만들어보세요.
-
----
-
-**참고**: 이 글의 모든 코드 예제는 실제 프로젝트에서 테스트되었으며, 성능 개선 효과가 검증되었습니다.
+- 각 단계별 완료 여부를 한 눈에 확인할 수 있는 표 제공
+
+## 5. 결론
+
+- 최적화의 장기적 효과
+- 지속적인 성능 유지 전략
+
+## 6. 참고 자료
+
+- 공식 문서, 커뮤니티 리소스, 추가 학습 링크
