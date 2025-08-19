@@ -8,8 +8,8 @@ export default async function sitemap() {
   lastModified: post.metadata.publishedAt,
  }))
 
- // '', 홈라우트 제거
- let routes = ['/post'].map((route) => ({
+ // 주요 정적 라우트 수집
+ let routes = ['/post', '/about'].map((route) => ({
   url: `${baseUrl}${route}`,
   lastModified: new Date().toISOString().split('T')[0],
  }))
