@@ -1,0 +1,827 @@
+---
+title: '프론트엔드 성능 최적화 3단계 - 1. 실행 로직 경량화'
+publishedAt: '2025-07-29'
+summary: '프론트엔드 코드 레벨에서 적용할 수 있는 성능 최적화 기법들을 단계별로 정리한 가이드'
+tags: '#프론트엔드, #성능최적화, #JavaScript, #React'
+author: 'Stoic Park'
+readingTime: '20분'
+draft: true
+---
+
+프론트엔드 성능 최적화 얼마까지 알아보셨어요..?
+
+## 개요
+
+프론트엔드 성능 최적화라는 단어는.. 개발을 시작하면서 지금까지 항상 마음의 짐처럼 가지고 가는 단어인 것 같습니다
+
+저의 경우 실무에서 프로젝트를 진행하다보면 성능에 대한 부분을 신경쓰지 못하고 기한에 맞춰 마무리를 진행하거나, 리팩토링의 과제로 넘겨야 했던 경우들이 존재했기 때문에 더욱더 아쉬움으로 다가오는 것 같은데요
+
+돌이켜보면 성능 최적화에 대한 명확한 기준이나 가이드 없이, 주어진 상황에서 할 수 있는 성능 개선을 위한 방법들을 적용하고
+
+스스로에게 성능 최적화를 진행했다 라고 했던 경우가 많았던 것 같습니다(양심고백)
+
+최근 프론트엔드 성능 최적화에 대한 학습을 진행할 기회가 있었는데요
+
+거기서 제가 경험하고 배운 내용들을 바탕으로 프론트엔드 성능 최적화를 3단계로 구분해보고 정리해보면서 저만의 가이드 문서를 만들고, 성능 최적화에 대한 내용을 정리해보려고 합니다.
+
+## 소개
+
+### 가이드의 목적
+
+- 이 글의 목적은 제가 두고두고 써먹고, 잊지 않기 위함입니다. 혹시 누군가에게도 도움이 됐다고 한다면 입꼬리를 막을 순 없겠습니다
+
+### 대상 독자
+
+- 저와 같은 경험을 하는 프론트엔드 개발자들에게 도움이 되도록 작성해보겠습니다
+
+### 적용 범위
+
+- 해당 글은 코드레벨의 최적화만을 다룰 예정입니다. 기회가 된다면 인프라 레벨의 최적화도 추후에 다뤄보겠습니다.
+
+### 성능 최적화 3단계 미리보기
+
+- 실행 로직 경량화
+- 렌더링 경로 최적화
+- 자원 로딩 효율화
+
+## Step 1. 실행 로직 경량화
+
+성능 최적화! 라고 하면 어떤 것을 먼저 떠오를까요. 구체적인 방법들이 존재하겠지만, 결국에는 내가 작성한 코드에서 그 원인을 찾아야 합니다.
+
+저는 개발을 처음 시작할 때, 내가 작성한 코드들이 화면에 그려지는 것들이 참 신기하고 재밌었습니다.
+
+하지만 그것이 어떤 단계를 거쳐 생성되는지는 생각하지 못했던 것 같습니다. 그 과정들을 이해해가는 과정을 거쳐가면서 아 프론트엔드 개발 쉽지 않은 영역이구나.. 라고 깨달아 가는 것 같습니다
+
+그러기 위해서 프론트엔드 개발자 입장에서 할 수 있는 성능 최적화를 3단계로 나눠보려고 합니다.
+
+### 1. 코드 분할 & 레이지 로딩
+
+첫번째로 알아볼 내용은 코드 분할 & 레이지 로딩입니다.
+
+MDN 문서에 코드 분할은 아래와 같이 설명되어 있습니다.
+
+> 코드 분할(Code Splitting)은 코드를 번들된 코드 혹은 컴포넌트로 분리하는 것입니다. 이렇게하면 필요에 따라 특정한 컴포넌트만 로딩하거나, 병렬로 로딩할 수 있습니다.  
+> 애플리케이션 복잡해지고 유지 관리에 의해, CSS와 JavaScript 파일이나 번들이 커지며, 특히 포함하고 있는 서드파티 라이브러리 개수, 용량이 클수록 커집니다.  
+> 큰 파일을 다운로드하지 않도록, 스크립트를 작게 여러 파일로 분할할 수 있습니다. 그러면 화면 로딩할 때 필요한 기능은 바로 다운로드할 수 있으며, 추가 스크립트는 화면이나 애플리케이션 상호 작용시에 지연 로딩을 통해 기능 향상할 수 있습니다.  
+> 코드 총량은 같지만(아마 파일 숫자나 용량은 늘어납니다), 초기 로딩에 필요한 코드는 적어집니다.  
+> 코드 분할은 Webpack이나 Browserify 같이 번들러에서 지원하는 기능으로 런타임에 동적으로 로딩하는 여러 번들을 만들 수 있습니다.
+
+갈수록 커지는 자바스크립트 번들 사이즈를 작은 청크로 잘게 다져 필요한 부분만 가져오도록 해서 성능을 최적화 하는 것입니다.
+
+그렇다면, 코드스플리팅은 어떻게 할 수 있을까요?
+
+사실 프레임워크를 활용한 개발에 익숙한 개발자라면, 자연스레 코드 스플리팅을 하고 있을 것입니다.
+
+예를 들어,
+
+예를 들어, Next.js, Vite 같은 현대 프레임워크/번들러는 기본적으로 번들 단위 분리(vendor, app, runtime 등)를 자동으로 해줍니다.
+
+라우트 단위로 코드가 분할되는 경우도 있으며, 특히 Next.js는 pages/ 라우터 또는 App Router에서 파일 단위로 자동 코드 스플리팅을 제공합니다.
+
+즉, 우리는 초기 환경 설정만으로도, 최소한의 코드 스플리팅을 하고 있는 것입니다.
+
+{/* 내가 이미지 */}
+
+<div style={{ display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
+ <Image
+  src="/images/2025-08-18-16-11-24.png"
+  alt="Image"
+  width={400}
+  height={200}
+ />
+<p>코드 스플리팅.. 최적화.. 내가?</p>
+
+</div>
+{/* 내가 코드 스플리팅을..? */}
+
+그러나, 보다 세밀한 코드 스플리팅을 하기 위해서는 우리가 직접 코드를 통해 최적화를 해주어야합니다.
+
+그래서 해보는 것이, 어쩌면 익숙한 레이지 로딩 작업입니다.
+
+환경에 따라 아래와 같은 방법들이 있습니다.
+
+{/* 예시코드 */}
+
+{/* React */}
+
+#### React
+
+```tsx
+// 예시코드
+import { lazy, Suspense } from 'react'
+
+const Chart = lazy(() => import('./Chart')) // ./Chart를 별도 청크로 분리
+export default function Dashboard() {
+ return (
+  <Suspense fallback={<div>차트 불러오는 중…</div>}>
+   <Chart />
+  </Suspense>
+ )
+}
+```
+
+{/* named export만 있을 경우 */}
+
+#### named export만 있을 경우
+
+```tsx
+const MarkdownPreview = lazy(() =>
+ import('./Markdown').then((m) => ({ default: m.MarkdownPreview })),
+)
+```
+
+{/* React Router v6 */}
+
+#### React Router v6
+
+```tsx
+import { createBrowserRouter, RouterProvider } from 'react-router-dom'
+import { lazy, Suspense } from 'react'
+
+const Home = lazy(() => import('./routes/Home'))
+const Settings = lazy(() => import('./routes/Settings'))
+
+const router = createBrowserRouter([
+ {
+  path: '/',
+  element: (
+   <Suspense fallback={<div>로딩…</div>}>
+    <Home />
+   </Suspense>
+  ),
+ },
+ {
+  path: '/settings',
+  element: (
+   <Suspense fallback={<div>로딩…</div>}>
+    <Settings />
+   </Suspense>
+  ),
+ },
+])
+
+export default () => <RouterProvider router={router} />
+```
+
+{/* Next.js */}
+
+#### Next.js App Router 이후의 동적 임포트 흐름
+
+Next.js 13(App Router)부터는 서버 컴포넌트(Server Components) 와 클라이언트 컴포넌트(Client Components) 개념이 도입되었습니다.
+이로 인해 코드 스플리팅 전략에도 변화가 생겼습니다.
+
+- 서버 컴포넌트: 기본적으로 서버에서 렌더링되므로, 클라이언트 번들에 포함되지 않아 자연스럽게 번들 크기가 줄어듭니다.
+
+- 클라이언트 컴포넌트: \"use client\" 지시자를 붙인 경우에만 클라이언트 번들로 포함 → 이 영역에서 필요하다면 dynamic()을 통해 레이지 로딩 적용 가능
+
+- dynamic import: App Router 환경에서도 여전히 사용 가능하며, 무거운 컴포넌트나 브라우저 전용 라이브러리를 지연 로딩할 때 활용합니다.
+
+App Router는 기본적으로 서버 컴포넌트를 통해 클라이언트 번들을 가볍게 유지하도록 설계되어 있습니다.
+
+즉, 코드 스플리팅이 기본 전제로 들어가 있는 셈입니다.
+
+```tsx
+'use client'
+import dynamic from 'next/dynamic'
+
+const Editor = dynamic(() => import('../components/Editor'), {
+ ssr: false, // 브라우저 전용 라이브러리일 때
+ loading: () => <div>에디터 로딩 중...</div>,
+})
+
+export default function Page() {
+ return <Editor />
+}
+```
+
+우리는 프로젝트 초기 환경설정부터, 코드스플리팅과 레이지로딩 전략을 잘 수립한다면 성능 최적화에 기반을 다지고 갈 수 있습니다.
+
+---
+
+### 2. 불필요한 렌더링 최소화
+
+저에게는 성능 최적화 하면 가장 먼저 떠오르는 단계입니다
+
+코드를 작성하면서 적은 코드로 큰 효과를 볼 수 있는 가장 익숙한 방법이기 때문입니다
+
+우리는 React를 사용하면서 props, 상태의 변화가 없음에도 불구하고 리렌더링이 발생하는 상황에 부딪힐 때가 있었을텐데요
+
+이 경우 브라우저의 메인 스레드에 과도한 연산이 발생하게 됩니다
+
+그렇기 때문에 이러한 부분을 코드 단계에서 개선해줌으로써 눈에 띄는 성능 최적화를 이룰 수 있습니다
+
+> 눈으로 확인할 수 있는 방법은 나중에 다른 글로 자세히 알아보겠습니다.
+
+#### React.memo
+
+React.memo는 props가 바뀌지 않았다면 컴포넌트를 다시 렌더링하지 않도록 메모이제이션하는 고차 컴포넌트(HOC)입니다.
+
+공식 문서에서도 “불필요한 렌더링을 방지하고 성능을 최적화하는 방법”으로 권장됩니다.
+
+```tsx
+const UserCard = React.memo(function UserCard({ user }) {
+ return <div>{user.name}</div>
+})
+```
+
+- UserCard는 props가 변경되지 않는 한 다시 렌더링되지 않습니다.
+
+- 단, React.memo는 **얕은 비교(shallow comparison)**만 수행하기 때문에, 객체/배열이 매번 새로 생성되면 여전히 리렌더링이 발생할 수 있습니다.
+
+#### useMemo & useCallback
+
+- useMemo: 값이 무거운 계산일 때, 메모이제이션된 결과를 반환합니다.
+
+- useCallback: 함수를 메모이제이션하여, 하위 컴포넌트에 매번 새로운 함수가 전달되지 않도록 합니다.
+
+```tsx
+const memoizedValue = useMemo(() => {
+ return heavySortedList(value)
+}, [value])
+
+const handleClick = useCallback(() => {
+ console.log('clicked')
+}, [])
+```
+
+공식 문서 표현을 빌리면,
+
+- useMemo는 “매번 계산하지 않고, 이전에 계산한 값을 재사용할 수 있게 한다”
+
+- useCallback은 **“매번 새로운 함수를 생성하지 않고, 동일한 함수를 재사용한다”**는 점에서 리렌더링 최적화에 유용합니다.
+
+#### 컴포넌트 분리
+
+개발을 진행하다보면, 처음 생각한 것과 다르게 하나의 컴포넌트가 맡는 기능이 많아지고, 그 크기가 커지는 경우가 있습니다.
+
+하나의 큰 컴포넌트를 여러 작은 컴포넌트로 나누면, 실제로 변경이 일어난 부분만 리렌더링되도록 만들 수 있습니다.
+
+저는 하나의 컴포넌트가 하나의 기능을 담당할 수 있도록 만드는것을 우선적으로 생각하는데요.
+
+이것은 **단일 책임 원칙(Single Responsibility Principle, SRP)** 과도 그 결을 같이 한다고 생각합니다.
+
+```tsx
+// ❌ 안 좋은 예: 하나의 컴포넌트에 여러 책임이 뒤섞임
+function UserDashboard({ user, notifications }) {
+ return (
+  <div>
+   <h1>{user.name}님 환영합니다</h1>
+   <button onClick={() => logout()}>로그아웃</button>
+   <ul>
+    {notifications.map((n) => (
+     <li key={n.id}>{n.message}</li>
+    ))}
+   </ul>
+  </div>
+ )
+}
+
+// ✅ 좋은 예: 역할을 분리하여 각각의 책임만 담당
+function UserGreeting({ user }) {
+ return <h1>{user.name}님 환영합니다</h1>
+}
+
+function LogoutButton() {
+ return <button onClick={() => logout()}>로그아웃</button>
+}
+
+const NotificationList = React.memo(function NotificationList({
+ notifications,
+}) {
+ return (
+  <ul>
+   {notifications.map((n) => (
+    <li key={n.id}>{n.message}</li>
+   ))}
+  </ul>
+ )
+})
+
+function UserDashboard({ user, notifications }) {
+ return (
+  <div>
+   <UserGreeting user={user} />
+   <LogoutButton />
+   <NotificationList notifications={notifications} />
+  </div>
+ )
+}
+```
+
+#### 주의사항
+
+위에서 제시한 내용들을 통해 우리는 리렌더링을 최적화 할 수 있습니다. 하지만 주의해야 할 부분이 명확히 존재합니다.
+
+메모이제이션 도구(React.memo, useMemo, useCallback)를 남용하면 비교·캐싱 비용이 오히려 성능을 떨어뜨릴 수 있습니다.
+
+따라서 Profiler 등 도구로 병목 지점을 확인한 뒤 적재적소에 적용하는 것이 중요합니다!
+
+---
+
+### 3. 이벤트 델리게이션(Event Delegation)
+
+모던 자바스크립트 문서에 이벤트 위임 부분은 아래와 같이 시작합니다.
+
+> 캡처링과 버블링을 활용하면 강력한 이벤트 핸들링 패턴인 이벤트 위임(event delegation) 을 구현할 수 있습니다.  
+> 이벤트 위임은 비슷한 방식으로 여러 요소를 다뤄야 할 때 사용됩니다. 이벤트 위임을 사용하면 요소마다 핸들러를 할당하지 않고, 요소의 공통 조상에 이벤트 핸들러를 단 하나만 할당해도 여러 요소를 한꺼번에 다룰 수 있습니다.
+
+상위 컨테이너 1개에만 이벤트 핸들러를 할당해서 메모리 등록 비용을 절감할 수 있고, 리스트나 테이블처럼 동적으로 추가 삭제되는 요소도 별도의 핸들러를 할당하지 않아도 되는 이점을 얻을 수 있습니다!
+
+여러 행동 패턴를 통해 이벤트 위임을 통한 최적화를 알아보겠습니다
+
+#### 바닐라 JS 패턴
+
+```html
+<table id="grid">
+ <!-- 많은 <td> ... -->
+</table>
+```
+
+```js
+const table = document.getElementById('grid')
+let selectedTd
+
+table.addEventListener('click', (event) => {
+ // 1) 실제 타깃에서 가장 가까운 <td> 찾기
+ const td = event.target.closest('td')
+ if (!td) return // 관심 없는 영역
+ if (!table.contains(td)) return // 중첩 테이블 등 범위 이탈 방지
+
+ highlight(td)
+})
+
+function highlight(td) {
+ if (selectedTd) selectedTd.classList.remove('highlight')
+ selectedTd = td
+ selectedTd.classList.add('highlight')
+}
+```
+
+- 위 패턴을 통해서, closest() 으로 상향 탐색을 통해 이벤트가 발생한 요소를 찾을 수 있고 contains() 로 컨테이너의 범위를 확인할 수 있습니다.
+- 결론적으로 중첩구조에서도 안전하게 이벤트를 처리할 수 있습니다.
+
+#### 선언적 행동 패턴
+
+```html
+<div id="menu">
+ <button data-action="save">저장</button>
+ <button data-action="load">불러오기</button>
+ <button data-action="search">검색</button>
+</div>
+<script>
+ class Menu {
+  constructor(elem) {
+   this._elem = elem
+   elem.addEventListener('click', this.onClick.bind(this))
+  }
+  save() {
+   /*...*/
+  }
+  load() {
+   /*...*/
+  }
+  search() {
+   /*...*/
+  }
+  onClick(e) {
+   const action = e.target.dataset.action
+   if (action && typeof this[action] === 'function') this[action]()
+  }
+ }
+ new Menu(document.getElementById('menu'))
+</script>
+```
+
+- 버튼마다 핸들러를 붙이지 않고 속성값으로 동작을 선언해서 유지보수 및 확장에 유리합니다.
+
+#### React에서 이벤트 위임
+
+```tsx
+type Item = { id: string; label: string }
+
+export function ItemList({ items }: { items: Item[] }) {
+ const onClick = (e: React.MouseEvent<HTMLUListElement>) => {
+  const el = (e.target as HTMLElement).closest<HTMLElement>('[data-action]')
+  if (!el) return
+  const id = el.dataset.id!
+  el.dataset.action === 'select' && selectItem(id)
+  el.dataset.action === 'remove' && removeItem(id)
+ }
+
+ return (
+  <ul onClick={onClick}>
+   {items.map((it) => (
+    <li key={it.id}>
+     <button data-action="select" data-id={it.id}>
+      {it.label}
+     </button>
+     <button data-action="remove" data-id={it.id}>
+      삭제
+     </button>
+    </li>
+   ))}
+  </ul>
+ )
+}
+```
+
+- 합성 이벤트 환경에서도 상위 노드 1개로 대량 항목을 처리합니다
+- 이를 통해서 메모리 등록 비용 절감을 할 수 있습니다
+
+이벤트 위임을 통한 장점을 정리해보면 다음과 같습니다
+
+- 메모리를 절약할 수 있습니다
+- 초기화를 단순화 할 수 있다
+- DOM 대량 수정에 강하다
+
+하지만, 이벤트 위임에도 분명히 단점이 존재합니다
+
+- 버블링 되는 이벤트가 아닌 경우 사용할 수 없습니다
+- 하위에서 stopPropagation() 을 남용한다면, 상위 위임이 막힐 수가 있습니다
+- 상위 핸들러는 하위 모든 이벤트를 일단 받기 때문에 약간의 오버헤드가 존재합니다 (실무에서는 무시할 수 있는 수준..?)
+
+---
+
+### 4. 디바운싱과 쓰로틀링
+
+다음으로 알아볼 내용은 디바운싱(Debouncing)과 쓰로틀링(Throttling)입니다.
+
+디바운싱과 쓰로틀링은 모두 이벤트 핸들러 호출 빈도를 조절하는 프로그래밍의 기법입니다
+
+#### 디바운싱
+
+디바운싱은 일정 시간동안 연속적으로 발생했던 이밴트들 중 마지막 이벤트만 처리하는 기법입니다
+
+주로 ajax 요청, 폼 제출, 윈도우 리사이즈 등 사용자의 입력이 적고 빈번하게 발생하는 이벤트에 사용됩니다
+
+예를 들어, 요즘의 서비스에서 검색어를 입력하면 엔터 없이도 결과들이 바로바로 업데이트가 되는 것을 볼 수 있습니다
+
+이처럼 엔터라는 동작 없이도 결과를 바로 보여주려면 항상 input 이벤트에 대기를 하고 있어야 합니다
+
+```js
+<input type="text" id="input" />
+```
+
+```html
+<script>
+ const searchInput = document.getElementById('#input')
+ searchInput.addEventListener('input', function () {
+  console.log('검색 요청', e.target.value)
+ })
+</script>
+```
+
+위처럼 구현한다면 문제는 한 글자를 입력할 때마다 ajax요청이 실행된다는 것입니다.
+
+만약 유료 api 요청이라면 비용적으로 큰 문제가 될 수 있습니다
+
+이러한 문제를 해결하기 위해서 디바운싱을 사용할 수 있습니다
+
+```tsx
+<input type="text" id="input" />
+```
+
+```html
+<script>
+ const searchInput = document.getElementById('#input')
+ searchInput.addEventListener(
+  'input',
+  debounce(() => {
+   console.log('검색 요청', e.target.value)
+  }, 300),
+ )
+</script>
+```
+
+- 위처럼 디바운싱을 적용하면 여러 번 호출되지 않습니다
+
+#### 쓰로틀링
+
+쓰로틀링은 일정 시간동안 이벤트가 발생해도 일정 간격으로만 이벤트 핸들러를 호출하는 기법입니다
+
+보통 성능 문제 때문에 많이 사용하는데 스크롤 이벤트, 리사이즈 이벤트 등 사용자의 입력이 많고 빈번하게 발생하는 이벤트에 사용됩니다
+
+스크롤을 내리면 스크롤 이벤트가 너무 많이 발생하는데, 이 이벤트에 추가적인 작업을 해놨다면 매우 빈번하게 일어나서 성능 문제가 발생할 수 있습니다
+
+이런 문제를 해결하기 위해 쓰로틀링을 사용할 수 있습니다
+
+```html
+<script>
+ // 쓰로틀링 함수 정의
+ function throttle(func, delay) {
+  let lastCall = 0
+  return function (...args) {
+   const now = new Date().getTime()
+   if (now - lastCall >= delay) {
+    lastCall = now
+    func.apply(this, args)
+   }
+  }
+ }
+
+ const searchInput = document.getElementById('input')
+
+ searchInput.addEventListener(
+  'input',
+  throttle((e) => {
+   console.log('검색 요청', e.target.value)
+  }, 300),
+ )
+</script>
+```
+
+- 디바운싱 처리보다 조금 더 많이 쿼리를 날리겠지만, 중간 중간 검색결과를 확인한다던가 하는 결과를 얻을 수도 있습니다.
+
+#### React에서 디바운싱과 쓰로틀링
+
+위에서 알아본 디바운싱과 쓰로틀링을 React 환경에서 구현해보겠습니다
+
+디바운싱 예시
+
+```tsx
+import React, { useState, useCallback } from 'react'
+
+// 간단한 디바운스 유틸
+function debounce<T extends (...args: any[]) => void>(func: T, delay: number) {
+ let timer: ReturnType<typeof setTimeout>
+ return (...args: Parameters<T>) => {
+  clearTimeout(timer)
+  timer = setTimeout(() => func(...args), delay)
+ }
+}
+
+export default function SearchBox() {
+ const [query, setQuery] = useState('')
+
+ // 디바운싱된 핸들러
+ const handleChange = useCallback(
+  debounce((e: React.ChangeEvent<HTMLInputElement>) => {
+   console.log('검색 요청:', e.target.value)
+   setQuery(e.target.value)
+  }, 300),
+  [],
+ )
+
+ return <input type="text" placeholder="검색어 입력" onChange={handleChange} />
+}
+```
+
+- React에서는 onChange 이벤트에 디바운스 핸들러를 연결합니다
+- useCallback을 사용해서 디바운스 핸들러의 재생성을 막는 것이 포인트!
+
+쓰로틀링 예시
+
+```tsx
+import React, { useEffect } from 'react'
+
+// 간단한 쓰로틀 유틸
+function throttle<T extends (...args: any[]) => void>(func: T, delay: number) {
+ let lastCall = 0
+ return (...args: Parameters<T>) => {
+  const now = Date.now()
+  if (now - lastCall >= delay) {
+   lastCall = now
+   func(...args)
+  }
+ }
+}
+
+export default function ScrollLogger() {
+ useEffect(() => {
+  const handleScroll = throttle(() => {
+   console.log('스크롤 위치:', window.scrollY)
+  }, 200)
+
+  window.addEventListener('scroll', handleScroll)
+  return () => window.removeEventListener('scroll', handleScroll)
+ }, [])
+
+ return <div style={{ height: '200vh' }}>스크롤 테스트</div>
+}
+```
+
+- useEffect 로 스크롤 이벤트 등록을 관리합니다
+- throttle 함수를 사용해도 React는 합성 이벤트가 아니고 네이티브 이벤트기 때문에 addEventListener 를 쓰는게 일반적!
+
+---
+
+### 5. 메모리 누수 방지
+
+다음으로 메모리 누수를 방지하는 방법에 대해서 알아보겠습니다
+
+메모리 누수는 성능 최적화에서 놓치기 쉬운 부분인데요
+
+자바스크립트는 자동으로 가비지 콜렉션을 수행하지만, 우리가 작성한 코드로 인해서 해제 되지 않는 메모리가 쌓일 수 있고
+
+이러한 누수는 결국 브라우저의 성능 저하로 이어질 수 있습니다
+
+대표적인 원인 5가지를 알아보고 React 관점에서 방지하는 방법을 정리해보겠습니다
+
+#### 1. 클로저의 잘못된 사용
+
+함수 실행이 끝났는데 내부 변수를 외부에서 계속 참조하고 있는 경우가 있습니다.
+
+더 이상 사용하지 않는 값은 참조를 끊어주는 것이 좋습니다.
+
+```tsx
+// ❌ 클로저가 cache를 계속 참조 → 메모리 누수
+function useData() {
+ let cache: any = null
+ return function getData() {
+  if (!cache) {
+   cache = fetchData()
+  }
+  return cache
+ }
+}
+
+// ✅ 해결책 1: WeakMap 사용으로 참조 해제 가능
+function useDataWithWeakMap() {
+ const cache = new WeakMap()
+ return function getData(key: object) {
+  if (!cache.has(key)) {
+   cache.set(key, fetchData())
+  }
+  return cache.get(key)
+ }
+}
+
+// ✅ 해결책 2: 클로저를 반환하는 함수 자체를 null로 설정
+function createDataHandler() {
+ let cache: any = null
+ return function getData() {
+  if (!cache) {
+   cache = fetchData()
+  }
+  return cache
+ }
+}
+
+const dataHandler = createDataHandler()
+// 사용 완료 후
+dataHandler = null // 클로저 참조 해제
+```
+
+#### 2. 의도치 않은 전역 변수
+
+- 선언 누락으로 인해 전역 변수가 되는 경우
+- let, const 를 사용해서 전역 변수로 선언되는 것을 방지해줍니다. ESLint와 같은 툴을 통해서 전역 변수 선언을 방지해줍니다.
+
+```tsx
+// ❌ 전역 변수 선언 누락 → 메모리 누수
+let globalData = null
+
+function useData() {
+ globalData = fetchData()
+ return globalData
+}
+
+// ✅ 해결책: 전역 변수 선언 추가
+let globalData = null
+
+function useData() {
+ globalData = fetchData()
+ return globalData
+}
+```
+
+#### 3. 분리된 DOM 노드
+
+- DOM에서 제거했지만 변수나 리스너가 여전히 참조를 하고 있는 경우
+- cleanup 함수를 통해서 참조를 끊어줍니다
+
+```tsx
+useEffect(() => {
+ const handler = () => console.log('scroll')
+ window.addEventListener('scroll', handler)
+
+ return () => {
+  // ✅ 언마운트 시 반드시 해제
+  window.removeEventListener('scroll', handler)
+ }
+}, [])
+```
+
+#### 4. console 출력
+
+- console.log로 출력한 객체가 DevTools에 참조되서 해제되지 않는 경우
+- 프로덕션 코드에서는 제거해주거나 환경변수를 사용해서 조건에 따라 관리해줍니다
+
+```tsx
+if (process.env.NODE_ENV === 'development') {
+ console.log(heavyObject)
+}
+```
+
+#### 5. 해제하지 않은 타이머
+
+- setInterval, setTimeout 등 타이머를 사용했을 때 해제되지 않고 내부 변수가 계속 살아 있는 경우
+- clearInterval, clearTimeout 을 통해서 해제해줍니다
+
+```tsx
+useEffect(() => {
+ const timer = setInterval(() => {
+  console.log('tick')
+ }, 1000)
+
+ return () => {
+  // ✅ 반드시 해제
+  clearInterval(timer)
+ }
+}, [])
+```
+
+5가지 원인과 해결방법을 알아봤는데요, 핵심은 사용이 끝난 리소스는 해제해준다는 것입니다
+
+React를 사용한다면 cleanup 을 통해 타이머, 이벤트 리스너, WebSocket 등 외부 자원을 해제하는 습관을 들이면 좋습니다
+
+---
+
+## 정리 및 쉬어가기
+
+개인적으로, 흩어져있던 지식들을 하나로 묶는 시간이었습니다.
+
+실무를 진행하면서 정해진 가이드라인 없이 그때 그때 맞는 최적화 방법을 적용해왔는데요
+
+틀린 방법이라고 할 수 없지만
+
+가이드라인 없이 진행한다면, 분명 놓치는 부분이 존재할 것이라고 확신합니다.
+
+그렇기 때문에, 본인만의 가이드라인, 체크리스트를 가지고 성능최적화 전략을 가져가는 것을 추천드립니다.
+
+개인적으로는 이번 기회에 정리한 체크리스트를 바탕으로 프롬프트를 만든다면, ai 툴을 통한 최적화 전략도 자연스레 만들 수 있지 않을까 생각합니다
+
+지금도 ai에 성능 최적화를 진행해달라고 떼쓰면, ai가 수준 높은 최적화를 진행해주고있지만
+
+개발자 본인이 제대로 이해하고 있지 않다면 그것은 최적화가 아니라고 생각합니다..
+
+제가 쓴 글이 재밌었으면 좋겠다라는 생각으로 인해, 중간중간 알 수 없는 내용들이 있을 수 있는데 너그럽게 봐주시면 감사하겠습니다
+
+두번째 Step 에 대한 내용으로 다시 찾아오겠습니다.
+
+건강하세요!
+
+- 단계별 점검 요약
+- 장기적인 성능 유지 전략
+
+## 5. 3단계
+
+## Step 2. 렌더링 경로 최적화
+
+- DOM 구조 최적화
+- 시맨틱 태그 사용
+- 크리티컬 CSS 인라인화
+- GPU 친화적 애니메이션 (transform, opacity)
+- 레이아웃 스래싱 방지
+- will-change 속성 활용
+
+## Step 3. 자원 로딩 효율화
+
+- 이미지 최적화 (WebP, AVIF 등)
+- 폰트 최적화 (서브셋, font-display)
+- 스프라이트 이미지 사용
+- 가상 스크롤링 구현
+- 프레임워크 특화 최적화 기법
+
+{/* ## 성능 최적화 3단계 체크리스트 */}
+
+{/* ### ✅ Step 1. 실행 로직 경량화 */}
+
+{/* - [ ] 초기 로딩 시 **코드 분할(Code Splitting)**과 **레이지 로딩(Lazy Loading)**을 적용했는가? */}
+{/* - [ ] **React.memo / useMemo / useCallback** 등 메모이제이션으로 불필요한 렌더링을 줄였는가? */}
+{/* - [ ] 이벤트를 개별 노드가 아닌 **상위 노드에서 위임(Delegation)**하고 있는가? */}
+{/* - [ ] **디바운싱 / 쓰로틀링**으로 입력·스크롤 이벤트 폭주를 제어했는가? */}
+{/* - [ ] 이벤트 리스너 해제, 타이머 클린업 등으로 **메모리 누수 방지**를 신경썼는가? */}
+{/* - [ ] DevTools Performance/Profiler에서 **Main thread, Scripting, INP** 지표를 확인했는가? */}
+
+{/* --- */}
+
+{/* ### ✅ Step 2. 렌더링 경로 최적화 */}
+
+{/* - [ ] DOM 구조가 불필요하게 깊거나 복잡하지 않은가? */}
+{/* - [ ] 접근성과 최적화를 위해 **시맨틱 태그**를 적절히 사용했는가? */}
+{/* - [ ] **크리티컬 CSS 인라인화**로 초기 페인트 속도를 개선했는가? */}
+{/* - [ ] 애니메이션은 **transform/opacity** 기반으로 GPU 가속을 활용했는가? */}
+{/* - [ ] **레이아웃 스래싱**을 방지하기 위해 read/write 연산을 분리했는가? */}
+{/* - [ ] 성능 개선이 필요한 요소에만 **will-change** 속성을 부여했는가? */}
+{/* - [ ] DevTools Performance에서 **FPS, Layout/Paint, CLS** 지표를 점검했는가? */}
+
+{/* --- */}
+
+{/* ### ✅ Step 3. 자원 로딩 효율화 */}
+
+{/* - [ ] 이미지 최적화를 위해 **WebP/AVIF** 같은 차세대 포맷을 사용했는가? */}
+{/* - [ ] 웹폰트는 **서브셋 제작** 및 `font-display` 속성을 활용했는가? */}
+{/* - [ ] 스프라이트 이미지, 아이콘 폰트, SVG Sprite 등을 적절히 사용했는가? */}
+{/* - [ ] 대용량 리스트 렌더링 시 **가상 스크롤링(Virtualized List)**을 적용했는가? */}
+{/* - [ ] Next.js `dynamic()` 또는 React.lazy를 활용해 **무거운 컴포넌트 로딩을 지연**했는가? */}
+{/* - [ ] Lighthouse, WebPageTest에서 **LCP, 리소스 Waterfall, Transfer size**를 측정했는가? */}
+
+## 참고 자료
+
+- [MDN -Code Splitting](https://developer.mozilla.org/ko/docs/Glossary/Code_splitting)
+- [React.dev - React.lazy](https://ko.react.dev/reference/react/lazy#suspense-for-code-splitting)
+- [React.dev - React.memo](https://ko.react.dev/reference/react/memo)
+- [모던 자바스크립트 - 이벤트 위임](https://ko.javascript.info/event-delegation)
+- [제로초 - 쓰로틀링과 디바운싱](https://www.zerocho.com/category/JavaScript/post/59a8e9cb15ac0000182794fa)
+- [The Secrets of Memory Leaks in JavaScript You Don’t Know](https://javascript.plainenglish.io/these-5-bad-javascript-practices-will-lead-to-memory-leaks-and-break-your-program-9cf692303043)
