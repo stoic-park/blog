@@ -29,7 +29,7 @@ export default function Page() {
        <FaGithub size={28} />
       </Link>
       <Link
-       href="https://mulberry-floss-1f4.notion.site/Frontend-Developer-1f6032b7629f80269864ccdfa5e054fb?source=copy_link"
+       href="https://mulberry-floss-1f4.notion.site/Frontend-Developer-239032b7629f801ea4cce0cb9cd412cf?source=copy_link"
        title="resume"
        target="_blank"
        rel="noopener noreferrer"
