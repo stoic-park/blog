@@ -5,13 +5,23 @@ import { usePathname } from 'next/navigation'
 import { ThemeSwitch } from './themeSwitch'
 
 // 홈 제거
-const navItems = {
+const baseNavItems = {
  '/post': {
   name: 'Post',
  },
  '/about': {
   name: 'About',
  },
+}
+
+// 개발 환경에서만 서재 탭 표시
+const navItems = {
+ ...baseNavItems,
+ ...(process.env.NEXT_PUBLIC_SHOW_BOOKS === 'true' && {
+  '/books': {
+   name: 'Books',
+  },
+ }),
 }
 
 export function Navbar() {
