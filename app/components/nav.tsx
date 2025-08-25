@@ -4,24 +4,34 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { ThemeSwitch } from './themeSwitch'
 
-// 홈 제거
-const baseNavItems = {
- '/post': {
-  name: 'Post',
- },
- '/about': {
-  name: 'About',
- },
-}
-
 // 개발 환경에서만 서재 탭 표시
-const navItems = {
- ...baseNavItems,
- ...(process.env.NEXT_PUBLIC_SHOW_BOOKS === 'true' && {
-  '/books': {
-   name: 'Books',
+const getNavItems = () => {
+ const baseItems = {
+  '/post': {
+   name: 'Post',
   },
- }),
+  '/about': {
+   name: 'About',
+  },
+ }
+
+ // 환경 변수 디버깅
+ console.log('NODE_ENV:', process.env.NODE_ENV)
+ console.log('NEXT_PUBLIC_SHOW_BOOKS:', process.env.NEXT_PUBLIC_SHOW_BOOKS)
+
+ // 개발 환경에서만 Books 탭 표시
+ if (process.env.NODE_ENV === 'development') {
+  console.log('Books 탭이 표시됩니다 (개발 환경)')
+  return {
+   ...baseItems,
+   '/books': {
+    name: 'Books',
+   },
+  }
+ }
+
+ console.log('Books 탭이 숨겨집니다 (프로덕션 환경)')
+ return baseItems
 }
 
 export function Navbar() {
@@ -41,7 +51,7 @@ export function Navbar() {
        aria-label="내비게이션"
       >
        <div className="flex flex-row space-x-0 pr-10">
-        {Object.entries(navItems).map(([path, { name }]) => {
+        {Object.entries(getNavItems()).map(([path, { name }]) => {
          const isActive = pathname === path // 현재 경로 확인
 
          return (

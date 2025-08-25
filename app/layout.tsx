@@ -6,6 +6,7 @@ import { Navbar } from './components/nav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import Footer from './components/footer'
+import { EnvDebug } from './components/EnvDebug'
 import { baseUrl } from './sitemap'
 import { themeControl } from '../utils/themeControl'
 
@@ -95,6 +96,7 @@ export default function RootLayout({
      <Footer />
      <Analytics />
      <SpeedInsights />
+     <EnvDebug />
     </main>
    </body>
   </html>
