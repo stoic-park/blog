@@ -222,7 +222,7 @@ const UserCard = React.memo(function UserCard({ user }) {
 
 - UserCard는 props가 변경되지 않는 한 다시 렌더링되지 않습니다.
 
-- 단, React.memo는 **얕은 비교(shallow comparison)**만 수행하기 때문에, 객체/배열이 매번 새로 생성되면 여전히 리렌더링이 발생할 수 있습니다.
+- 단, React.memo는 **얕은 비교(shallow comparison)** 만 수행하기 때문에, 객체/배열이 매번 새로 생성되면 여전히 리렌더링이 발생할 수 있습니다.
 
 #### useMemo & useCallback
 
@@ -240,9 +240,9 @@ const handleClick = useCallback(() => {
 }, [])
 ```
 
-- useMemo는 “매번 계산하지 않고, 이전에 계산한 값을 재사용할 수 있게 한다”
+- useMemo는 **매번 계산하지 않고, 이전에 계산한 값을 재사용할 수 있게 한다**
 
-- useCallback은 **“매번 새로운 함수를 생성하지 않고, 동일한 함수를 재사용한다”**는 점에서 리렌더링 최적화에 유용합니다.
+- useCallback은 **매번 새로운 함수를 생성하지 않고, 동일한 함수를 재사용한다**는 점에서 리렌더링 최적화에 유용합니다.
 
 #### 컴포넌트 분리
 
@@ -250,7 +250,7 @@ const handleClick = useCallback(() => {
 
 하나의 큰 컴포넌트를 여러 작은 컴포넌트로 나누면, 실제로 변경이 일어난 부분만 리렌더링되도록 만들 수 있습니다.
 
-이는 **단일 책임 원칙(Single Responsibility Principle, SRP)**과도 일치합니다.
+이는 **단일 책임 원칙(Single Responsibility Principle, SRP)** 과도 일치합니다.
 
 ```tsx
 // ❌ 안 좋은 예: 하나의 컴포넌트에 여러 책임이 뒤섞임
@@ -650,26 +650,71 @@ dataHandler = null // 클로저 참조 해제
 
 #### 2. 의도치 않은 전역 변수
 
-- 선언 누락으로 인해 전역 변수가 되는 경우
-- let, const 를 사용해서 전역 변수로 선언되는 것을 방지해줍니다. ESLint와 같은 툴을 통해서 전역 변수 선언을 방지해줍니다.
+- 선언 없이 식별자에 값을 대입하면(예: globalData = ...) 비-strict 환경에서는 전역 객체(window/globalThis)에 프로퍼티가 생겨 수명이 불필요하게 길어질 수 있습니다.
+- 반면 엄격 모드('use strict')나 ES 모듈에서는 ReferenceError가 발생합니다. **반드시 let/const로 선언해 전역 오염을 방지하세요.**
+- 전역이 **큰 데이터(배열/맵/DOM 참조/캐시)**를 계속 붙잡고 있으면 GC가 회수하지 못해 메모리 점유가 지속됩니다.
+
+예시 상황
+
+```html
+<!-- (문제 예시) 브라우저 비-strict 가정: 선언 누락 → 전역 오염 -->
+<script>
+ function useData() {
+  globalData = fetchData() // 선언 없이 대입 → window.globalData 생성
+  return globalData
+ }
+</script>
+```
 
 ```tsx
-// ❌ 전역 변수 선언 누락 → 메모리 누수
-let globalData = null
-
+// (문제 예시를 더 명확히) 전역 객체에 직접 기록
 function useData() {
- globalData = fetchData()
- return globalData
+ ;(window as any).globalData = fetchData() // 또는 globalThis.globalData
+ return (window as any).globalData
 }
 
-// ✅ 해결책: 전역 변수 선언 추가
-let globalData = null
-
+// (strict/ESM 환경) 아래 코드는 ReferenceError가 납니다
 function useData() {
- globalData = fetchData()
- return globalData
+ // 'use strict' 또는 ES 모듈이면:
+ // globalData = fetchData(); // ReferenceError: globalData is not defined
 }
 ```
+
+해결 방법
+
+```tsx
+// ✅ 지역 변수로 스코프 한정
+function useData() {
+ const data = fetchData()
+ return data
+}
+
+// ✅ 모듈 스코프 캐시(전역 오염 없이 재사용)
+let cache: ReturnType<typeof fetchData> | undefined
+
+export function useData() {
+ if (cache) return cache
+ cache = fetchData()
+ return cache
+}
+
+export function clearDataCache() {
+ cache = undefined // 필요 시 해제 메커니즘 제공
+}
+
+// ✅ 객체 키 기반 캐시가 필요하면 WeakMap으로 참조 누수 완화
+const cacheByKey = new WeakMap<object, ReturnType<typeof fetchData>>()
+
+export function useDataByKey(key: object) {
+ const hit = cacheByKey.get(key)
+ if (hit) return hit
+ const value = fetchData()
+ cacheByKey.set(key, value)
+ return value
+}
+```
+
+평소 ESLint 플러그인을 사용하고 있다면 사실 해당 상황을 방지하는 규칙이 적용되어있어서 잘 예방되어있겠지만, 메모리 누수 원인을 잘 알아두도록 합시다!
 
 #### 3. 분리된 DOM 노드
 
@@ -735,9 +780,9 @@ Step 1을 마무리하고 다음 글에서는 Step 2인 **렌더링 경로 최�
 
 ## Step 1: 실행 로직 경량화 체크리스트
 
-- [ ] 초기 로딩 시 **코드 분할(Code Splitting)**과 **레이지 로딩(Lazy Loading)**을 적용했는가?
+- [ ] 초기 로딩 시 **코드 분할(Code Splitting)** 과 **레이지 로딩(Lazy Loading)** 을 적용했는가?
 - [ ] **React.memo / useMemo / useCallback** 등 메모이제이션으로 불필요한 렌더링을 줄였는가?
-- [ ] 이벤트를 개별 노드가 아닌 **상위 노드에서 위임(Delegation)**하고 있는가?
+- [ ] 이벤트를 개별 노드가 아닌 **상위 노드에서 위임(Delegation)** 하고 있는가?
 - [ ] **디바운싱 / 쓰로틀링**으로 입력·스크롤 이벤트 폭주를 제어했는가?
 - [ ] 이벤트 리스너 해제, 타이머 클린업 등으로 **메모리 누수 방지**를 신경썼는가?
 - [ ] DevTools Performance/Profiler에서 **Main thread, Scripting, INP** 지표를 확인했는가?
