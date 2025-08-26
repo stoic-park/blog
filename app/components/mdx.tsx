@@ -6,6 +6,13 @@ import React from 'react'
 import { slugify } from 'app/post/utils'
 import { CodeBlock } from './CustomComponents/CodeBlock'
 import { PreBlock } from './CustomComponents/PreBlock'
+import {
+ TipCallout,
+ NoteCallout,
+ WarningCallout,
+ ErrorCallout,
+ InfoCallout,
+} from './CustomComponents/Callout'
 
 function Table({ data }) {
  let headers = data.headers.map((header, index) => (
@@ -95,7 +102,11 @@ let components = {
  a: CustomLink,
  code: CodeBlock,
  pre: PreBlock,
- //  code: Code,
+ Tip: TipCallout,
+ Note: NoteCallout,
+ Warning: WarningCallout,
+ Error: ErrorCallout,
+ Info: InfoCallout,
  Table,
 }
 
