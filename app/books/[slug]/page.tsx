@@ -41,19 +41,21 @@ export default async function BookPage({ params }: BookPageProps) {
  }
 
  return (
-  <section>
-   <div className="mb-8">
-    <h1 className="font-bold text-3xl mb-4 tracking-tighter">{book.title}</h1>
-    <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
-     <span>저자: {book.author}</span>
-     <span>•</span>
-     <span>{book.date}</span>
+  <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
+   <section>
+    <div className="mb-8">
+     <h1 className="font-bold text-3xl mb-4 tracking-tighter">{book.title}</h1>
+     <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
+      <span>저자: {book.author}</span>
+      <span>•</span>
+      <span>{book.date}</span>
+     </div>
     </div>
-   </div>
 
-   <div className="prose prose-neutral dark:prose-invert max-w-none">
-    <MDXRemote source={book.content} />
-   </div>
-  </section>
+    <div className="prose prose-neutral dark:prose-invert max-w-none">
+     <MDXRemote source={book.content} />
+    </div>
+   </section>
+  </div>
  )
 }

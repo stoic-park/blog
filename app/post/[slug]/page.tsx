@@ -6,6 +6,7 @@ import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigati
 import { extractTocFromMdx } from 'app/post/utils'
 import DemoPdfBox from '../../components/CustomComponents/DemoPdfBox'
 import Giscus from 'app/components/CustomComponents/Giscus'
+import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -66,45 +67,58 @@ export default function Blog({ params }) {
  const toc = extractTocFromMdx(post.content)
 
  return (
-  <section>
-   {/* JSON-LD */}
-   <script
-    type="application/ld+json"
-    suppressHydrationWarning
-    dangerouslySetInnerHTML={{
-     __html: JSON.stringify({
-      '@context': 'https://schema.org',
-      '@type': 'BlogPosting',
-      headline: post.metadata.title,
-      datePublished: post.metadata.publishedAt,
-      dateModified: post.metadata.publishedAt,
-      description: post.metadata.summary,
-      image: post.metadata.image
-       ? `${baseUrl}${post.metadata.image}`
-       : `/og?title=${encodeURIComponent(post.metadata.title)}`,
-      url: `${baseUrl}/blog/${post.slug}`,
-      author: {
-       '@type': 'Person',
-       name: 'Stoic Park',
-      },
-     }),
-    }}
-   />
-   <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
-    {post.metadata.title}
-   </h1>
-   <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
-    <span className="text-sm">Stoic Park</span>
-    <span className="mx-2">·</span>
-    <time className="text-sm" dateTime={post.metadata.publishedAt}>
-     {formatDate(post.metadata.publishedAt)}
-    </time>
+  <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
+   <div className="post-layout">
+    <div className="post-content">
+     <div className="post-main">
+      <section>
+       {/* JSON-LD */}
+       <script
+        type="application/ld+json"
+        suppressHydrationWarning
+        dangerouslySetInnerHTML={{
+         __html: JSON.stringify({
+          '@context': 'https://schema.org',
+          '@type': 'BlogPosting',
+          headline: post.metadata.title,
+          datePublished: post.metadata.publishedAt,
+          dateModified: post.metadata.publishedAt,
+          description: post.metadata.summary,
+          image: post.metadata.image
+           ? `${baseUrl}${post.metadata.image}`
+           : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+          url: `${baseUrl}/blog/${post.slug}`,
+          author: {
+           '@type': 'Person',
+           name: 'Stoic Park',
+          },
+         }),
+        }}
+       />
+       <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
+        {post.metadata.title}
+       </h1>
+       {/* ToC Sidebar */}
+       {toc.length > 0 && <TocSidebar toc={toc} />}
+
+       {/* post content */}
+       <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
+        <span className="text-sm">Stoic Park</span>
+        <span className="mx-2">·</span>
+        <time className="text-sm" dateTime={post.metadata.publishedAt}>
+         {formatDate(post.metadata.publishedAt)}
+        </time>
+       </div>
+
+       <article className="prose dark:prose-invert max-w-none prose-lg">
+        <SeriesNavigation post={post} />
+        <CustomMDX source={post.content} components={{ DemoPdfBox }} />
+        <Giscus />
+       </article>
+      </section>
+     </div>
+    </div>
    </div>
-   <article className="prose dark:prose-invert max-w-none prose-lg">
-    <SeriesNavigation post={post} />
-    <CustomMDX source={post.content} components={{ DemoPdfBox }} />
-    <Giscus />
-   </article>
-  </section>
+  </div>
  )
 }

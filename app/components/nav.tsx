@@ -16,8 +16,8 @@ const getNavItems = () => {
  }
 
  // 환경 변수 디버깅
- console.log('NODE_ENV:', process.env.NODE_ENV)
- console.log('NEXT_PUBLIC_SHOW_BOOKS:', process.env.NEXT_PUBLIC_SHOW_BOOKS)
+ //  console.log('NODE_ENV:', process.env.NODE_ENV)
+ //  console.log('NEXT_PUBLIC_SHOW_BOOKS:', process.env.NEXT_PUBLIC_SHOW_BOOKS)
 
  // 개발 환경에서만 Books 탭 표시
  if (process.env.NODE_ENV === 'development') {
@@ -30,7 +30,7 @@ const getNavItems = () => {
   }
  }
 
- console.log('Books 탭이 숨겨집니다 (프로덕션 환경)')
+ //  console.log('Books 탭이 숨겨집니다 (프로덕션 환경)')
  return baseItems
 }
 

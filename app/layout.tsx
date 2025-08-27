@@ -86,15 +86,27 @@ export default function RootLayout({
      dangerouslySetInnerHTML={{ __html: `(${themeControl.toString()})()` }}
     />
    </head>
-   <body className="antialiased min-h-screen max-w-5xl mx-4 lg:mx-auto flex flex-col h-full">
-    <main className="flex flex-col flex-1 px-2 md:px-0">
-     <div className="relative w-full h-12 mb-8">
-      <div className="absolute inset-0 blur-xl opacity-50"></div>
-      <div className="relative z-10 w-full h-full"></div>
-     </div>
+   <body className="antialiased min-h-screen mx-4 lg:mx-auto flex flex-col h-full">
+    {/* Navbar 컨테이너 */}
+    <div className="mx-auto w-full max-w-screen-xxl px-4 sm:px-6 lg:px-8 py-4">
      <Navbar />
-     <div className="flex-grow">{children}</div>
-     <Footer />
+    </div>
+
+    {/* 장식용 상단 여백/블러 */}
+    <div className="relative w-full h-12 mb-8">
+     <div className="absolute inset-0 blur-xl opacity-50"></div>
+     <div className="relative z-10 w-full h-full"></div>
+    </div>
+
+    <main className="flex flex-col flex-1">
+     {/* 전역 컨테이너: 페이지는 이 안에서 각자 최대폭을 추가로 제어 */}
+     <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 flex-1 flex flex-col">
+      {children}
+     </div>
+
+     <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 py-4">
+      <Footer />
+     </div>
      <Analytics />
      <SpeedInsights />
      <EnvDebug />
