@@ -1,0 +1,283 @@
+---
+title: '프론트엔드 성능 최적화 - 렌더링 경로 최적화'
+publishedAt: '2025-09-02'
+summary: '브라우저 렌더링 파이프라인을 이해하고, DOM·CSS·애니메이션·레이아웃 관점에서 병목을 줄이는 실전 가이드'
+tags: '#프론트엔드, #성능최적화, #JavaScript, #React'
+author: 'Stoic Park'
+readingTime: '20분'
+series:
+ name: '프론트엔드 성능 최적화'
+ order: 2
+draft: true
+---
+
+<div
+ style={{
+  display: 'flex',
+  justifyContent: 'center',
+  flexDirection: 'column',
+  alignItems: 'center',
+  padding: '20px',
+ }}
+>
+ <Image
+  src="/images/2025-09-02-rendering-path.png"
+  alt="렌더링 파이프라인 요약(Style→Layout→Paint→Composite)"
+  width={820}
+  height={300}
+ />
+</div>
+
+## 개요
+
+이전 단계에서 실행 로직 경량화를 다뤘다면, 이번에는 화면이 그려지는 렌더링 단계에서의 최적화를 다룹니다. 렌더링 과정에서 비용을 줄이는 방법에 대해서 알아보겠습니다.
+
+---
+
+## Step 2. 렌더링 경로 최적화
+
+<Note>
+ 중요한 렌더링 경로는 웹페이지가 브라우저에서 렌더링을 시작할 때까지의 단계를
+ 말합니다.
+</Note>
+
+더 자세한 내용은 아래의 문서를 참고해주세요. 아주 자세히 나와있습니다!
+
+[web.dev - Understanding the critical path](https://web.dev/learn/performance/understanding-the-critical-path?hl=ko)
+
+<div style={{ display: 'flex', justifyContent: 'center' }}>
+ <Image
+  src="/images/2025-09-10-16-49-19.png"
+  alt="렌더링 경로"
+  width={600}
+  height={400}
+ />
+</div>
+
+우리는 이제 렌더링 경로에 대해 알고 있다고 가정하고, **Render Tree → Style →
+Layout → Paint → Composite** 단계에서의 최적화 방법에 집중하겠습니다.
+
+### 1. DOM 구조 최적화: 깊이·복잡도 줄이기
+
+DOM이 깊어질수록 레이아웃의 범위가 넓어져서 Layout 비용이 증가합니다. 그리고 레이아웃의 범위가 넓어진다면 그에 따라 스타일 계산과 Paint 비용도 증가합니다.
+
+따라서 우리는 깊이와 복잡도를 줄이는 것이 중요합니다. 시맨틱 태그를 적절하게 사용하고, 레이아웃 시스템(Grid/Flex)을 적절하게 사용해야 합니다.
+
+mdn 문서에 따르면, DOM의 크기와 복잡도가 커지면 Reflow와 Repaint의 비용을 키운다고 설명하고 있습니다.
+또한 깊은 트리 구조는 접근성 측면에서도 좋지 못합니다.
+
+불필요한 div, span등의
+
+```html
+<!-- ❌ div-지옥 -->
+<div class="card">
+ <div class="header"><div class="title">제목</div></div>
+ <div class="body"><div class="content">내용</div></div>
+</div>
+
+<!-- ✅ 의미 있는 태그 + 얕은 구조 -->
+<article class="card">
+ <header><h2 class="title">제목</h2></header>
+ <section class="content">내용</section>
+</article>
+```
+
+간단히 확인해볼 수 있는 방법도 있습니다
+
+- DevTools Elements 패널에서 DOM 중첩이 과도하지 않은지 시각적으로 확인하는 방법
+
+- Performance 탭에서 Recalculate Style / Layout 시간이 길게 잡히는 지 확인하는 방법, 이 경우 Recalculate Style / Layout 시간이 길게 잡히면 깊은 트리 구조가 원인일 수 있습니다.
+
+세부 측정 방법은 추후에 성능 측정 관련 글에서 자세히 다뤄보겠습니다.
+
+---
+
+### 2. 크리티컬 CSS 최적화: 초기 페인트(FCP/LCP) 개선
+
+<Note>
+ 크리티컬 CSS(Critical CSS)란, 웹페이지의 가시 영역(스크롤 없이 볼 수 있는
+ 부분)을 렌더링하는 데 필요한 최소한의 CSS 규칙 집합을 말합니다. <br />
+ 이를 HTML에 인라인으로 삽입하면 외부 스타일시트 로드를 기다리지 않고 초기
+ 콘텐츠를 빠르게 렌더링할 수 있어 FCP(First Contentful Paint)와 같은 성능 지표를
+ 개선할 수 있습니다.
+</Note>
+
+#### 일반적인 접근 방법
+
+크리티컬 CSS를 최적화하는 기본 절차는 다음과 같습니다.
+
+1. 크리티컬 CSS 추출 및 `<head>`에 인라인 삽입
+
+2. 나머지 CSS는 비동기 로드
+
+3. 중요하지 않은 스타일은 `<body>` 끝이나 지연 로딩 방식으로 처리
+
+```html
+<head>
+ <style>
+  /* 첫 화면에 필요한 최소한의 스타일 */
+  .header { ... }
+  .hero { ... }
+  .main-nav { ... }
+ </style>
+
+ <!-- 나머지 CSS는 지연 로드 -->
+ <link rel="preload" href="/css/main.css" as="style" />
+ <link
+  rel="stylesheet"
+  href="/css/main.css"
+  media="print"
+  onload="this.media='all'"
+ />
+</head>
+```
+
+CRA(Create React App), Vite, Vue CLI 와 같은 환경에서는 크리티컬 CSS 최적화를 **직접 관리** 해야 합니다.
+
+이를 위해 보통 다음과 같은 도구들을 사용합니다:
+
+- Penthouse: Puppeteer 기반으로 실제 뷰포트 렌더링 후 필요한 CSS 추출
+
+- Critical: HTML + CSS를 분석해 Above-the-fold CSS를 생성
+
+- 플러그인: `critters-webpack-plugin`, `vite-plugin-critical` 등 빌드 타임 최적화 지원
+
+---
+
+### 3. 애니메이션: `transform`·`opacity` 위주로 작성
+
+웹 애니메이션은 크게 Layout → Paint → Composite 파이프라인 중 어느 단계에서 실행되느냐에 따라 성능 차이가 발생합니다.
+
+Layout 단계를 거치면 DOM 크기/위치 계산이 다시 일어나며, 많은 노드에 영향을 줍니다.
+
+Paint 단계를 거치면 픽셀 단위로 다시 그려야 해서 GPU·CPU 부담이 큽니다.
+
+반면, Composite 단계에서만 처리되면, 브라우저는 기존에 그려둔 레이어를 단순히 GPU에서 이동·합성하기만 하면 됩니다.
+
+따라서 애니메이션은 transform(translate, scale, rotate 등)과 opacity를 중심으로 작성하는 것이 가장 성능 친화적입니다.
+
+```css
+/* ✅ GPU 친화적: 합성 단계에서만 실행 */
+.card {
+ transition:
+  transform 0.25s ease,
+  opacity 0.25s ease;
+}
+.card:hover {
+ transform: translateY(-4px) scale(1.02);
+ opacity: 0.96;
+}
+
+/* ❌ Layout/Paint 유발 */
+.bad:hover {
+ width: 320px; /* Layout: 요소 크기 다시 계산 */
+ box-shadow: 0 0 24px #000; /* Paint: 픽셀 다시 그리기 */
+}
+```
+
+box-shadow, border-radius, background-color 등의 속성은 Paint 단계로 넘어가므로 장시간 애니메이션에 부적합합니다.
+
+transform·opacity만 사용한다고 해서 무조건 좋은 건 아닙니다.
+
+너무 많은 요소에 동시에 적용하면 합성 레이어가 과도하게 생성되어 GPU 메모리를 압박합니다.
+
+이 경우 will-change 속성을 남발하지 말고, 필요한 시점에만 힌트를 주는 것이 좋습니다.
+
+결국 상황에 따라 적절한 CSS 속성을 사용하는 것이 중요합니다.
+
+---
+
+### 4. 레이아웃 스래싱(Forced Sync Layout) 방지
+
+“읽기 → 쓰기 → 또 읽기”를 같은 프레임에 섞으면 브라우저가 **강제 동기 레이아웃**을 반복 실행해 프레임이 무너집니다. **읽기 일괄 → 쓰기 일괄**로 분리하세요.
+
+```js
+// ❌ 스래싱: 루프 안에서 write → 즉시 read
+for (const el of items) {
+ el.style.width = targetWidth + 'px' // write
+ const h = el.offsetHeight // read(강제 레이아웃)
+}
+
+// ✅ read / write 분리
+const heights = items.map((el) => el.offsetHeight) // batch read
+requestAnimationFrame(() => {
+ for (const el of items) {
+  el.style.width = targetWidth + 'px' // batch write
+ }
+})
+```
+
+---
+
+### 5. `will-change`: “최후수단” 원칙
+
+`will-change`는 “곧 바뀔 속성” 힌트입니다. **짧게 적용 → 끝나면 제거**가 정석입니다. 상시 부여는 메모리 증가·합성 비용을 키워 오히려 역효과가 납니다.
+
+```css
+/* ✅ 트리거 직전에만 힌트 */
+.card:hover {
+ will-change: transform;
+}
+
+/* ❌ 상시 힌트 남발 */
+.card {
+ will-change: transform;
+} /* 메모리·합성 비용 ↑ */
+```
+
+---
+
+### 6. `content-visibility` / `contain-intrinsic-size`: 오프스크린 스킵
+
+접히거나 스크롤 밖의 영역은 **렌더링 자체를 건너뛰도록 힌트**를 주세요.
+
+```css
+.article {
+ content-visibility: auto;
+ /* 처음엔 600px을 자리로 가정, 실제 렌더링 뒤엔 그 크기를 기억해 재사용 */
+ contain-intrinsic-size: auto 600px;
+}
+```
+
+---
+
+## 정리
+
+앞서 소개한 대로 렌더링 과정에서 최적화할 수 있는 방법들에 대해 알아보았습니다.
+
+- **DOM**: 깊이·복잡도 줄이기(시맨틱 태그, 과도한 래퍼 제거)
+- **CSS(초기 페인트)**: 크리티컬 CSS 우선 적용, Next.js의 `experimental.inlineCss`는 트레이드오프 고려
+- **애니메이션**: `transform`·`opacity` 중심, 필요 시 짧은 레이어 승격
+- **레이아웃 스래싱**: read/write를 프레임 내에서 분리해 강제 레이아웃 제거
+- **will-change**: 최후수단·단기 적용·종료 시 해제
+- **content-visibility**: 오프스크린 렌더 스킵 + `contain-intrinsic-size`로 CLS 방지
+
+전체적으로 최적화 방법에 대해 집중하고 있습니다.
+
+앞선 내용들에 대해서 측정할 수 있는 방법에 대해서도 따로 정리해보면 좋을 것 같다고 생각합니다
+
+다음 글에서는 **자원 로딩 효율화**에 대해 알아보겠습니다.
+
+---
+
+## Step 2: 렌더링 경로 최적화 체크리스트
+
+- [ ] DOM 구조가 불필요하게 깊지 않은가? (섹셔닝·의미 태그 사용)
+- [ ] 크리티컬 CSS 인라인/우선 적용으로 **FCP/LCP**를 줄였는가?
+- [ ] 애니메이션은 **transform/opacity** 기반인가?
+- [ ] **read/write**를 분리해 강제 레이아웃을 제거했는가?
+- [ ] `will-change`는 **필요 순간에만** 사용하고 즉시 해제하는가?
+- [ ] `content-visibility` + `contain-intrinsic-size`로 오프스크린 렌더 스킵/CLS 억제했는가?
+- [ ] DevTools에서 **Layout/Paint/Composite** 구간과 **INP/CLS** 전후를 측정했는가?
+
+---
+
+## 참고 자료
+
+- [web.dev - Critical rendering path](https://web.dev/articles/critical-rendering-path?hl=ko)
+- [web.dev - Understanding the critical path](https://web.dev/learn/performance/understanding-the-critical-path?hl=ko)
+- [주요 렌더링 경로 - 브라우저의 원리를 이해하고 최적화 하기](https://yceffort.kr/2020/07/critical-rendering-path)
+- [Critical CSS 추출 도구](http://critical-css-extractor.kigo.studio/)
+
+{/* ## 잡소리 */}
+{/* - 처음 프론트엔드 개발을 시작하면서 div를 마구 쌓아 화면을 구성하고 마냥 좋아하던 기억이 있습니다. 그 땐 비용이고 뭐고, 내가 원하는데로 화면에 나타나는 것만으로도 즐거웠지만, 이제는 무엇을 그렸는가에만 집중하는 것이 아닌 어떻게 그렸는가에 대한 설계를 하는 개발자가 되었을까요? */}
