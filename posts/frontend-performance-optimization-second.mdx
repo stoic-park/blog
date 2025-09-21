@@ -1,10 +1,10 @@
 ---
 title: '프론트엔드 성능 최적화 - 렌더링 경로 최적화'
-publishedAt: '2025-09-02'
+publishedAt: '2025-09-21'
 summary: '브라우저 렌더링 파이프라인을 이해하고, DOM·CSS·애니메이션·레이아웃 관점에서 병목을 줄이는 실전 가이드'
 tags: '#프론트엔드, #성능최적화, #JavaScript, #React'
 author: 'Stoic Park'
-readingTime: '20분'
+readingTime: '10분'
 series:
  name: '프론트엔드 성능 최적화'
  order: 2
@@ -21,7 +21,7 @@ draft: true
  }}
 >
  <Image
-  src="/images/2025-09-02-rendering-path.png"
+  src="/images/2025-09-21-16-33-56.png"
   alt="렌더링 파이프라인 요약(Style→Layout→Paint→Composite)"
   width={820}
   height={300}
@@ -57,16 +57,15 @@ draft: true
 우리는 이제 렌더링 경로에 대해 알고 있다고 가정하고, **Render Tree → Style →
 Layout → Paint → Composite** 단계에서의 최적화 방법에 집중하겠습니다.
 
-### 1. DOM 구조 최적화: 깊이·복잡도 줄이기
+### 1. DOM 구조 최적화
 
-DOM이 깊어질수록 레이아웃의 범위가 넓어져서 Layout 비용이 증가합니다. 그리고 레이아웃의 범위가 넓어진다면 그에 따라 스타일 계산과 Paint 비용도 증가합니다.
+DOM의 구조가 깊어질수록 레이아웃의 범위가 넓어져서 Layout 비용이 증가합니다. 그리고 그에 따라 스타일 계산과 Paint 비용도 증가합니다.
 
-따라서 우리는 깊이와 복잡도를 줄이는 것이 중요합니다. 시맨틱 태그를 적절하게 사용하고, 레이아웃 시스템(Grid/Flex)을 적절하게 사용해야 합니다.
+즉, 복잡한 구조는 Reflow/Repaint 비용을 키우게 됩니다.
 
-mdn 문서에 따르면, DOM의 크기와 복잡도가 커지면 Reflow와 Repaint의 비용을 키운다고 설명하고 있습니다.
-또한 깊은 트리 구조는 접근성 측면에서도 좋지 못합니다.
+따라서 우리는 **깊이와 복잡도를 줄이는 것이 중요합니다**. 시맨틱 태그를 적절하게 사용하고, 레이아웃 시스템(Grid/Flex)을 적절하게 사용해서 구조를 단순화 해야 합니다.
 
-불필요한 div, span등의
+이는 성능 뿐 아니라 접근성 및 유지보수성 측면에서도 유리합니다.
 
 ```html
 <!-- ❌ div-지옥 -->
@@ -82,35 +81,39 @@ mdn 문서에 따르면, DOM의 크기와 복잡도가 커지면 Reflow와 Repai
 </article>
 ```
 
-간단히 확인해볼 수 있는 방법도 있습니다
-
-- DevTools Elements 패널에서 DOM 중첩이 과도하지 않은지 시각적으로 확인하는 방법
-
-- Performance 탭에서 Recalculate Style / Layout 시간이 길게 잡히는 지 확인하는 방법, 이 경우 Recalculate Style / Layout 시간이 길게 잡히면 깊은 트리 구조가 원인일 수 있습니다.
-
-세부 측정 방법은 추후에 성능 측정 관련 글에서 자세히 다뤄보겠습니다.
+이와 같이 불필요한 div, span등의 태그를 제거하고, 의미 있는 태그를 사용하고, 얕은 구조를 만들어야 합니다.
 
 ---
 
-### 2. 크리티컬 CSS 최적화: 초기 페인트(FCP/LCP) 개선
+### 2. 크리티컬 CSS 최적화
 
-<Note>
- 크리티컬 CSS(Critical CSS)란, 웹페이지의 가시 영역(스크롤 없이 볼 수 있는
- 부분)을 렌더링하는 데 필요한 최소한의 CSS 규칙 집합을 말합니다. <br />
- 이를 HTML에 인라인으로 삽입하면 외부 스타일시트 로드를 기다리지 않고 초기
- 콘텐츠를 빠르게 렌더링할 수 있어 FCP(First Contentful Paint)와 같은 성능 지표를
- 개선할 수 있습니다.
-</Note>
+CRP(Critical Rendering Path)는 브라우저가 HTML, CSS, JS를 해석해 화면을 그리는 과정입니다.
 
-#### 일반적인 접근 방법
+이 중 **크리티컬 CSS(Critical CSS)**는 최초 뷰포트(Above-the-fold)를 렌더링하는 데 꼭 필요한 최소한의 CSS를 말합니다.
 
-크리티컬 CSS를 최적화하는 기본 절차는 다음과 같습니다.
+브라우저는 외부 CSS가 모두 로드될 때까지 렌더링을 멈추는 성질을 갖기 때문에, 초기 로딩에서 CSS는 중요한 차단 리소스(Render Blocking Resource)가 됩니다.
 
-1. 크리티컬 CSS 추출 및 `<head>`에 인라인 삽입
+따라서 필요한 CSS만 먼저 제공하고, 나머지는 뒤늦게 불러오면 **FCP(First Contentful Paint), LCP(Largest Contentful Paint)** 같은 초기 렌더링 지표를 크게 개선할 수 있습니다.
 
-2. 나머지 CSS는 비동기 로드
+#### 크리티컬 CSS 적용 방법
 
-3. 중요하지 않은 스타일은 `<body>` 끝이나 지연 로딩 방식으로 처리
+일반적인 최적화 절차는 다음과 같습니다.
+
+1. 필수 CSS 추출
+
+- 위 fold 영역(사용자가 처음 보는 영역)에 필요한 CSS만 추출합니다.
+
+2. HTML `<head>`에 인라인 삽입
+
+- 외부 CSS 로드를 기다리지 않고 브라우저가 즉시 렌더링할 수 있습니다.
+
+3. 나머지 CSS 비동기 로드
+
+- `<link rel="preload">` 또는 onload 콜백을 사용해 차후에 적용합니다.
+
+4. 비핵심 스타일 지연 로딩
+
+- fold 이후 콘텐츠나 애니메이션 관련 CSS는 `<body>` 끝이나 동적 import로 로드합니다.
 
 ```html
 <head>
@@ -132,19 +135,83 @@ mdn 문서에 따르면, DOM의 크기와 복잡도가 커지면 Reflow와 Repai
 </head>
 ```
 
-CRA(Create React App), Vite, Vue CLI 와 같은 환경에서는 크리티컬 CSS 최적화를 **직접 관리** 해야 합니다.
+#### 빌드 도구별 자동화 도구
 
-이를 위해 보통 다음과 같은 도구들을 사용합니다:
+- Penthouse: Puppeteer 기반 뷰포트 렌더링 후 필요 CSS만 추출
 
-- Penthouse: Puppeteer 기반으로 실제 뷰포트 렌더링 후 필요한 CSS 추출
+- Critical: HTML + CSS 분석으로 Above-the-fold CSS 생성
 
-- Critical: HTML + CSS를 분석해 Above-the-fold CSS를 생성
+- Webpack/Vite 플러그인: critters-webpack-plugin, vite-plugin-critical 등
 
-- 플러그인: `critters-webpack-plugin`, `vite-plugin-critical` 등 빌드 타임 최적화 지원
+CRA, Vite, Vue CLI 같은 SPA 환경에서는 보통 위 도구를 조합해 빌드 타임에 자동화합니다.
 
----
+#### 간단 측정 방법
 
-### 3. 애니메이션: `transform`·`opacity` 위주로 작성
+1. Lighthouse / PageSpeed Insights
+
+- “Eliminate render-blocking resources” 경고 여부 확인
+
+- FCP, LCP 개선 폭 비교
+
+2. Chrome DevTools Performance 탭
+
+- Main thread에서 Recalculate Style/ Layout 시간 감소 확인
+- “Network” 탭에서 CSS 파일 로딩 시점과 페인트 타이밍 비교
+
+<div
+ style={{
+  display: 'flex',
+  justifyContent: 'center',
+  flexDirection: 'column',
+  alignItems: 'center',
+ }}
+>
+ <Image
+  src="/images/2025-09-21-17-50-49.png"
+  alt="간단 측정 방법"
+  width={600}
+  height={400}
+ />
+ <span>Chrome DevTools - lighthouse 측정 결과</span>
+</div>
+
+위에서 말한 성능 측정 방법에 대한 내용은 추후에 더 자세하게 다룰 예정입니다
+
+#### 트레이드오프 / 주의사항
+
+1. HTML 크기 증가
+
+크리티컬 CSS를 과도하게 인라인하면 HTML 자체가 커져 TTFB(Time to First Byte)가 길어질 수 있습니다. 따라서 반드시 “최소한”만 인라인해야 합니다.
+
+2. 중복 관리 부담
+
+인라인 CSS와 외부 CSS 간 중복/불일치가 발생할 수 있습니다. 이럴 경우 빌드 타임 도구를 통한 자동화를 권장합니다.
+
+3. SPA/CSR 환경의 한계
+
+React/Vue 같은 SPA는 초기 번들이 로딩될 때까지 화면이 늦게 뜰 수 있어, CSS 최적화 효과가 제한적일 수 있습니다. SSR/SSG와 병행하면 효과를 극대화할 수 있습니다.
+
+4. 폰트/이미지 등 다른 자원과의 균형 필요
+
+CSS만 빠르다고 체감이 좋아지지 않습니다. LCP 요소가 이미지라면 이미지 최적화가 병행되어야 합니다.
+
+5. HTTP/1.1 vs HTTP/2/3 고려
+
+- HTTP/1.1: 동시 요청 제한으로 차단 리소스 개수 감소의 이익이 큼. 크리티컬 CSS 인라인의 효과가 크게 나타남.
+
+- HTTP/2/3: 멀티플렉싱으로 병렬 전송이 원활해 인라인 이득이 상대적으로 감소. 과도한 인라인은 캐시 비효율(HTML과 함께 매번 재전송)과 HTML 팽창을 유발.
+
+- 권장 전략: HTTP/2/3에서는 정말 필요한 `Above‑the‑fold`만 인라인하고, 나머지는 외부 CSS + preload 조합으로 캐시 효율을 극대화.
+
+#### 정리
+
+정리하면, 크리티컬 CSS를 인라인으로 우선 적용하면 초기 페인트 비용을 줄여 FCP/LCP를 개선할 수 있습니다.
+다만 인라인 범위를 과도하게 넓히면 HTML 크기 증가와 캐시 비효율이 생길 수 있으므로, 자동화 도구(예: Penthouse, Critical)와 **네트워크 특성(HTTP/1.1 vs HTTP/2/3)**을 함께 고려해야 합니다.
+HTTP/1.1 환경에서는 차단 리소스를 줄이는 효과가 크지만, HTTP/2/3 환경에서는 멀티플렉싱 덕분에 효과가 줄어들고 캐시 전략이 더 중요합니다
+
+결론적으로, 필수 `Above‑the‑fold` CSS만 인라인하고 나머지는 외부 CSS + preload로 처리하는 것이 가장 균형 잡힌 접근입니다.
+
+### 3. 애니메이션 실행 최적화
 
 웹 애니메이션은 크게 Layout → Paint → Composite 파이프라인 중 어느 단계에서 실행되느냐에 따라 성능 차이가 발생합니다.
 
@@ -260,7 +327,7 @@ requestAnimationFrame(() => {
 
 ---
 
-## Step 2: 렌더링 경로 최적화 체크리스트
+## 체크리스트
 
 - [ ] DOM 구조가 불필요하게 깊지 않은가? (섹셔닝·의미 태그 사용)
 - [ ] 크리티컬 CSS 인라인/우선 적용으로 **FCP/LCP**를 줄였는가?
@@ -278,6 +345,8 @@ requestAnimationFrame(() => {
 - [web.dev - Understanding the critical path](https://web.dev/learn/performance/understanding-the-critical-path?hl=ko)
 - [주요 렌더링 경로 - 브라우저의 원리를 이해하고 최적화 하기](https://yceffort.kr/2020/07/critical-rendering-path)
 - [Critical CSS 추출 도구](http://critical-css-extractor.kigo.studio/)
+- [HTTP/1.1 - Connection management in HTTP/1.x](https://developer.mozilla.org/en-US/docs/Web/HTTP/Connection_management_in_HTTP_1.x)
+- [Critical CSS 추출 도구](https://web.dev/articles/extract-critical-css?hl=ko)
 
 {/* ## 잡소리 */}
 {/* - 처음 프론트엔드 개발을 시작하면서 div를 마구 쌓아 화면을 구성하고 마냥 좋아하던 기억이 있습니다. 그 땐 비용이고 뭐고, 내가 원하는데로 화면에 나타나는 것만으로도 즐거웠지만, 이제는 무엇을 그렸는가에만 집중하는 것이 아닌 어떻게 그렸는가에 대한 설계를 하는 개발자가 되었을까요? */}
