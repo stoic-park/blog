@@ -6,7 +6,7 @@ import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigati
 import { extractTocFromMdx } from 'app/post/utils'
 import DemoPdfBox from '../../components/CustomComponents/DemoPdfBox'
 import Giscus from 'app/components/CustomComponents/Giscus'
-import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
+// import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -64,7 +64,8 @@ export default function Blog({ params }) {
  }
 
  // 목차 데이터 추출
- const toc = extractTocFromMdx(post.content)
+ //  const toc = extractTocFromMdx(post.content)
+ //  console.log(toc, 'toc')
 
  return (
   <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
@@ -99,7 +100,7 @@ export default function Blog({ params }) {
         {post.metadata.title}
        </h1>
        {/* ToC Sidebar */}
-       {toc.length > 0 && <TocSidebar toc={toc} />}
+       {/* {toc.length > 0 && <TocSidebar toc={toc} />} */}
 
        {/* post content */}
        <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">

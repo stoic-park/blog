@@ -86,7 +86,7 @@ export default function RootLayout({
      dangerouslySetInnerHTML={{ __html: `(${themeControl.toString()})()` }}
     />
    </head>
-   <body className="antialiased min-h-screen mx-4 lg:mx-auto flex flex-col h-full">
+   <body className="antialiased min-h-screen  lg:mx-auto flex flex-col h-full">
     {/* Navbar 컨테이너 */}
     <div className="mx-auto w-full max-w-screen-xxl px-4 sm:px-6 lg:px-8 py-4">
      <Navbar />
@@ -100,7 +100,7 @@ export default function RootLayout({
 
     <main className="flex flex-col flex-1">
      {/* 전역 컨테이너: 페이지는 이 안에서 각자 최대폭을 추가로 제어 */}
-     <div className="mx-auto w-full max-w-screen-xl px-4 sm:px-6 lg:px-8 flex-1 flex flex-col">
+     <div className="mx-auto w-full max-w-screen-xl sm:px-6 lg:px-8 flex-1 flex flex-col">
       {children}
      </div>
 
