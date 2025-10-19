@@ -31,12 +31,16 @@ function Table({ data }) {
  ))
 
  return (
-  <table className="w-full border-collapse border border-gray-300 shadow-md rounded-lg overflow-hidden">
-   <thead>
-    <tr>{headers}</tr>
-   </thead>
-   <tbody>{rows}</tbody>
-  </table>
+  <div className="w-full overflow-x-auto">
+   <div className="min-w-[600px] w-full">
+    <table className="w-full border-collapse border border-gray-300 shadow-md rounded-lg overflow-hidden">
+     <thead>
+      <tr>{headers}</tr>
+     </thead>
+     <tbody>{rows}</tbody>
+    </table>
+   </div>
+  </div>
  )
 }
 
@@ -60,14 +64,13 @@ function CustomLink(props) {
 
 function RoundedImage(props) {
  return (
-  <Image alt={props.alt} className="rounded-lg mx-auto block" {...props} />
+  <div className="w-full flex justify-center">
+   <div className={`w-full ${props.width <= 600 ? 'max-w-[600px]' : ''}`}>
+    <Image alt={props.alt} className="rounded-lg w-full h-auto" {...props} />
+   </div>
+  </div>
  )
 }
-
-// function Code({ children, ...props }) {
-//  let codeHTML = highlight(children)
-//  return <code dangerouslySetInnerHTML={{ __html: codeHTML }} {...props} />
-// }
 
 function createHeading(level) {
  const Heading = ({ children }) => {
