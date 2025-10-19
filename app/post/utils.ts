@@ -135,27 +135,62 @@ export function formatDate(date: string, includeRelative = false) {
  return `${fullDate} (${formattedDate})`
 }
 
-// utils/toc.ts
-export function extractTocFromMdx(mdxContent: string) {
- const headingRegex = /^(#{1,6})\s+(.*)$/gm
- const toc: { level: number; text: string; id: string }[] = []
- let match
- while ((match = headingRegex.exec(mdxContent)) !== null) {
-  const level = match[1].length
-  const text = match[2].trim()
-  const id = slugify(text)
-  toc.push({ level, text, id })
- }
- return toc
+interface TocItem {
+ level: number
+ text: string
+ id: string
 }
 
+// 개선된 slugify 함수
 export function slugify(str: string) {
  return str
   .toString()
   .toLowerCase()
   .trim()
-  .replace(/\s+/g, '-')
+  .replace(/[\s\u3000]+/g, '-') // 일반 공백과 전각 공백 처리
   .replace(/&/g, '-and-')
-  .replace(/[^\w\-]+/g, '')
+  .replace(/[^\w\-\u4e00-\u9fff\u3040-\u309f\u30a0-\u30ff가-힣]+/g, '') // 한중일 문자 허용
   .replace(/\-\-+/g, '-')
+  .replace(/^-+|-+$/g, '') // 시작과 끝의 하이픈 제거
+}
+
+// ID 중복 방지를 위한 함수
+function generateUniqueId(baseId: string, existingIds: Set<string>): string {
+ let uniqueId = baseId
+ let counter = 1
+
+ while (existingIds.has(uniqueId)) {
+  uniqueId = `${baseId}-${counter}`
+  counter++
+ }
+
+ existingIds.add(uniqueId)
+ return uniqueId
+}
+
+// 개선된 TOC 추출 함수
+export function extractTocFromMdx(mdxContent: string): TocItem[] {
+ const headingRegex = /^(#{1,6})\s+(.*)$/gm
+ const toc: TocItem[] = []
+ const existingIds = new Set<string>()
+ let match
+
+ // 코드 블록 내용 임시 제거
+ const contentWithoutCodeBlocks = mdxContent.replace(/```[\s\S]*?```/g, '')
+
+ while ((match = headingRegex.exec(contentWithoutCodeBlocks)) !== null) {
+  const level = match[1].length
+  const text = match[2]
+   .trim()
+   .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1') // Markdown 링크 텍스트만 추출
+   .replace(/`([^`]+)`/g, '$1') // 인라인 코드 텍스트만 추출
+   .replace(/<[^>]+>/g, '') // HTML 태그 제거
+
+  const baseId = slugify(text)
+  const id = generateUniqueId(baseId, existingIds)
+
+  toc.push({ level, text, id })
+ }
+
+ return toc
 }
