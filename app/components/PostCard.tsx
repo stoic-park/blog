@@ -1,47 +1,61 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatDate } from 'app/post/utils'
+import { formatDate } from 'app/lib/posts'
 
 type PostCardProps = {
- slug: string
- metadata: {
-  title: string
-  publishedAt: string
-  summary: string
-  image?: string
-  readingTime?: string
- }
+  slug: string
+  metadata: {
+    title: string
+    publishedAt: string
+    summary: string
+    image?: string
+    tags?: string[]
+    readingTime?: string
+  }
 }
 
 export function PostCard({ slug, metadata }: PostCardProps) {
- return (
-  <Link
-   href={`/post/${slug}`}
-   className="flex bg-neutral-100 dark:bg-neutral-900 rounded-xl overflow-hidden hover:bg-neutral-200 dark:hover:bg-neutral-800 transition-colors"
-  >
-   {metadata.image && (
-    <div className="relative w-72 h-48">
-     <Image
-      src={metadata.image}
-      alt={metadata.title}
-      fill
-      className="object-cover"
-     />
-    </div>
-   )}
-   <div className="flex flex-col p-6 flex-1">
-    <h2 className="text-xl font-semibold text-neutral-900 dark:text-neutral-100 mb-2">
-     {metadata.title}
-    </h2>
-    <p className="text-neutral-600 dark:text-neutral-400 text-sm mb-4">
-     {metadata.summary}
-    </p>
-    <div className="mt-auto flex items-center text-sm text-neutral-600 dark:text-neutral-400">
-     <span>{formatDate(metadata.publishedAt, false)}</span>
-     <span className="mx-2">·</span>
-     <span>{metadata.readingTime}</span>
-    </div>
-   </div>
-  </Link>
- )
+  return (
+    <Link
+      href={`/post/${slug}`}
+      className="group grid md:grid-cols-12 gap-8 md:gap-12 items-start"
+    >
+      {metadata.image && (
+        <div className="relative md:col-span-4 aspect-[4/3] bg-surface-low overflow-hidden">
+          <Image
+            src={metadata.image}
+            alt={metadata.title}
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        </div>
+      )}
+      <div className={metadata.image ? 'md:col-span-8' : 'md:col-span-12'}>
+        <div className="flex items-center flex-wrap gap-4 mb-3">
+          {metadata.tags?.[0] && (
+            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
+              {metadata.tags[0].replace('#', '')}
+            </span>
+          )}
+          <time className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+            {formatDate(metadata.publishedAt, false)}
+          </time>
+          {metadata.readingTime && (
+            <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+              {metadata.readingTime}
+            </span>
+          )}
+        </div>
+        <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight mb-4 group-hover:text-primary transition-colors leading-tight">
+          {metadata.title}
+        </h2>
+        <p className="text-on-surface-variant leading-relaxed mb-6">
+          {metadata.summary}
+        </p>
+        <span className="text-sm font-bold border-b-2 border-primary pb-0.5 group-hover:border-transparent transition-all">
+          읽기 →
+        </span>
+      </div>
+    </Link>
+  )
 }

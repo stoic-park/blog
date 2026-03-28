@@ -19,19 +19,47 @@
  --sh-property: #e25a1c;
  --sh-entity: #e25a1c;
  color-scheme: light;
+
+ /* Stoic Park 디자인 토큰 */
+ --color-surface: #fcf9f8;
+ --color-surface-low: #f6f3f2;
+ --color-surface-lowest: #ffffff;
+ --color-surface-high: #e5e2e1;
+ --color-on-surface: #1c1b1b;
+ --color-on-surface-variant: #474747;
+ --color-outline: #777777;
+ --color-outline-variant: #c6c6c6;
+ --color-primary: #000000;
+ --color-on-primary: #e5e2e1;
+ --color-secondary-container: #d5d4d4;
+
+ /* 폰트 패밀리 변수 */
+ --font-headline: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
+ --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
 }
 
-@media (prefers-color-scheme: dark) {
- :root {
-  --sh-class: #4c97f8;
-  --sh-identifier: #1e88e5;
-  --sh-keyword: #f47067;
-  --sh-string: #0fa295;
-  color-scheme: dark;
- }
- html {
-  color-scheme: dark;
- }
+.dark {
+ --sh-class: #4c97f8;
+ --sh-identifier: #1e88e5;
+ --sh-keyword: #f47067;
+ --sh-string: #0fa295;
+ color-scheme: dark;
+
+ /* Stoic Park 다크 토큰 */
+ --color-surface: #1c1b1b;
+ --color-surface-low: #242323;
+ --color-surface-lowest: #141313;
+ --color-surface-high: #2e2d2d;
+ --color-on-surface: #f0edec;
+ --color-on-surface-variant: #b8b5b4;
+ --color-outline: #888585;
+ --color-outline-variant: #3a3838;
+ --color-primary: #f0edec;
+ --color-on-primary: #1c1b1b;
+ --color-secondary-container: #3a3838;
+}
+.dark html, .dark body {
+ color-scheme: dark;
 }
 
 html {
@@ -42,118 +70,6 @@ html {
  word-break: keep-all;
 }
 
-.prose {
- @apply max-w-none;
- color: theme('colors.neutral.900');
- font-family:
-  -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
- font-size: 16px;
- line-height: 1.5;
- word-wrap: break-word;
-}
-
-.prose h1 {
- @apply text-4xl font-semibold border-b pb-2 mb-4 mt-8 text-neutral-900 dark:text-neutral-100;
-}
-
-.prose h2 {
- @apply text-2xl font-semibold pb-2 mb-4 mt-8 text-neutral-900 dark:text-neutral-100;
-}
-
-.prose h3 {
- @apply text-xl font-semibold mt-6 mb-4 text-neutral-900 dark:text-neutral-100;
-}
-
-.prose h4 {
- @apply text-lg font-semibold mt-6 mb-4 text-neutral-900 dark:text-neutral-100;
-}
-
-.prose p {
- @apply my-4 text-neutral-800 dark:text-neutral-300;
-}
-
-.prose a {
- @apply text-blue-700 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300;
- text-decoration: none;
-}
-
-.prose strong {
- @apply font-semibold text-neutral-900 dark:text-neutral-100;
-}
-
-.prose code {
- @apply px-2 py-1 rounded bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100;
- font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
- font-size: 95%;
- line-height: 1.6;
-}
-
-.prose pre {
- @apply p-4 rounded-lg overflow-x-auto my-4;
- background-color: #f6f8fa;
- font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
- font-size: 95%;
- line-height: 1.7;
- border: 1px solid #e1e4e8;
- padding: 1.5em 1.5em;
-}
-
-.prose pre code {
- @apply p-0 bg-transparent text-neutral-900 dark:text-neutral-100;
-}
-
-.prose blockquote {
- @apply pl-4 border-l-4 my-4;
- color: theme('colors.neutral.700');
- background-color: #f8f9fa;
- padding: 1rem;
- border-radius: 0.25rem;
- border-color: theme('colors.neutral.300');
-}
-
-.prose ul {
- @apply list-disc pl-6 my-4 text-neutral-800 dark:text-neutral-300;
-}
-
-.prose ol {
- @apply list-decimal pl-6 my-4 text-neutral-800 dark:text-neutral-300;
-}
-
-.prose li {
- @apply my-1;
-}
-
-.prose table {
- @apply w-full border-collapse my-4;
-}
-
-.prose th {
- @apply px-4 py-2 border border-neutral-300 dark:border-neutral-600 bg-neutral-100 dark:bg-neutral-800 text-neutral-900 dark:text-neutral-100;
-}
-
-.prose td {
- @apply px-4 py-2 border border-neutral-300 dark:border-neutral-600 text-neutral-800 dark:text-neutral-300;
-}
-
-.prose img {
- @apply max-w-full rounded-sm my-4;
- /* border: 1px solid #e1e4e8; */
-}
-
-.prose hr {
- @apply my-8 border-t border-neutral-300 dark:border-neutral-600;
-}
-
-@media (prefers-color-scheme: dark) {
- .prose pre {
-  background-color: theme('colors.neutral.900');
-  border-color: theme('colors.neutral.800');
- }
-
- .prose blockquote p {
-  color: theme('colors.neutral.300') !important;
- }
-}
 
 .prose .anchor {
  @apply absolute invisible no-underline;
@@ -237,18 +153,26 @@ html {
 
 .prose h1 {
  @apply text-4xl font-medium tracking-tight mt-6 mb-2;
+ font-family: var(--font-headline);
+ letter-spacing: -0.02em;
 }
 
 .prose h2 {
  @apply text-xl font-medium tracking-tight mt-6 mb-2;
+ font-family: var(--font-headline);
+ letter-spacing: -0.02em;
 }
 
 .prose h3 {
  @apply text-xl font-medium tracking-tight mt-6 mb-2;
+ font-family: var(--font-headline);
+ letter-spacing: -0.02em;
 }
 
 .prose h4 {
  @apply text-lg font-medium tracking-tight mt-6 mb-2;
+ font-family: var(--font-headline);
+ letter-spacing: -0.02em;
 }
 
 .prose strong {
@@ -363,15 +287,13 @@ table {
 }
 
 /* Dark mode support */
-@media (prefers-color-scheme: dark) {
- .toc-sidebar {
-  background: #1f2937;
-  border-left-color: #374151;
-  color: #9ca3af;
-  box-shadow:
-   0 1px 3px 0 rgba(0, 0, 0, 0.3),
-   0 1px 2px 0 rgba(0, 0, 0, 0.2);
- }
+.dark .toc-sidebar {
+ background: #1f2937;
+ border-left-color: #374151;
+ color: #9ca3af;
+ box-shadow:
+  0 1px 3px 0 rgba(0, 0, 0, 0.3),
+  0 1px 2px 0 rgba(0, 0, 0, 0.2);
 }
 
 .toc-sidebar::-webkit-scrollbar {
@@ -392,14 +314,12 @@ table {
  border-radius: 1px;
 }
 
-@media (prefers-color-scheme: dark) {
- .toc-sidebar::-webkit-scrollbar-track {
-  background: #374151;
- }
+.dark .toc-sidebar::-webkit-scrollbar-track {
+ background: #374151;
+}
 
- .toc-sidebar::-webkit-scrollbar-thumb {
-  background: #6b7280;
- }
+.dark .toc-sidebar::-webkit-scrollbar-thumb {
+ background: #6b7280;
 }
 
 .toc-list {
@@ -430,10 +350,8 @@ table {
  color: #374151;
 }
 
-@media (prefers-color-scheme: dark) {
- .toc-link:hover {
-  color: #f3f4f6;
- }
+.dark .toc-link:hover {
+ color: #f3f4f6;
 }
 
 .toc-item-active {
@@ -446,14 +364,12 @@ table {
  font-weight: 500;
 }
 
-@media (prefers-color-scheme: dark) {
- .toc-item-active {
-  color: #f9fafb;
- }
+.dark .toc-item-active {
+ color: #f9fafb;
+}
 
- .toc-item-active .toc-link {
-  color: #f9fafb;
- }
+.dark .toc-item-active .toc-link {
+ color: #f9fafb;
 }
 
 /* Responsive design */

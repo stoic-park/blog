@@ -1,4 +1,4 @@
-import { getBlogPosts } from 'app/post/utils'
+import { getBlogPosts } from 'app/lib/posts'
 import { PostCard } from './PostCard'
 
 export function BlogPosts({ selectedTag }: { selectedTag?: string }) {
@@ -11,7 +11,7 @@ export function BlogPosts({ selectedTag }: { selectedTag?: string }) {
  }
 
  return (
-  <div className="flex flex-col space-y-8">
+  <div className="flex flex-col space-y-16 md:space-y-24">
    {allBlogs
     .sort((a, b) => {
      if (new Date(a.metadata.publishedAt) > new Date(b.metadata.publishedAt)) {

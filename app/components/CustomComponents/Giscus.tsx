@@ -1,14 +1,26 @@
 'use client'
 
-import { useEffect, useRef } from 'react'
-import { useTheme } from 'next-themes'
+import { useEffect, useRef, useState } from 'react'
 
 export default function Giscus() {
  const ref = useRef<HTMLDivElement>(null)
- const { resolvedTheme } = useTheme()
+ const [isDark, setIsDark] = useState(false)
+
+ useEffect(() => {
+  setIsDark(document.documentElement.classList.contains('dark'))
+
+  const observer = new MutationObserver(() => {
+   setIsDark(document.documentElement.classList.contains('dark'))
+  })
+  observer.observe(document.documentElement, {
+   attributes: true,
+   attributeFilter: ['class'],
+  })
+  return () => observer.disconnect()
+ }, [])
 
  // https://github.com/giscus/giscus/tree/main/styles/themes
- const theme = resolvedTheme === 'dark' ? 'dark' : 'light'
+ const theme = isDark ? 'dark' : 'light'
 
  const REPO = process.env.NEXT_PUBLIC_GISCUS_REPO!
  const REPO_ID = process.env.NEXT_PUBLIC_GISCUS_REPO_ID!

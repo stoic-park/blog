@@ -1,12 +1,20 @@
 import { notFound } from 'next/navigation'
 import { CustomMDX } from 'app/components/mdx'
-import { formatDate, getBlogPosts } from 'app/post/utils'
+import { formatDate, getBlogPosts } from 'app/lib/posts'
 import { baseUrl } from 'app/sitemap'
 import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigation'
-import { extractTocFromMdx } from 'app/post/utils'
-import DemoPdfBox from '../../components/CustomComponents/DemoPdfBox'
+import { extractTocFromMdx } from 'app/lib/posts'
+import dynamic from 'next/dynamic'
+const DemoPdfBox = dynamic(
+  () => import('../../components/CustomComponents/DemoPdfBox'),
+  { ssr: false }
+)
 import Giscus from 'app/components/CustomComponents/Giscus'
 import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
+
+interface PostPageProps {
+  params: { slug: string }
+}
 
 export async function generateStaticParams() {
  let posts = getBlogPosts()
@@ -16,7 +24,7 @@ export async function generateStaticParams() {
  }))
 }
 
-export function generateMetadata({ params }) {
+export function generateMetadata({ params }: PostPageProps) {
  let post = getBlogPosts().find((post) => post.slug === params.slug)
  if (!post) {
   return
@@ -40,7 +48,7 @@ export function generateMetadata({ params }) {
    description,
    type: 'article',
    publishedTime,
-   url: `${baseUrl}/blog/${post.slug}`,
+   url: `${baseUrl}/post/${post.slug}`,
    images: [
     {
      url: ogImage,
@@ -56,7 +64,7 @@ export function generateMetadata({ params }) {
  }
 }
 
-export default function Blog({ params }) {
+export default function Blog({ params }: PostPageProps) {
  let post = getBlogPosts().find((post) => post.slug === params.slug)
 
  if (!post) {
@@ -65,7 +73,6 @@ export default function Blog({ params }) {
 
  // 목차 데이터 추출
  const toc = extractTocFromMdx(post.content)
- console.log(toc, 'toc')
 
  return (
   <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
@@ -88,7 +95,7 @@ export default function Blog({ params }) {
           image: post.metadata.image
            ? `${baseUrl}${post.metadata.image}`
            : `/og?title=${encodeURIComponent(post.metadata.title)}`,
-          url: `${baseUrl}/blog/${post.slug}`,
+          url: `${baseUrl}/post/${post.slug}`,
           author: {
            '@type': 'Person',
            name: 'Stoic Park',

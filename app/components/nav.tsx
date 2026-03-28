@@ -21,7 +21,6 @@ const getNavItems = () => {
 
  // 개발 환경에서만 Books 탭 표시
  if (process.env.NODE_ENV === 'development') {
-  console.log('Books 탭이 표시됩니다 (개발 환경)')
   return {
    ...baseItems,
    '/books': {
@@ -35,42 +34,41 @@ const getNavItems = () => {
 }
 
 export function Navbar() {
- const pathname = usePathname() // App router 를 사용하는 버전에서는 page 기반의 useRouter를 쓰지 않아!
+ const pathname = usePathname()
 
  return (
-  <aside className="mb-16 tracking-tight">
-   <div className="lg:sticky lg:top-20">
-    <div className="flex flex-row items-center justify-between">
-     <Link href="/" className="text-lg cursor-pointer">
-      Stoic Park
-     </Link>
-     <div className="flex flex-row items-center">
-      <nav
-       className="flex flex-row items-center relative px-0 pb-0 fade md:overflow-auto scroll-pr-6 md:relative"
-       id="nav"
-       aria-label="내비게이션"
-      >
-       <div className="flex flex-row space-x-0 pr-10">
-        {Object.entries(getNavItems()).map(([path, { name }]) => {
-         const isActive = pathname === path // 현재 경로 확인
-
-         return (
-          <Link
-           key={path}
-           href={path}
-           className="transition-all hover:text-neutral-800 dark:hover:text-neutral-200 flex align-middle relative py-1 px-2 m-1"
-           aria-current={isActive ? 'page' : undefined} // 현재 페이지라면 aria-current 적용
-          >
-           {name}
-          </Link>
-         )
-        })}
-       </div>
-      </nav>
-      <ThemeSwitch />
-     </div>
+  <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant/20">
+   <div className="flex justify-between items-center px-4 sm:px-8 h-16 max-w-4xl mx-auto w-full">
+    <Link href="/" className="font-headline font-bold tracking-tighter text-primary text-xl active:scale-95 transition-transform">
+     Stoic Park
+    </Link>
+    <div className="flex items-center gap-2">
+     <nav className="flex flex-row items-center" id="nav" aria-label="내비게이션">
+      <div className="flex flex-row">
+       {Object.entries(getNavItems()).map(([path, { name }]) => {
+        const isActive = pathname === path
+        return (
+         <Link
+          key={path}
+          href={path}
+          aria-current={isActive ? 'page' : undefined}
+          className={`
+            px-3 py-1 mx-1 text-sm font-headline font-medium tracking-tight transition-colors
+            ${isActive
+              ? 'text-primary font-bold border-b-2 border-primary pb-0.5'
+              : 'text-on-surface/60 hover:text-primary'
+            }
+          `}
+         >
+          {name}
+         </Link>
+        )
+       })}
+      </div>
+     </nav>
+     <ThemeSwitch />
     </div>
    </div>
-  </aside>
+  </header>
  )
 }

@@ -1,4 +1,4 @@
-import { getBlogPosts } from 'app/post/utils'
+import { getBlogPosts } from 'app/lib/posts'
 
 export const baseUrl = 'https://stoic-park.vercel.app'
 

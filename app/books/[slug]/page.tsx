@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
-import { getBookBySlug, getBooks } from '../utils'
+import { getBookBySlug, getBooks } from 'app/lib/books'
 import { MDXRemote } from 'next-mdx-remote/rsc'
 
 interface BookPageProps {

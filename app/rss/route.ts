@@ -1,5 +1,5 @@
 import { baseUrl } from 'app/sitemap'
-import { getBlogPosts } from 'app/post/utils'
+import { getBlogPosts } from 'app/lib/posts'
 
 // baseURL/rss
 

@@ -1,6 +1,4 @@
 import { RefObject, useCallback, useState } from 'react'
-import html2canvas from 'html2canvas'
-import jsPDF from 'jspdf'
 
 export const usePdfDownload = <T extends HTMLElement>({
  ref,
@@ -23,6 +21,9 @@ export const usePdfDownload = <T extends HTMLElement>({
    if (onBeforeDownload) {
     await onBeforeDownload()
    }
+
+   const html2canvas = (await import('html2canvas')).default
+   const { jsPDF } = await import('jspdf')
 
    // 고해상도 대응을 위한 scale 설정
    const scale = window.devicePixelRatio

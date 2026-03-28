@@ -1,6 +1,6 @@
 import { Metadata } from 'next'
 import Link from 'next/link'
-import { getBooks } from './utils'
+import { getBooks } from 'app/lib/books'
 
 export const metadata: Metadata = {
  title: '서재 | 개발 서적 리뷰',

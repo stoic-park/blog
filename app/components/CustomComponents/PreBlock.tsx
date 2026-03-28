@@ -3,7 +3,7 @@ import { useState } from 'react'
 import { highlight } from 'sugar-high'
 import React from 'react'
 
-function extractCodeString(children) {
+function extractCodeString(children: React.ReactNode): string {
  if (typeof children === 'string') return children
  if (Array.isArray(children)) return children.map(extractCodeString).join('')
  if (React.isValidElement(children) && 'props' in children) {
@@ -12,12 +12,12 @@ function extractCodeString(children) {
  return ''
 }
 
-export function PreBlock({ children, ...props }) {
+export function PreBlock({ children, ...props }: React.DetailedHTMLProps<React.HTMLAttributes<HTMLPreElement>, HTMLPreElement>) {
  const [copied, setCopied] = useState(false)
  const codeString = extractCodeString(children)
  const codeHTML = highlight(codeString)
 
- const handleCopy = async (e) => {
+ const handleCopy = async (e: React.MouseEvent) => {
   e.stopPropagation()
   await navigator.clipboard.writeText(codeString)
   setCopied(true)

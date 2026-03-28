@@ -1,5 +1,6 @@
 import fs from 'fs'
 import path from 'path'
+import matter from 'gray-matter'
 
 type Metadata = {
  title: string
@@ -16,65 +17,28 @@ type Metadata = {
 }
 
 function parseFrontmatter(fileContent: string) {
- let frontmatterRegex = /---\s*([\s\S]*?)\s*---/
- let match = frontmatterRegex.exec(fileContent)
- let frontMatterBlock = match![1]
- let content = fileContent.replace(frontmatterRegex, '').trim()
- let frontMatterLines = frontMatterBlock.trim().split('\n')
- let metadata: Partial<Metadata> = {}
- let currentKey: string | null = null
- let currentObject: any = null
-
- frontMatterLines.forEach((line) => {
-  let trimmedLine = line.trim()
-  if (!trimmedLine) return
-
-  // Check if this is a nested object
-  if (trimmedLine.endsWith(':') && !trimmedLine.includes(': ')) {
-   currentKey = trimmedLine.slice(0, -1).trim()
-   currentObject = {}
-   metadata[currentKey] = currentObject
-   return
+  const { data, content } = matter(fileContent)
+  // tags가 문자열이면 배열로 변환
+  if (typeof data.tags === 'string') {
+    data.tags = data.tags.split(',').map((t: string) => t.trim())
   }
-
-  // Handle nested object properties
-  if (currentObject && line.startsWith(' ')) {
-   let [key, ...valueArr] = trimmedLine.split(': ')
-   let value = valueArr.join(': ').trim()
-   value = value.replace(/^['"](.*)['"]$/, '$1') // Remove quotes
-   currentObject[key.trim()] = isNaN(Number(value)) ? value : Number(value)
-   return
+  // series.order 숫자 보장
+  if (data.series && typeof data.series.order === 'string') {
+    data.series.order = Number(data.series.order)
   }
-
-  // Reset nested object handling
-  currentKey = null
-  currentObject = null
-
-  // Handle regular properties
-  let [key, ...valueArr] = trimmedLine.split(': ')
-  let value = valueArr.join(': ').trim()
-  value = value.replace(/^['"](.*)['"]$/, '$1') // Remove quotes
-
-  if (key.trim() === 'tags') {
-   metadata.tags = value.split(',').map((tag) => tag.trim())
-  } else {
-   metadata[key.trim()] = value
-  }
- })
-
- return { metadata: metadata as Metadata, content }
+  return { metadata: data as Metadata, content }
 }
 
-function getMDXFiles(dir) {
+function getMDXFiles(dir: string) {
  return fs.readdirSync(dir).filter((file) => path.extname(file) === '.mdx')
 }
 
-function readMDXFile(filePath) {
+function readMDXFile(filePath: string) {
  let rawContent = fs.readFileSync(filePath, 'utf-8')
  return parseFrontmatter(rawContent)
 }
 
-function getMDXData(dir) {
+function getMDXData(dir: string) {
  let mdxFiles = getMDXFiles(dir)
  return mdxFiles.map((file) => {
   let { metadata, content } = readMDXFile(path.join(dir, file))
@@ -106,18 +70,19 @@ export function formatDate(date: string, includeRelative = false) {
  }
  let targetDate = new Date(date)
 
- let yearsAgo = currentDate.getFullYear() - targetDate.getFullYear()
- let monthsAgo = currentDate.getMonth() - targetDate.getMonth()
- let daysAgo = currentDate.getDate() - targetDate.getDate()
+ const diffMs = currentDate.getTime() - targetDate.getTime()
+ const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24))
+ const diffMonths = Math.floor(diffDays / 30)
+ const diffYears = Math.floor(diffDays / 365)
 
  let formattedDate = ''
 
- if (yearsAgo > 0) {
-  formattedDate = `${yearsAgo}y ago`
- } else if (monthsAgo > 0) {
-  formattedDate = `${monthsAgo}mo ago`
- } else if (daysAgo > 0) {
-  formattedDate = `${daysAgo}d ago`
+ if (diffYears > 0) {
+  formattedDate = `${diffYears}y ago`
+ } else if (diffMonths > 0) {
+  formattedDate = `${diffMonths}mo ago`
+ } else if (diffDays > 0) {
+  formattedDate = `${diffDays}d ago`
  } else {
   formattedDate = 'Today'
  }

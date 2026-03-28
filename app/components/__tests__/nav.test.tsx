@@ -19,7 +19,6 @@ jest.mock('next/navigation', () => ({
 }))
 
 const navItems = {
-  '/': { name: 'Home' },
   '/post': { name: 'Post' },
   '/about': { name: 'About' },
 }

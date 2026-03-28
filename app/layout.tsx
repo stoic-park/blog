@@ -3,13 +3,27 @@ import './global.css'
 import type { Metadata } from 'next'
 import { GeistSans } from 'geist/font/sans'
 import { GeistMono } from 'geist/font/mono'
+import { Plus_Jakarta_Sans, Inter } from 'next/font/google'
 import { Navbar } from './components/nav'
 import { Analytics } from '@vercel/analytics/react'
 import { SpeedInsights } from '@vercel/speed-insights/next'
 import Footer from './components/footer'
 import { EnvDebug } from './components/EnvDebug'
 import { baseUrl } from './sitemap'
-import { themeControl } from '../utils/themeControl'
+import { themeControl } from './lib/theme'
+
+const plusJakartaSans = Plus_Jakarta_Sans({
+  subsets: ['latin'],
+  variable: '--font-headline',
+  weight: ['500', '700', '800'],
+  display: 'swap',
+})
+
+const inter = Inter({
+  subsets: ['latin'],
+  variable: '--font-body',
+  display: 'swap',
+})
 
 export const metadata: Metadata = {
  metadataBase: new URL(baseUrl),
@@ -65,7 +79,7 @@ export const metadata: Metadata = {
  ],
 }
 
-const cx = (...classes) => classes.filter(Boolean).join(' ')
+const cx = (...classes: (string | undefined | false | null)[]) => classes.filter(Boolean).join(' ')
 
 export default function RootLayout({
  children,
@@ -74,11 +88,13 @@ export default function RootLayout({
 }) {
  return (
   <html
-   lang="en"
+   lang="ko"
    className={cx(
     'text-black bg-white dark:text-white dark:bg-black h-full',
     GeistSans.variable,
     GeistMono.variable,
+    plusJakartaSans.variable,
+    inter.variable,
    )}
   >
    <head>
@@ -98,7 +114,7 @@ export default function RootLayout({
      <div className="relative z-10 w-full h-full"></div>
     </div>
 
-    <main className="flex flex-col flex-1">
+    <main className="flex flex-col flex-1 pt-16">
      {/* 전역 컨테이너: 페이지는 이 안에서 각자 최대폭을 추가로 제어 */}
      <div className="mx-auto w-full max-w-screen-xl sm:px-6 lg:px-8 flex-1 flex flex-col">
       {children}
@@ -109,7 +125,7 @@ export default function RootLayout({
      </div>
      <Analytics />
      <SpeedInsights />
-     <EnvDebug />
+     {process.env.NODE_ENV === 'development' && <EnvDebug />}
     </main>
    </body>
   </html>

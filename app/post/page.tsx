@@ -1,5 +1,5 @@
 import { BlogPosts } from 'app/components/posts'
-import { getBlogPosts } from './utils'
+import { getBlogPosts } from 'app/lib/posts'
 import Link from 'next/link'
 
 export const metadata = {
@@ -20,14 +20,14 @@ export default function Page({
  return (
   <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
    <section>
-    <h1 className="font-semibold text-2xl mb-8 tracking-tighter">Post</h1>
-    <div className="flex gap-2 flex-wrap mb-8">
+    <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter mb-12">Post</h1>
+    <div className="flex gap-3 flex-wrap mb-8">
      <Link
       href="/post"
-      className={`text-sm rounded-sm px-3 py-0.5 transition-colors ${
+      className={`px-5 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-all ${
        !searchParams.tag
-        ? 'bg-neutral-800 dark:bg-neutral-100 text-neutral-100 dark:text-neutral-800'
-        : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+        ? 'bg-primary text-on-primary'
+        : 'bg-surface-high text-on-surface-variant hover:bg-secondary-container'
       }`}
      >
       All
@@ -40,10 +40,10 @@ export default function Page({
          ? '/post'
          : `/post?tag=${encodeURIComponent('#' + tag)}`
        }
-       className={`text-sm rounded-sm px-3 py-0.5 transition-colors ${
+       className={`px-5 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-all ${
         searchParams.tag === '#' + tag
-         ? 'bg-neutral-800 dark:bg-neutral-100 text-neutral-100 dark:text-neutral-800'
-         : 'bg-neutral-100 dark:bg-neutral-800 text-neutral-800 dark:text-neutral-100 hover:bg-neutral-200 dark:hover:bg-neutral-700'
+         ? 'bg-primary text-on-primary'
+         : 'bg-surface-high text-on-surface-variant hover:bg-secondary-container'
        }`}
       >
        {tag}

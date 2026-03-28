@@ -5,7 +5,7 @@
     "build": "next build",
     "start": "next start",
     "test": "jest",
-    "vercel-deploy": "next build && next export"
+    "vercel-deploy": "next build"
   },
   "dependencies": {
     "@giscus/react": "^3.1.0",

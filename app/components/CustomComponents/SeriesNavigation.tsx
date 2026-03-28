@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import { getBlogPosts } from 'app/post/utils'
+import { getBlogPosts } from 'app/lib/posts'
 
 type Post = {
  metadata: {
