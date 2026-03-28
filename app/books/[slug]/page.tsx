@@ -53,7 +53,7 @@ export default async function BookPage({ params }: BookPageProps) {
     </div>
 
     <div className="prose prose-neutral dark:prose-invert max-w-none">
-     <MDXRemote source={book.content} />
+     <MDXRemote source={book.content} options={{ blockJS: false }} />
     </div>
    </section>
   </div>
