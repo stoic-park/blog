@@ -18,7 +18,7 @@ interface CalloutProps {
 export function Callout({ variant, children }: CalloutProps) {
   const { bg, border, label } = variantStyles[variant]
   return (
-    <div className={`${bg} border-l-4 ${border} rounded-md px-5 pb-5 mb-5 text-neutral-800 dark:text-neutral-200`}>
+    <div className={`${bg} border-l-4 ${border} rounded-md px-5 pb-5 mt-5 mb-5 text-neutral-800 dark:text-neutral-200`}>
       <div className="flex items-center pt-5">
         <span className="font-extrabold">{label}</span>
       </div>

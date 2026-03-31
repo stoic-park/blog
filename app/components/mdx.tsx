@@ -31,9 +31,9 @@ function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
  ))
 
  return (
-  <div className="w-full overflow-x-auto">
-   <div className="min-w-[600px] w-full">
-    <table className="w-full border-collapse border border-gray-300 shadow-md rounded-lg overflow-hidden">
+  <div className="overflow-x-auto mx-auto">
+   <div className="min-w-[600px]">
+    <table className="mx-auto border-collapse border border-gray-300 shadow-md rounded-lg overflow-hidden">
      <thead>
       <tr>{headers}</tr>
      </thead>
