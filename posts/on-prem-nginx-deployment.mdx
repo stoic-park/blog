@@ -1,0 +1,511 @@
+---
+title: '온프레미스에서 프론트/백 배포 독립시키기'
+publishedAt: '2026-03-31'
+summary: 'Spring Boot JAR에 프론트엔드를 말아 배포하던 방식에서 Nginx 경로 분기를 활용한 독립 배포로 전환한 경험. 온프레미스 환경의 제약 속에서 HTTPS 적용, upstream DNS resolve, 무중단 배포까지—실전에서 검증한 Nginx 구성과 운영 노하우.'
+tags: '#프론트엔드, #배포, #Nginx, #온프레미스, #Vite, #Spring Boot, #Docker'
+author: 'Stoic Park'
+readingTime: '15분'
+---
+
+## 배경: 온프레미스에서 프론트엔드를 배포한다는 것
+
+클라우드 환경에서 일하는 프론트엔드 개발자라면 Vercel, Netlify, S3 + CloudFront 같은 배포 파이프라인이 익숙할 겁니다. `git push` 하나면 빌드가 알아서 돌고, CDN이 캐시를 날려주고, 롤백도 클릭 한 번이죠.
+
+저는 온프레미스(사내 폐쇄망) 환경에서 일했습니다. 외부 네트워크에 접근할 수 없으니 CDN도 없고, 클라우드 스토리지도 없습니다. 모든 게 사내 서버 안에서 해결되어야 합니다.
+
+이 글은 그 환경에서 React(Vite) + Spring Boot 구조의 웹 애플리케이션 배포 방식을 개선한 경험을 공유합니다. JAR 하나에 프론트엔드를 말아 넣던 방식에서, Nginx로 프론트엔드와 백엔드를 독립적으로 배포하게 만든 과정입니다.
+
+### 분리가 필요했던 근본적인 이유
+
+프론트엔드와 백엔드는 변경의 빈도와 성격이 다릅니다.
+
+백엔드 API는 한번 안정화되면 잘 바뀌지 않습니다. 반면 프론트엔드는.. 사용자 피드백이 들어오면 UI가 바뀌고, 기획이 수정되면 화면 흐름이 바뀌고, QA에서 발견된 버그는 빠르게 반영해야 합니다. 하루에 여러 번 배포가 필요한 날도 생기죠.
+
+이 빈도 차이를 무시하고 두 영역을 하나의 배포 단위로 묶으면, 느린 쪽(백엔드 전체 빌드)이 빠른 쪽(프론트엔드 변경)의 발목을 잡게 됩니다. 온프레미스라는 제약까지 더해지면 이 병목은 더욱 도드라집니다.
+
+## Before: jar 하나에 모든 걸 우겨넣던 시절
+
+초기 아키텍처는 단순했습니다. Spring Boot가 모든 걸 처리하는 구조였죠.
+
+빌드 과정은 이렇습니다:
+
+1. `pnpm build`로 Vite 빌드 결과물을 `dist/`에 생성
+2. Gradle 태스크가 `dist/` 파일들을 Spring Boot의 `src/main/resources/static/`으로 복사
+3. `./gradlew bootJar`로 프론트엔드 정적 파일이 포함된 단일 `app.jar` 생성
+4. 서버에 배포 후 `java -jar app.jar`로 실행
+
+Gradle 빌드 스크립트는 이렇게 생겼습니다:
+
+```groovy
+// build.gradle
+task copyFrontend(type: Copy) {
+    from '../frontend/dist'
+    into 'src/main/resources/static'
+    dependsOn ':frontend:build'
+}
+
+bootJar {
+    dependsOn copyFrontend
+}
+```
+
+Nginx 없이, Spring Boot가 모든 요청을 직접 받는 구조였습니다. 정적 리소스 서빙과 API 응답을 같은 포트에서 모두 처리합니다:
+
+```nginx
+# 이전 Nginx 구성 (있었다면): 모든 요청을 Spring Boot로 전달
+server {
+    listen 80;
+
+    location / {
+        proxy_pass http://backend:8080;
+        # 정적 파일도 API도 전부 Spring Boot가 처리
+    }
+}
+```
+
+온프레미스에서 빠르게 서비스를 올려야 할 때, 이 방식은 나름 합리적이었습니다. 서버 하나, 포트 하나, jar 하나. 관리 포인트가 최소화되니까요.
+
+문제는 서비스가 커지고 배포 빈도가 늘어나면서 생겼습니다.
+
+## 그렇게 하다 보니 생긴 문제들
+
+편하게 시작한 통합 배포 방식이었지만, 운영하면서 쌓인 불편함은 꽤 컸습니다.
+
+### 1. 배포 병목
+
+버튼 텍스트 하나 바꿨을 뿐인데, 전체 백엔드를 다시 빌드하고 재배포해야 합니다.
+
+Gradle 빌드 → JAR 생성 → 서비스 중단 → JAR 교체 → 서비스 재시작. 걸리는 시간이 5~10분입니다. CSS 한 줄 고치고 10분을 기다리는 건 생각보다 꽤 고통스럽습니다.
+
+### 2. jar 비대화
+
+프론트엔드 정적 파일이 JAR에 포함되면서 크기가 눈에 띄게 불어났습니다. 처음 50MB 정도였던 jar가 120MB 이상으로 커졌고, 이는 서버로의 전송 시간 증가를 의미합니다.
+
+온프레미스에서는 scp나 rsync로 직접 파일을 옮기는 경우가 많은데, 파일이 커질수록 이 과정이 느려지는 건 당연한 일이죠.
+
+### 3. 롤백의 복잡성
+
+프론트엔드에서 버그가 발생해서 이전 버전으로 돌리고 싶은 상황을 생각해 봅시다.
+
+프론트엔드만 롤백할 수 없습니다. 백엔드 JAR 전체를 과거 버전으로 교체해야 하는데, 그 사이에 DB 마이그레이션이라도 있었다면 단순 롤백 자체가 불가능해집니다.
+
+### 4. 팀 협업의 마찰
+
+프론트엔드에서 배포하려면 백엔드 팀의 빌드 프로세스를 거쳐야 합니다. 백엔드 팀이 main 브랜치를 잠가놓은 상황이라면? 프론트엔드 핫픽스가 막힙니다.
+
+### 5. 온프레미스의 특수성
+
+이 모든 문제를 해결할 때 "그냥 S3에 올려" 같은 카드가 없다는 점이 핵심입니다. 사내 서버에서 모든 걸 해결해야 하니까요.
+
+<Note>
+ 온프레미스가 아니더라도, 레거시 시스템이나 사내 인프라 제약 때문에 비슷한
+ 구조를 갖고 있는 프로젝트는 꽤 많습니다. 핵심은 프론트엔드와 백엔드의 배포
+ 사이클을 분리하는 것이고, 그 방법론은 환경을 가리지 않습니다.
+</Note>
+
+## After: Nginx로 경로를 분기하다
+
+해결 방향은 명확했습니다. **프론트엔드 정적 파일을 Spring Boot에서 빼내서, 별도로 서빙하자.** 온프레미스에서 이걸 가장 깔끔하게 할 수 있는 도구가 Nginx입니다.
+
+변경된 아키텍처는 이렇습니다:
+
+- **Nginx**가 HTTPS(443)로 모든 요청을 수신, HTTP(80)는 HTTPS로 리다이렉트
+- `/app/` 경로 요청 → Nginx가 정적 파일 직접 서빙 (Vite 빌드 결과물)
+- 도메인 루트(`/`) 접속 → `/app/`으로 자동 리다이렉트
+- 나머지 모든 경로 → Spring Boot로 리버스 프록시 (API 처리)
+
+실제 운영 중인 Nginx 설정을 보겠습니다:
+
+```nginx
+# upstream 정의: Docker 환경에서 서비스명으로 백엔드 참조
+# 주의: resolve 디렉티브는 Nginx Plus 전용. 오픈소스 사용 시 아래 Callout 참고
+upstream app_backend {
+    zone backend_zone 64k;           # 공유 메모리 (worker 간 상태 공유)
+    server backend:8080 resolve;     # 컨테이너 재시작 시 DNS 재조회 (Nginx Plus)
+}
+
+# HTTP → HTTPS 리다이렉트
+server {
+    listen 80;
+    server_name your-app.internal;
+    return 301 https://$host$request_uri;
+}
+
+# HTTPS 서버 (메인)
+server {
+    server_name your-app.internal;
+    include /etc/nginx/conf.d/https.conf;  # HTTPS 설정 분리 관리
+
+    # 도메인 루트 접속 시 앱으로 리다이렉트
+    location = / {
+        return 301 /app/;
+    }
+
+    # 프론트엔드: Nginx가 정적 파일 직접 서빙
+    location /app/ {
+        alias /usr/share/nginx/html/app/;
+        try_files $uri $uri/ /app/index.html;
+    }
+
+    # 백엔드: Spring Boot로 프록시 (나머지 모든 경로)
+    location / {
+        proxy_pass http://app_backend/;
+        include /etc/nginx/conf.d/proxy.conf;
+    }
+}
+```
+
+기존 구조와 비교하면 핵심 변화가 명확합니다.
+
+**Before**: `location / { proxy_pass http://backend:8080; }` — HTML, JS, CSS, 이미지까지 전부 Spring Boot를 거쳐야 했습니다.
+
+**After**: `/app/`은 Nginx가 디스크에서 직접 파일을 읽어 서빙하고, 나머지 경로만 Spring Boot로 전달합니다. 정적 파일 서빙에서 Spring Boot를 완전히 제거한 거죠.
+
+몇 가지 설정을 짚어보겠습니다.
+
+**`location = /` 루트 리다이렉트**: 도메인 루트로 접속하면 `/app/`으로 보내줍니다. `=`은 루트 경로만 정확히 매칭하는 exact match입니다. 이게 없으면 루트 접속이 Spring Boot로 넘어가 버립니다.
+
+**`alias` vs `root`**: `root`를 쓰면 `/usr/share/nginx/html/app/app/`에서 파일을 찾게 됩니다. `alias`는 `/app/` 부분을 떼어내고 지정한 경로에서 바로 파일을 찾죠. 이 차이를 모르면 404를 만나게 됩니다.
+
+**`try_files` 순서**: `$uri`로 정확한 파일을 먼저 찾고, `$uri/`로 디렉토리를 확인한 뒤, 둘 다 없으면 `/app/index.html`로 fallback합니다. SPA 라우팅의 핵심입니다.
+
+**location 블록 순서**: Nginx는 가장 구체적인 location부터 매칭합니다. `location = /`(exact match) → `location /app/`(prefix match) → `location /`(catch-all) 순서입니다. 이 순서 덕분에 `/app/`으로 시작하는 요청은 Nginx가 처리하고, 나머지 경로만 Spring Boot로 넘어갑니다.
+
+<Warning>
+ `alias` 디렉티브를 사용할 때 `location`과 `alias` 모두 끝에 슬래시(`/`)를
+ 반드시 붙여야 합니다. `location /app`과 `alias /usr/share/nginx/html/app`처럼
+ 슬래시 없이 쓰면 경로 매핑이 어긋나서 예상치 못한 파일 접근이 발생할 수
+ 있습니다.
+</Warning>
+
+## Vite와 Spring Boot도 손봐야 합니다
+
+Nginx 설정만으로는 부족합니다. 프론트엔드와 백엔드 양쪽에서도 설정을 맞춰줘야 합니다.
+
+### Vite: base 경로 변경
+
+기존에는 `base: '/'`였지만, 이제 프론트엔드가 `/app/` 경로에서 서빙되므로 빌드 시 base를 맞춰줘야 합니다.
+
+```typescript
+// vite.config.ts
+export default defineConfig(({ mode }) => {
+ return {
+  // 핵심: 프로덕션 빌드 시 base 경로를 Nginx location과 맞춤
+  base: mode === 'production' ? '/app/' : '/',
+  // ...
+ }
+})
+```
+
+빌드 결과물의 모든 에셋 참조 경로에 `/app/`이 붙습니다. `index.html`에서 JS, CSS를 로드할 때 `/assets/index.js`가 아니라 `/app/assets/index.js`를 참조하게 되는 거죠.
+
+로컬 개발(`mode !== 'production'`)에서는 여전히 `/`를 사용하므로, `pnpm dev`로 개발할 때는 기존과 동일합니다.
+
+<Tip>
+React Router를 사용하고 있다면 `basename` 설정도 함께 변경해야 합니다. `<BrowserRouter basename="/app">`처럼 설정하면 라우터가 `/app/dashboard`, `/app/settings` 같은 경로를 올바르게 인식합니다.
+</Tip>
+
+### Spring Boot: 로컬 개발을 위한 CORS 설정
+
+기존에는 같은 포트에서 동작했으니 CORS가 필요 없었습니다. 프로덕션에서는 Nginx 덕분에 `/app/`과 API 경로가 같은 origin이므로 여전히 CORS 이슈가 없습니다.
+
+문제는 로컬 개발 환경입니다. Vite dev 서버(3000포트)가 Spring Boot에 직접 요청을 보내면 origin이 달라지죠. 이 경우를 위해 CORS 설정을 추가합니다.
+
+```java
+// WebConfigs.java
+@Configuration
+public class WebConfigs implements WebMvcConfigurer {
+    @Override
+    public void addCorsMappings(CorsRegistry registry) {
+        registry.addMapping("/api/**")
+            .allowedOrigins(
+                "https://your-app.internal",  // Nginx 통해 접근 (HTTPS)
+                "http://localhost:3000"        // 로컬 개발
+            )
+            .allowedMethods("GET", "POST", "PUT", "PATCH", "DELETE")
+            .allowCredentials(true);
+    }
+}
+```
+
+<Warning>
+ 프로덕션 환경에서는 `allowedOrigins`에서 `localhost:3000`을 반드시 제거하세요.
+ Spring Profile이나 환경 변수로 분기하면 개발/운영 환경을 깔끔하게 구분할 수
+ 있습니다.
+</Warning>
+
+## 배포 스크립트가 두 개로 나뉩니다
+
+저는 이 전환에서 가장 큰 성과가 바로 이 부분이라고 생각합니다.
+
+### Before: 통합 배포
+
+```bash
+# deploy-all.sh
+cd /path/to/project
+./gradlew clean bootJar  # 프론트 포함 전체 빌드 (5-10분)
+systemctl stop app
+cp build/libs/app.jar /opt/app/
+systemctl start app
+```
+
+프론트엔드든 백엔드든, 무엇이 바뀌었든 이 스크립트 하나였습니다.
+
+### After: 독립 배포
+
+```bash
+# deploy-frontend.sh (30초~1분)
+cd /path/to/frontend
+pnpm build  # Vite 빌드
+rsync -av --delete dist/ /usr/share/nginx/html/app/
+# Nginx reload 불필요 — 정적 파일만 교체되므로 즉시 반영
+```
+
+```bash
+# deploy-backend.sh (5-10분, 프론트 변경 없을 때만 실행)
+cd /path/to/backend
+./gradlew clean bootJar -x copyFrontend  # 프론트 복사 태스크 제거
+systemctl stop app
+cp build/libs/app.jar /opt/app/
+systemctl start app
+```
+
+프론트엔드 배포는 **30초에서 1분**이면 끝납니다. Vite 빌드 후 rsync로 파일을 교체하면 됩니다. Nginx는 정적 파일을 요청 시점에 디스크에서 읽으니, 파일만 교체하면 별도의 reload 없이 바로 반영되죠.
+
+백엔드 배포에서는 `-x copyFrontend`를 추가해서 더 이상 프론트엔드 복사 태스크를 실행하지 않도록 합니다.
+
+<Tip>
+ `rsync --delete` 옵션은 소스(dist/)에 없는 파일을 대상 디렉토리에서 삭제합니다.
+ 이전 빌드의 해시가 다른 파일이 남아있는 것을 방지해주므로, 디스크 공간을
+ 깔끔하게 유지할 수 있습니다.
+</Tip>
+
+## SPA 라우팅, 이 부분은 꼭 확인하세요
+
+client-side routing을 사용한다면, Nginx의 `try_files` 설정이 핵심입니다.
+
+```nginx
+location /app/ {
+    alias /usr/share/nginx/html/app/;
+    try_files $uri $uri/ /app/index.html;
+}
+```
+
+사용자가 `/app/dashboard`에 접속하면, Nginx는 먼저 `/usr/share/nginx/html/app/dashboard` 파일을 찾습니다. 당연히 없죠. 그 다음 `/usr/share/nginx/html/app/dashboard/` 디렉토리를 찾습니다. 역시 없습니다. 최종적으로 `/app/index.html`로 fallback하고, React Router가 URL을 파싱해서 적절한 컴포넌트를 렌더링하는 방식입니다.
+
+여기서 주의할 점이 있습니다. fallback 경로를 `/index.html`이 아니라 **`/app/index.html`**로 지정해야 한다는 것입니다. `try_files`의 마지막 인자는 파일 경로가 아니라 **내부 URI 리다이렉트**이기 때문에, `alias`가 아닌 URI 기준으로 지정해야 합니다. base 경로와 일치시키지 않으면 Nginx가 엉뚱한 location 블록에서 파일을 찾게 됩니다.
+
+<Warning>
+ `try_files`의 마지막 인자(fallback)는 Nginx 내부에서 다시 location 매칭을
+ 수행합니다. `/app/index.html`로 지정하면 다시 `location /app/` 블록에 매칭되어
+ `alias`가 적용됩니다. 만약 `/index.html`로 지정하면 다른 location 블록에
+ 매칭되거나 404가 발생할 수 있으니, 반드시 base 경로를 포함시켜야 합니다.
+</Warning>
+
+## 온프레미스라서 놓치기 쉬운 것들
+
+배포 분리가 됐다면, 이제 운영 품질을 높일 차례입니다. 온프레미스 환경이라서 "나중에 하자"고 넘기기 쉬운 것들인데, 사실 초기부터 잡아두지 않으면 나중에 더 귀찮아집니다.
+
+### HTTPS: 내부망이라도 예외 없이
+
+"내부망이니까 HTTP로 충분하다"는 온프레미스에서 가장 흔한 잘못된 관행입니다. 내부 사용자의 인증 정보가 평문으로 흘러다니는 건 보안 감사에서도, 실질적으로도 문제입니다.
+
+위 Nginx 설정에서 `include /etc/nginx/conf.d/https.conf`로 HTTPS 설정을 분리 관리하고 있습니다. 이 파일의 내용은 이렇습니다:
+
+```nginx
+# /etc/nginx/conf.d/https.conf
+listen 443 ssl;
+
+ssl_certificate     /etc/nginx/certs/server.crt;
+ssl_certificate_key /etc/nginx/certs/server.key;
+ssl_protocols       TLSv1.2 TLSv1.3;
+ssl_ciphers         HIGH:!aNULL:!MD5;
+```
+
+HTTP로 들어온 요청은 별도 server 블록에서 HTTPS로 리다이렉트합니다:
+
+```nginx
+server {
+    listen 80;
+    server_name your-app.internal;
+    return 301 https://$host$request_uri;
+}
+```
+
+인증서는 두 가지 방법으로 확보할 수 있습니다.
+
+사내 CA(Certificate Authority)가 있다면 거기서 발급받으면 되고, 없다면 `openssl`로 자체 서명 인증서를 만들 수 있습니다. 자체 서명 인증서는 브라우저 경고가 뜨지만, 사내 CA의 루트 인증서를 직원 PC에 배포하면 경고 없이 사용할 수 있습니다. 외부 도메인이 있다면 Let's Encrypt도 방법인데, 폐쇄망에서는 DNS 챌린지 설정이 번거로울 수 있습니다.
+
+<Tip>
+ HTTPS 설정을 별도 파일(`https.conf`)로 분리하면, 여러 server 블록에서
+ `include`로 재사용할 수 있어 인증서 갱신 시 한 곳만 수정하면 됩니다.
+</Tip>
+
+### upstream과 컨테이너 환경: DNS resolve
+
+Docker Compose 환경이라면 한 가지 더 신경 써야 합니다. upstream 서비스가 재시작하면 IP가 바뀔 수 있는데, Nginx는 기본적으로 시작 시점에 DNS를 한 번만 조회합니다. 그래서 백엔드 컨테이너가 재시작되면 이전 IP로 계속 요청을 보내다가 502 에러가 발생합니다.
+
+```nginx
+# 주의: resolve는 Nginx Plus 전용. 오픈소스에서는 resolver + 변수 방식 사용 (아래 Callout 참고)
+upstream app_backend {
+    zone backend_zone 64k;           # 공유 메모리 영역
+    server backend:8080 resolve;     # DNS 동적 조회 (Nginx Plus)
+}
+```
+
+**`zone backend_zone 64k`**: upstream 상태 정보를 공유 메모리에 저장합니다. Nginx는 여러 worker process가 동시에 동작하는데, `zone`이 없으면 각 worker가 upstream 상태를 독립적으로 관리합니다. 공유 메모리를 쓰면 worker 간에 연결 수나 실패 횟수 같은 상태를 공유할 수 있습니다. 참고로 active health check(`health_check` 디렉티브)는 Nginx Plus 전용 기능이며, 오픈소스에서는 `max_fails`와 `fail_timeout`을 활용한 passive health check만 사용 가능합니다.
+
+**`resolve`**: 서비스명(`backend`)의 DNS를 주기적으로 재조회합니다. 컨테이너가 재시작되어 IP가 바뀌어도 Nginx가 자동으로 새 IP를 찾아갑니다.
+
+<Warning>
+ `resolve` 디렉티브는 **Nginx Plus 전용** 기능이며, 오픈소스 Nginx에서는 사용할
+ 수 없습니다. 오픈소스에서 동적 DNS resolve가 필요하다면 `upstream` 블록 대신
+ 변수를 활용하는 방식을 사용하세요.
+</Warning>
+
+```nginx
+resolver 127.0.0.11 valid=30s;  # Docker 내부 DNS
+set $backend "backend:8080";
+proxy_pass http://$backend;
+```
+
+이 방식은 `proxy_pass`에 변수를 사용하면 Nginx가 매 요청마다 DNS를 조회하는 특성을 이용한 것입니다. 다만 `upstream` 블록의 로드밸런싱 기능(weight, least_conn 등)은 사용할 수 없다는 트레이드오프가 있습니다.
+
+### 무중단 배포: nginx -s reload
+
+프론트엔드 배포(정적 파일 교체)는 Nginx 재시작 없이 바로 반영됩니다. 하지만 Nginx 설정 자체를 변경해야 할 때도 있습니다. 새로운 location 블록 추가, upstream 변경, SSL 인증서 교체 같은 상황이죠.
+
+이때는 `nginx -s reload`(graceful reload)를 사용하면 기존 커넥션을 끊지 않고 새 설정을 적용할 수 있습니다:
+
+```bash
+# 설정 문법 검사 (reload 전 필수!)
+nginx -t
+
+# 무중단 설정 반영 (기존 연결 유지, 새 연결만 새 설정 적용)
+nginx -s reload
+```
+
+`nginx -t`를 먼저 실행하는 건 습관이 아니라 필수입니다. 문법 오류가 있는 설정으로 reload하면 Nginx가 새 설정 적용에 실패하고 기존 설정으로 계속 동작합니다. 에러 로그에만 기록되고 별다른 알림이 없어서, 설정이 반영됐다고 착각하기 쉽습니다.
+
+`nginx -s restart`(또는 `systemctl restart nginx`)는 프로세스를 완전히 재시작하므로 순간적인 다운타임이 발생합니다. 설정 변경에는 항상 `reload`를 쓰세요.
+
+### 보안 헤더 기본 세트
+
+"내부망이니까 보안 헤더는 나중에." 이것도 흔한 실수입니다.
+
+XSS 공격은 외부 해커만 하는 게 아닙니다. 내부 사용자가 모르고 악성 링크를 클릭하거나, 내부 시스템이 compromise되면 내부망의 다른 서비스도 공격 대상이 됩니다.
+
+기본적인 보안 헤더는 server 블록에 추가하거나, 별도 파일로 분리해서 include하면 됩니다:
+
+```nginx
+# 보안 헤더 (/etc/nginx/conf.d/security.conf로 분리 가능)
+add_header X-Frame-Options "SAMEORIGIN" always;
+add_header X-Content-Type-Options "nosniff" always;
+add_header X-XSS-Protection "1; mode=block" always;
+add_header Referrer-Policy "strict-origin-when-cross-origin" always;
+```
+
+각 헤더가 하는 일을 간단히 짚으면:
+
+- **X-Frame-Options**: 다른 사이트에서 iframe으로 우리 페이지를 임베드하는 것을 방지. 클릭재킹 공격 차단.
+- **X-Content-Type-Options**: 브라우저가 MIME 타입을 추측(sniffing)하지 않도록 강제. JS 파일을 CSS로 해석하는 등의 혼란 방지.
+- **X-XSS-Protection**: 브라우저의 내장 XSS 필터 활성화. 모던 브라우저에서는 CSP로 대체되는 추세이지만, 레거시 브라우저 커버를 위해 유지.
+- **Referrer-Policy**: 다른 사이트로 이동할 때 referrer 정보를 어디까지 보낼지 제어.
+
+`always` 키워드는 에러 응답(4xx, 5xx)에도 헤더를 포함하도록 합니다. 이것이 없으면 2xx, 3xx 응답에만 헤더가 추가되고, 에러 페이지에서는 보안 헤더가 빠지게 됩니다.
+
+<Info>
+ CSP(Content Security Policy)는 가장 강력한 보안 헤더이지만, 설정 복잡도가
+ 높습니다. 인라인 스크립트, 외부 리소스, eval 사용 등을 모두 파악해서
+ 화이트리스트를 만들어야 하므로 별도의 작업으로 진행하는 것을 권장합니다. 잘못
+ 설정하면 애플리케이션이 동작하지 않을 수 있습니다.
+</Info>
+
+### 로그 분리와 관리
+
+Nginx 로그와 Spring Boot 로그를 분리해서 관리하세요. 정적 파일 404가 발생했을 때 Nginx 로그를 보면 되고, API 에러가 발생했을 때는 Spring Boot 로그를 보면 됩니다. 섞여 있으면 원인 파악이 불필요하게 느려집니다.
+
+```nginx
+# 서비스별 로그 분리
+access_log /var/log/nginx/app_access.log;
+error_log  /var/log/nginx/app_error.log warn;
+```
+
+클라우드에서는 로그가 자동으로 수집되고 보존 정책이 적용되지만, 온프레미스에서는 로그 파일이 디스크를 채울 때까지 계속 커집니다. logrotate 설정은 필수입니다:
+
+```bash
+# /etc/logrotate.d/nginx
+/var/log/nginx/*.log {
+    daily
+    rotate 30
+    compress
+    delaycompress
+    missingok
+    notifempty
+    sharedscripts
+    postrotate
+        nginx -s reopen
+    endscript
+}
+```
+
+`nginx -s reopen`이 핵심입니다. logrotate가 파일을 교체(rename)한 후, Nginx에게 새 로그 파일을 열도록 알려줍니다. 이것 없이 파일만 교체하면 Nginx가 이미 열어둔 파일 디스크립터에 계속 쓰기 때문에 로그가 새 파일에 기록되지 않습니다. 사실 이 부분에서 한 번 실수해 봐야 그 중요성을 몸으로 이해하게 되는 것 같습니다..
+
+## 전환 결과와 체크리스트
+
+<Table
+ data={{
+  headers: ['항목', 'Before', 'After'],
+  rows: [
+   ['프론트엔드 배포 시간', '5~10분', '30초~1분'],
+   ['JAR 크기', '120MB+', '50MB'],
+   ['프론트엔드 롤백', '전체 JAR 교체', '파일 교체 (rsync)'],
+   ['백엔드 재시작 필요 여부', '항상', '프론트만 변경 시 불필요'],
+   ['배포 독립성', '불가', '프론트/백엔드 독립 배포'],
+   ['HTTPS', '미적용', '적용 (내부 CA)'],
+   ['정적 파일 서빙', 'Spring Boot', 'Nginx 직접 서빙'],
+  ],
+ }}
+ className="w-full border-collapse border border-gray-300 text-left text-sm"
+/>
+
+가장 체감이 큰 건 역시 배포 시간입니다. CSS 한 줄 고치고 10분 기다리던 게 30초로 줄었습니다. 프론트엔드 배포 시 서비스 다운타임도 사실상 제로에 가까워졌습니다.
+
+정적 파일을 교체하는 동안 구버전과 신버전 파일이 잠깐 혼재하는 순간이 있을 수 있지만, Vite가 빌드마다 다른 해시를 파일명에 붙이기 때문에 기존 파일을 덮어쓰지 않아 실질적으로 문제가 되지 않습니다.
+
+### 온프레미스 Nginx 배포 체크리스트
+
+전환을 준비하고 있다면, 아래 항목을 하나씩 확인해 보세요:
+
+- Nginx `location /app/` 블록에서 `alias`와 `try_files` 설정 확인
+- Vite `base` 옵션을 `/app/`으로 설정 (React Router `basename`도)
+- HTTP → HTTPS 리다이렉트 server 블록 추가
+- SSL 인증서 발급 및 `https.conf` 구성
+- Docker 환경이라면 `upstream`에 `zone` 설정 (`resolve`는 Nginx Plus 전용, 오픈소스는 변수 방식 사용)
+- 보안 헤더 4종 추가 (`X-Frame-Options`, `X-Content-Type-Options`, `X-XSS-Protection`, `Referrer-Policy`)
+- Nginx 로그를 서비스별로 분리하고 logrotate 설정
+- 배포 스크립트를 프론트엔드/백엔드로 분리
+- `nginx -t`로 설정 검증 후 `nginx -s reload`로 무중단 적용
+- `index.html` 캐시 비활성화, 해시된 에셋은 장기 캐시 설정
+
+---
+
+클라우드 환경에서는 프론트엔드와 백엔드 배포를 분리하는 게 당연한 이야기입니다. 그런데 온프레미스에서는 인프라 제약 때문에 "어쩔 수 없이" 통합 배포를 유지하는 경우가 꽤 많습니다. 저도 그랬고요.
+
+사실 Nginx 하나 추가하는 게 전부입니다. 인프라 변경의 부담 대비 얻는 효과가 꽤 큰 편이라고 생각합니다. 거기에 HTTPS, 보안 헤더, 로그 관리 같은 기본기까지 갖추면, 온프레미스라는 제약이 서비스 품질의 제약이 되지 않도록 만들 수 있습니다.
+
+비슷한 환경에서 배포 병목을 느끼고 계신다면, 한번 시도해 보시길 권합니다.
+
+## 다음 과제: 수동 배포를 넘어서
+
+지금도 아쉬운 점은 있습니다. 배포가 여전히 수동이라는 것..
+
+현재는 빌드 → rsync → reload 과정을 스크립트로 묶어 실행하는 수준입니다. 누군가가 직접 서버에 들어가서 명령어를 실행해야 하죠. CI/CD를 붙이면 코드 머지 시점에 자동으로 배포까지 이어지겠지만, 온프레미스 환경에서는 이게 생각보다 까다롭습니다.
+
+현재 고민 중인 방식은 **GitLab Geo**를 활용하는 것입니다. GitLab Geo는 GitLab의 공식 고가용성 솔루션으로, Primary GitLab 인스턴스의 저장소를 Secondary 인스턴스에 실시간으로 복제합니다. Secondary는 읽기 전용(read-only)으로 운영되어 `git clone`과 `git pull`은 가능하지만 `git push`는 불가능합니다. 코드 반출이 제한된 폐쇄망 환경에서도 사용할 수 있는 이유가 여기 있습니다.
+
+플로우는 이렇습니다. 회사 GitLab(Primary)에 코드를 push하면, 사내망에서만 접근 가능한 GitLab Geo Secondary에 시간차로 변경 사항이 반영됩니다. 온프레미스 서버에서는 이 Secondary를 통해 `git pull`로 최신 코드를 받아 빌드와 배포를 자동화할 수 있습니다.
+
+아직 구체적인 구현까지는 못 갔지만.. 수동 배포 단계를 하나씩 걷어낼 수 있을 것 같습니다.
+
+또 다른 주제로 찾아오겠습니다!
