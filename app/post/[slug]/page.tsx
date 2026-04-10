@@ -35,10 +35,11 @@ export function generateMetadata({ params }: PostPageProps) {
   publishedAt: publishedTime,
   summary: description,
   image,
+  tags,
  } = post.metadata
  let ogImage = image
   ? image
-  : `${baseUrl}/og?title=${encodeURIComponent(title)}`
+  : `${baseUrl}/og?title=${encodeURIComponent(title)}${tags?.length ? `&tags=${encodeURIComponent(tags.join(','))}` : ''}`
 
  return {
   title,

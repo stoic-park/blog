@@ -105,6 +105,16 @@ const example = 'code';
 - `#Next.js`, `#React`, `#TypeScript`, `#Tailwind CSS`
 - `#프론트엔드`, `#성능최적화`, `#개발회고`
 
+## 썸네일/OG 이미지
+
+포스트의 썸네일은 `app/og/route.tsx`에서 title + tags 기반으로 **자동 생성**된다.
+별도 이미지 파일을 만들 필요 없다. frontmatter의 title과 tags가 좋으면 썸네일도 좋다.
+
+커스텀 이미지가 필요한 경우에만 frontmatter에 추가:
+```yaml
+image: 'https://raw.githubusercontent.com/.../thumbnail.png'
+```
+
 ## 시리즈 포스트 작성 시
 
 1. `/posts/` 내 같은 `series.name`을 가진 파일 확인

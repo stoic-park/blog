@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      '@chenglou/pretext':
+        specifier: ^0.0.4
+        version: 0.0.4
       '@giscus/react':
         specifier: ^3.1.0
         version: 3.1.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)
@@ -274,6 +277,9 @@ packages:
 
   '@bcoe/v8-coverage@0.2.3':
     resolution: {integrity: sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==}
+
+  '@chenglou/pretext@0.0.4':
+    resolution: {integrity: sha512-FnPAFMid1/p1j2V2gRPUVBarGUIb2PhkkC9YNnTOfPtTDgHKh8siO8PP9pCxpFfYlcodWPJpE1UbSHGQqt8pQQ==}
 
   '@eslint-community/eslint-utils@4.9.1':
     resolution: {integrity: sha512-phrYmNiYppR7znFEdqgfWHXR6NCkZEK7hwWDHZUjit/2/U0r6XvkDl0SYnoM51Hq7FhCGdLDT6zxCCOY1hexsQ==}
@@ -2850,6 +2856,8 @@ snapshots:
       '@babel/helper-validator-identifier': 7.28.5
 
   '@bcoe/v8-coverage@0.2.3': {}
+
+  '@chenglou/pretext@0.0.4': {}
 
   '@eslint-community/eslint-utils@4.9.1(eslint@10.1.0(jiti@1.21.7))':
     dependencies:

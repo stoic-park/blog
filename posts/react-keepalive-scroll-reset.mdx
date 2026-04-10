@@ -1,0 +1,379 @@
+---
+title: 'React keep-alive 탭에서 스크롤 위치가 사라지는 이유 — Chrome과 이틀 싸운 기록'
+publishedAt: '2026-04-10'
+summary: '멀티탭 keep-alive 시스템에서 탭 전환 시 테이블 scrollTop이 0으로 리셋되는 문제. JS 버그인 줄 알고 이틀을 뒤졌는데, 범인은 Chrome이었다.'
+tags: '#React, #KeepAlive, #Chrome, #프론트엔드, #디버깅'
+author: 'Stoic Park'
+readingTime: '12분'
+---
+
+## 배경: 브라우저 탭처럼 동작하는 멀티탭 시스템
+
+브라우저 탭처럼 동작하는 멀티탭 시스템을 만들고 있었다. 사용자가 탭을 열고, 다른 탭으로 이동했다가 다시 돌아오면 **이전 상태가 그대로 유지**되어야 한다. 테이블 스크롤 위치, ECharts 차트의 dataZoom, legend highlight 상태, 사이드바 열림/닫힘 — 전부 다.
+
+React Router의 `<Outlet />`은 이런 동작을 지원하지 않는다. 라우트가 바뀌면 이전 페이지는 언마운트되고 상태가 날아간다. 그래서 직접 `KeepAliveOutlet`을 구현했다.
+
+```tsx
+const KeepAliveOutlet = () => {
+  // menuId별로 React element를 ref에 캐시 → re-mount 방지
+  const elementCacheRef = useRef<Map<string, React.ReactNode>>(new Map());
+
+  return (
+    <>
+      {cachedEntries.map((entry) => (
+        <KeepAliveSlot key={entry.menuId} isActive={entry.menuId === activeMenuId}>
+          {getOrCreateElement(entry.menuId, entry.pageId)}
+        </KeepAliveSlot>
+      ))}
+    </>
+  );
+};
+```
+
+각 탭은 DOM에 계속 남아 있고, 활성 탭만 CSS로 "보이게" 하는 방식이다. 문제는 **이 "보이게 / 안 보이게"를 어떻게 구현하느냐**였다.
+
+## 증상: 차트는 되는데 테이블만 안 된다
+
+"ECharts 차트의 zoom 상태는 잘 보존되는데, 테이블 스크롤 위치만 간헐적으로 0으로 리셋된다."
+
+재현하면 이상했다:
+
+1. 탭 A에서 테이블을 5000px 스크롤
+2. 탭 B로 이동
+3. 탭 A로 복귀 → **스크롤이 0으로 돌아가 있음**
+4. 그런데 **차트의 zoom은 그대로 유지됨**
+
+같은 부모 DOM 안에 있는데 왜 차트는 되고 테이블만 안 될까? 여기서부터 미궁이었다.
+
+## 실패한 가설들
+
+### 가설 1: `display:none`이 scrollTop을 날린다
+
+처음 구현은 표준적인 방법이었다.
+
+```tsx
+<div style={{ display: isActive ? 'flex' : 'none' }}>
+  {children}
+</div>
+```
+
+Chrome이 `display:none`을 적용할 때 자식 스크롤 컨테이너의 `scrollTop`을 0으로 리셋한다는 건 잘 알려진 동작이다.
+
+`useEffect`로 scrollTop 저장 후 복원을 시도했다. 타이밍이 맞지 않아 실패. React의 effect가 실행될 때는 이미 값이 0이었다. `useLayoutEffect`로 바꿔도 마찬가지. Chrome이 너무 빨리 값을 날려버렸다.
+
+### 가설 2: `visibility:hidden`으로 교체
+
+`visibility:hidden`은 레이아웃에 참여한다. 따라서 scrollTop은 자연스럽게 보존되어야 한다.
+
+```tsx
+const activeSlotStyle = { visibility: 'visible', zIndex: 1 };
+const hiddenSlotStyle = { visibility: 'hidden', zIndex: 0, pointerEvents: 'none' };
+```
+
+바꿔봤다. **차트 zoom은 잘 보존됐다.** 근데 테이블 스크롤은 **여전히 간헐적으로** 리셋됐다.
+
+"간헐적으로"가 무서운 단어다. 재현 조건이 뭔지 찾아야 한다.
+
+### 가설 3: TanStack Virtual의 virtualScroll 토글
+
+테이블은 TanStack Virtual로 가상 스크롤을 쓴다. IntersectionObserver가 테이블 가시성을 감지하고 있었다:
+
+```tsx
+const observer = new IntersectionObserver((entries) => {
+  entries.forEach((entry) => setIsVisible(entry.isIntersecting));
+}, { threshold: 0.1, rootMargin: '-50px' });
+
+const useVirtualScroll = dataToShow.length >= VIRTUAL_THRESHOLD && isVisible;
+```
+
+**가설:** 탭이 숨겨지면 IntersectionObserver가 `isIntersecting: false`를 보고, `useVirtualScroll`이 `true → false`로 바뀌고, 가상 스크롤 재계산으로 scrollTop이 리셋된다.
+
+로그를 넣어 측정해봤다. IntersectionObserver 콜백이 **한 번도 호출되지 않았다.** `visibility:hidden` 엘리먼트도 IntersectionObserver는 "intersecting"으로 판정하기 때문이다. 가설 기각.
+
+### 가설 4: `translateZ(0)` compositor 레이어
+
+테이블 wrapper에 이게 붙어 있었다:
+
+```tsx
+<div style={{ isolation: 'isolate', transform: 'translateZ(0)' }}>
+```
+
+**가설:** `translateZ(0)`가 Chrome compositor 레이어를 강제 생성한다. 조상이 `visibility:hidden`이 되면 Chrome이 레이어를 drop하면서 compositor가 들고 있던 scroll offset도 같이 사라진다.
+
+이론은 그럴듯했다. 제거하고 테스트. **여전히 리셋됨.**
+
+### 가설 5: visibility 자체를 쓰지 않고 z-index 스태킹
+
+과감하게 구조를 바꿨다. `visibility` 자체를 쓰지 않고 z-index로만 스태킹.
+
+```tsx
+const baseSlotStyle: React.CSSProperties = {
+  position: 'absolute',
+  inset: 0,
+  display: 'flex',
+  flexDirection: 'column',
+  minHeight: 0,
+  overflow: 'hidden',
+};
+
+const activeSlotStyle = { ...baseSlotStyle, zIndex: 1 };
+const hiddenSlotStyle = { ...baseSlotStyle, zIndex: 0, pointerEvents: 'none' };
+```
+
+비활성 탭은 active 탭 **아래에 깔려서** 시각적으로만 가려진다. DOM은 계속 정상 렌더링 상태. visibility 변경 없음. Chrome이 뭔가 할 이유가 없다.
+
+**여전히 리셋됐다.**
+
+이 시점에서 진짜 멘탈이 나갔다.
+
+## 삽질 중 발견한 다른 문제: useSearchParams 리렌더링
+
+디버깅 과정에서 하나 더 발견했다. 탭 식별을 위해 `useSearchParams()`를 쓰고 있었는데, 이게 **모든 비활성 탭을 리렌더링시키고 있었다.**
+
+```tsx
+// useTabMenuId.ts (문제의 코드)
+const [searchParams] = useSearchParams();
+const menuId = searchParams.get('tab');
+```
+
+React Router의 `useSearchParams`는 URL이 바뀔 때마다 새 객체를 반환한다. 탭 A에서 탭 B로 전환하면 URL이 바뀌고, **숨겨져 있는 탭 A의 컴포넌트도 리렌더링**된다. keep-alive로 DOM을 유지하고 있으니까 언마운트가 안 되고, 대신 불필요한 리렌더가 폭포처럼 쏟아졌다.
+
+이건 ref 기반 1회 읽기로 수정해서 해결했다. 하지만 scrollTop 리셋 문제와는 별개였다.
+
+## 결정적인 측정
+
+가설로 해결이 안 되면 측정밖에 없다. 세 가지를 동시에 투입했다.
+
+### 측정 1: `Element.prototype.scrollTop` setter 전역 패치
+
+JS가 scrollTop을 쓰는 순간을 잡아내기 위해 global setter에 훅을 건다.
+
+```typescript
+const desc = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
+const origSet = desc.set!;
+const origGet = desc.get!;
+
+Object.defineProperty(Element.prototype, 'scrollTop', {
+  configurable: true,
+  get(this: Element) { return origGet.call(this); },
+  set(this: Element, v: number) {
+    if ((this as HTMLElement).classList?.contains('overflow-auto')) {
+      const prev = origGet.call(this) as number;
+      if (prev !== v) {
+        console.error(`[SETTER] scrollTop=${v} (prev:${prev})`, new Error('trace').stack);
+      }
+    }
+    origSet.call(this, v);
+  },
+});
+```
+
+이걸로 잡히면 "누군가 JS로 `scrollTop = 0` 쓰고 있다"가 확정된다.
+
+### 측정 2: rAF 폴링으로 silent change 추적
+
+scroll 이벤트로 잡히지 않는 변경을 requestAnimationFrame 루프로 추적.
+
+```typescript
+const tick = () => {
+  const cur = scrollEl.scrollTop;
+  if (cur !== prevTop) {
+    console.warn(`[rAF] silent change ${prevTop} → ${cur}`,
+      'clientH:', scrollEl.clientHeight,
+      'scrollH:', scrollEl.scrollHeight,
+      'slotVisibility:', getComputedStyle(slotEl).visibility,
+      'perf:', performance.now().toFixed(1),
+    );
+    prevTop = cur;
+  }
+  requestAnimationFrame(tick);
+};
+```
+
+### 측정 3: 슬롯 전환 타임라인
+
+```typescript
+// KeepAliveSlot에서 isActive 전환 로그
+console.log(`[SLOT] ${menuId} ${prev ? 'active→hidden' : 'hidden→active'}`);
+```
+
+세 로그를 동시에 켜고 재현했다. 그리고 찾아낸 것:
+
+```text
+[SLOT] dashboard hidden→active
+[SLOT] model-analysis active→hidden
+[rAF] silent change 3936 → 0
+  clientH: 313
+  scrollH: 14145     ← 내용 붕괴 아님
+  slotVisibility: visible  ← visibility:hidden 아님
+```
+
+**그리고 SETTER 로그는 단 한 번도 뜨지 않았다.**
+
+이게 결정적이었다.
+
+- JS가 scrollTop을 쓴 게 아님 (setter 패치 증명)
+- 내용이 줄어들어서 브라우저가 clamp한 게 아님 (scrollHeight 14145 유지)
+- visibility:hidden 때문이 아님 (이미 제거했고 slotVisibility는 `visible`)
+- 스크롤 컨테이너가 DOM에서 제거된 것도 아님 (isConnected: true)
+
+**그런데 scrollTop이 0이 됐다.** 범인은 Chrome이었다.
+
+## 그래서 Chrome은 뭘 한 건가?
+
+정직하게 말하면 — **정확한 Chromium 소스 레벨 메커니즘은 알아내지 못했다.** 합리적인 가설 몇 가지:
+
+1. **Scroll anchoring 재계산**: Chrome은 scroll 컨테이너의 anchoring을 layout/paint 상태에 따라 재평가한다. 조상이 "비활성"으로 판정되면 anchor를 잃고 top으로 리셋되는 케이스.
+2. **Compositor layer 관리**: Chrome이 "가려진" 엘리먼트의 레이어를 demote할 때 compositor에 저장된 scroll offset 유실. `translateZ` 하나를 지웠어도 Chrome이 다른 이유(스크롤 컨테이너 자체, sticky thead 등)로 여전히 레이어를 만들고 있을 수 있다.
+3. **Occlusion 기반 paint 최적화**: Chrome 90+의 occlusion 감지가 "완전히 가려진" scroll 컨테이너의 상태를 정리하는 동작.
+
+셋 중 어느 것인지는 Chromium 소스를 파야 알 수 있는데, **실익이 없었다.** 이유는 다음 섹션.
+
+## 해결책 — save on scroll, restore on activate
+
+production keep-alive 라이브러리들(`react-activation`, Vue `<keep-alive>` 내부 구현, Angular route reuse strategies)이 공통적으로 쓰는 패턴이다.
+
+<Tip>
+브라우저가 scrollTop을 날리는 걸 막으려 하지 말고, **값을 기억해뒀다가 다시 덮어쓴다.**
+</Tip>
+
+```tsx
+const KeepAliveSlotInner = ({ isActive, children }) => {
+  const slotRef = useRef<HTMLDivElement>(null);
+  const scrollPositionsRef = useRef<Map<HTMLElement, number>>(new Map());
+
+  // [1] 슬롯 내부 모든 overflow 스크롤 컨테이너에 리스너 부착
+  useEffect(() => {
+    const slotEl = slotRef.current;
+    if (!slotEl) return;
+
+    const positions = scrollPositionsRef.current;
+    const handlers = new Map<HTMLElement, EventListener>();
+
+    const attach = (el: HTMLElement) => {
+      if (handlers.has(el)) return;
+      const handler: EventListener = () => {
+        positions.set(el, el.scrollTop);
+      };
+      el.addEventListener('scroll', handler, { passive: true });
+      handlers.set(el, handler);
+      positions.set(el, el.scrollTop);
+    };
+
+    const scan = () => {
+      handlers.forEach((h, el) => {
+        if (!el.isConnected) {
+          el.removeEventListener('scroll', h);
+          handlers.delete(el);
+          positions.delete(el);
+        }
+      });
+      const els = slotEl.querySelectorAll<HTMLElement>(
+        '.overflow-auto, .overflow-y-auto, .overflow-scroll'
+      );
+      els.forEach(attach);
+    };
+
+    scan();
+
+    // lazy-mount되는 컴포넌트도 잡기
+    const mo = new MutationObserver(scan);
+    mo.observe(slotEl, { childList: true, subtree: true });
+
+    return () => {
+      handlers.forEach((h, el) => el.removeEventListener('scroll', h));
+      mo.disconnect();
+      positions.clear();
+    };
+  }, []);
+
+  // [2] 활성 복귀 시 저장된 값으로 scrollTop 복원
+  useLayoutEffect(() => {
+    if (!isActive) return;
+    const positions = scrollPositionsRef.current;
+    const restore = () => {
+      positions.forEach((savedTop, el) => {
+        if (el.isConnected && savedTop > 0 && el.scrollTop !== savedTop) {
+          el.scrollTop = savedTop;
+        }
+      });
+    };
+
+    // commit 직후 + rAF 2프레임 retry
+    restore();
+    let remaining = 2;
+    const ids: number[] = [];
+    const tick = () => {
+      restore();
+      if (remaining > 0) {
+        remaining -= 1;
+        ids.push(requestAnimationFrame(tick));
+      }
+    };
+    ids.push(requestAnimationFrame(tick));
+
+    return () => ids.forEach(cancelAnimationFrame);
+  }, [isActive]);
+
+  return (
+    <div ref={slotRef} aria-hidden={!isActive} className="bg-v2-bg"
+         style={isActive ? activeSlotStyle : hiddenSlotStyle}>
+      {children}
+    </div>
+  );
+};
+```
+
+### 왜 이렇게 생겼나
+
+**MutationObserver**: `DataTable` 같은 컴포넌트는 Suspense lazy 로드라 최초 `scan()` 시점엔 스크롤 컨테이너가 없다. 나중에 추가되는 것도 자동으로 잡아야 한다.
+
+**`savedTop > 0` 체크**: 사용자가 의도적으로 스크롤 맨 위(0)에 있는 상태에서 탭 전환한 경우, 복원할 필요가 없다.
+
+**rAF 2프레임 retry**: Chrome의 browser-internal reset이 `useLayoutEffect` 실행 시점 이후에 다시 발동할 수 있다. 비용은 미미하고 안정성이 크게 올라간다.
+
+**`bg-v2-bg` 불투명 배경**: z-index 스태킹 방식에선 active 탭 배경이 불투명해야 뒤에 깔린 비활성 탭이 비치지 않는다. 이걸 빼먹으면 시각적으로 탭이 겹쳐 보인다.
+
+**scroll listener가 restore를 무한 트리거하지 않는 이유**: `el.scrollTop !== savedTop` 체크로 값이 이미 맞으면 쓰지 않는다. 복원으로 인한 scroll 이벤트는 handler에서 `positions.set(el, savedTop)`를 부르지만 이미 같은 값이라 사실상 no-op.
+
+## 교훈
+
+### 브라우저 동작을 "고치려는" 접근은 잘못된 방향일 수 있다
+
+이틀 동안 내가 한 것: "Chrome이 scrollTop을 리셋하는 원인을 찾아서 막자."
+
+이게 근본적으로 잘못된 프레임이었다. Chrome이 의도적으로 하는 동작을 JS 측에서 막을 수단은 기본적으로 없다. 수단이 있다고 해도 다음 버전에서 언제든 깨질 수 있다.
+
+**"원인을 해결한다" 대신 "결과를 뒤집는다"**로 접근을 바꿨을 때 문제가 풀렸다. 저장하고 덮어쓴다 — 이게 production 라이브러리들이 전부 쓰는 패턴이다.
+
+### 3번 실패하면 구조 자체를 의심하라
+
+디버깅에서 "한 번만 더 시도하면 잡힐 것 같은데" 유혹에 계속 걸렸다. `translateZ` 제거 실패, visibility 제거 실패, z-index 스태킹 실패. 3번째 실패 후에 **"내 가설의 공통 전제가 틀렸을 수도 있다"**를 생각했어야 했다.
+
+내 공통 전제: "우리 코드 어디선가 트리거하는 원인이 있다."
+
+사실: "브라우저가 한다."
+
+이 전제가 깨졌을 때만 접근이 바뀐다. 3번의 실패는 전제를 의심하라는 신호다.
+
+### 측정 도구를 미리 준비해두면 디버깅이 훨씬 빠르다
+
+결정적 역할을 한 세 가지:
+
+- **`scrollTop` setter 전역 패치** — "JS가 쓴 게 아님"을 확정
+- **rAF 폴링** — scroll 이벤트로 잡히지 않는 silent change 포착
+- **렌더 카운트 + ref identity 로그** — React Query refetch, re-render 가설 기각
+
+이런 측정 도구는 문제가 생긴 후에 급하게 만들면 허접해지기 쉽다. 복잡한 시스템을 만들 땐 미리 관찰 포인트를 내장해두는 게 낫다.
+
+### "이건 원래 어려운 문제"라는 걸 인정하는 것도 디버깅 기술이다
+
+React + 멀티탭 keep-alive + 스크롤 상태 보존은 웹 생태계에서 "공식 정답이 없는" 영역이다. `react-activation`, Vue `<keep-alive>`, Angular route reuse — 각각 다른 구현으로 같은 문제를 풀고 있다.
+
+처음부터 "이건 production 라이브러리들도 save/restore로 푸는 영역이다"라는 걸 알았다면, 이틀이 아니라 2시간에 끝냈을 것이다.
+
+## 결론
+
+브라우저 내부 동작과 싸우지 말자. 대신 기억하고 덮어써라.
+
+이 글이 같은 상황에서 헤매고 있는 누군가의 이틀을 아껴주길 바란다.
