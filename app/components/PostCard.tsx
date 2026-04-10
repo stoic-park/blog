@@ -20,17 +20,23 @@ export function PostCard({ slug, metadata }: PostCardProps) {
       href={`/post/${slug}`}
       className="group grid md:grid-cols-12 gap-8 md:gap-12 items-start"
     >
-      {metadata.image && (
-        <div className="relative md:col-span-4 aspect-[4/3] bg-surface-low overflow-hidden">
+      <div className="relative md:col-span-4 aspect-[4/3] bg-surface-low overflow-hidden">
+        {metadata.image ? (
           <Image
             src={metadata.image}
             alt={metadata.title}
             fill
             className="object-cover group-hover:scale-105 transition-transform duration-700"
           />
-        </div>
-      )}
-      <div className={metadata.image ? 'md:col-span-8' : 'md:col-span-12'}>
+        ) : (
+          <img
+            src={`/og?title=${encodeURIComponent(metadata.title)}${metadata.tags?.length ? `&tags=${encodeURIComponent(metadata.tags.join(','))}` : ''}`}
+            alt={metadata.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+          />
+        )}
+      </div>
+      <div className="md:col-span-8">
         <div className="flex items-center flex-wrap gap-4 mb-3">
           {metadata.tags?.[0] && (
             <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
