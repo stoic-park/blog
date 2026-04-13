@@ -16,6 +16,18 @@ type Metadata = {
  }
 }
 
+function extractFirstImage(content: string): string | undefined {
+  // 코드 블록 제외
+  const withoutCode = content.replace(/```[\s\S]*?```/g, '')
+  // Markdown 이미지: ![alt](url)
+  const md = withoutCode.match(/!\[[^\]]*\]\(([^)\s]+)/)
+  if (md) return md[1]
+  // JSX Image/img: src="..." or src='...'
+  const jsx = withoutCode.match(/<(?:Image|img)[^>]*\s+src=["']([^"']+)["']/)
+  if (jsx) return jsx[1]
+  return undefined
+}
+
 function parseFrontmatter(fileContent: string) {
   const { data, content } = matter(fileContent)
   // tags가 문자열이면 배열로 변환
@@ -25,6 +37,11 @@ function parseFrontmatter(fileContent: string) {
   // series.order 숫자 보장
   if (data.series && typeof data.series.order === 'string') {
     data.series.order = Number(data.series.order)
+  }
+  // frontmatter에 image가 없으면 본문 첫 이미지 사용
+  if (!data.image) {
+    const firstImage = extractFirstImage(content)
+    if (firstImage) data.image = firstImage
   }
   return { metadata: data as Metadata, content }
 }
