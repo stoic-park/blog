@@ -20,7 +20,7 @@ export function PostCard({ slug, metadata }: PostCardProps) {
       href={`/post/${slug}`}
       className="group grid md:grid-cols-12 gap-8 md:gap-12 items-stretch"
     >
-      <div className="relative md:col-span-4 w-full aspect-[1200/630] md:aspect-auto md:min-h-full bg-surface-low overflow-hidden">
+      <div className="relative md:col-span-4 w-full aspect-[1200/630] md:aspect-auto md:h-full bg-surface-low overflow-hidden">
         {metadata.image ? (
           <Image
             src={metadata.image}
@@ -32,7 +32,7 @@ export function PostCard({ slug, metadata }: PostCardProps) {
           <img
             src={`/og?title=${encodeURIComponent(metadata.title)}${metadata.tags?.length ? `&tags=${encodeURIComponent(metadata.tags.join(','))}` : ''}`}
             alt={metadata.title}
-            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-700"
           />
         )}
       </div>
