@@ -18,9 +18,9 @@ export function PostCard({ slug, metadata }: PostCardProps) {
   return (
     <Link
       href={`/post/${slug}`}
-      className="group grid md:grid-cols-12 gap-8 md:gap-12 items-start"
+      className="group grid md:grid-cols-12 gap-8 md:gap-12 items-stretch"
     >
-      <div className="relative md:col-span-4 w-full aspect-[1200/630] bg-surface-low overflow-hidden">
+      <div className="relative md:col-span-4 w-full aspect-[1200/630] md:aspect-auto md:min-h-full bg-surface-low overflow-hidden">
         {metadata.image ? (
           <Image
             src={metadata.image}
