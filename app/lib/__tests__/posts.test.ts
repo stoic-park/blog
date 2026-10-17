@@ -350,3 +350,19 @@ summary: s
     expect(content.trim()).toBe('')
   })
 })
+
+// ---------------------------------------------------------------------------
+// assertCategory
+// ---------------------------------------------------------------------------
+import { assertCategory } from '../posts'
+
+describe('assertCategory', () => {
+  it('허용된 카테고리는 그대로 반환', () => {
+    expect(assertCategory('domain', 'a.mdx')).toBe('domain')
+  })
+
+  it('없거나 모르는 값이면 파일명과 함께 에러', () => {
+    expect(() => assertCategory(undefined, 'a.mdx')).toThrow('a.mdx')
+    expect(() => assertCategory('react', 'b.mdx')).toThrow('허용: frontend, domain, ai, retrospective')
+  })
+})
