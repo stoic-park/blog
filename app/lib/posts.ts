@@ -137,7 +137,7 @@ export function slugify(str: string) {
 }
 
 // ID 중복 방지를 위한 함수
-function generateUniqueId(baseId: string, existingIds: Set<string>): string {
+export function generateUniqueId(baseId: string, existingIds: Set<string>): string {
  let uniqueId = baseId
  let counter = 1
 
