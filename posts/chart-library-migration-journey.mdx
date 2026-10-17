@@ -1,0 +1,375 @@
+---
+title: 'ECharts → uPlot → SciChart: 차트 라이브러리를 세 번 갈아탄 이야기'
+publishedAt: '2026-10-17'
+summary: '"차트 또 바꿔요?" — 네, 이번이 진짜 마지막입니다(아마도). 점 수십만 개를 그리면서 ECharts에서 uPlot, 그리고 SciChart까지 세 번 갈아탄 기록과 벤치마크, 그리고 3주 만에 뒤집힌 결정 이야기.'
+category: 'frontend'
+tags: '#ECharts, #uPlot, #SciChart, #WebGL, #성능최적화'
+author: 'Stoic Park'
+readingTime: '12분'
+---
+
+> "차트 또 바꿔요?" — 네, 이번이 진짜 마지막입니다(아마도)
+
+노트북 팬이 이륙 준비를 하는 소리를 들어 본 적 있나요?
+
+시계열 차트 한 화면에 수십 개 묶음, 합쳐서 수십만 개의 점을 올렸을 때 저희 노트북이 딱 그 소리를 냈어요. 크롬 작업 관리자를 열어 보니 탭 하나가 **1.3GB**를 쓰고 있었고요. 차트가 아니라 슬라이드쇼를 보고 있는 기분이었습니다. (이 메모리 문제를 서버 쪽에서 풀었던 이야기는 [이전 글](/post/echarts-memory-optimization-bff)에 있어요.)
+
+이 글은 그 순간부터 시작해서 차트 라이브러리를 **ECharts → uPlot → SciChart** 순서로 세 번 갈아탄 기록이에요. 중간에 한 번은 "SciChart는 안 쓴다"고 결론까지 냈다가 3주 만에 뒤집기도 했습니다. 그 이야기도 숨기지 않고 쓸게요.
+
+<figure>
+ <Image
+  src="/images/chart-migration/journey.svg"
+  alt="ECharts에서 Plotly를 잠깐 거쳐 uPlot, SciChart로 이어지는 이동 경로"
+  width={800}
+  height={300}
+ />
+</figure>
+
+**이런 분께 도움이 될 것 같아요**
+
+- 한 화면에 점 수십만 개를 그려야 하는 프론트엔드 개발자
+- "그래서 Canvas랑 WebGL 중에 뭐 써요?"라는 질문을 받아 본 분
+- 라이브러리 교체를 앞두고 벤치마크를 어떻게 설계할지 고민하는 분
+
+**TL;DR**
+
+<div className="w-full overflow-x-auto">
+ <div className="min-w-[600px] w-full">
+  <Table
+   data={{
+    headers: ['', 'ECharts', 'uPlot', 'SciChart'],
+    rows: [
+     ['그리는 방식', 'Canvas (옵션 객체 기반)', 'Canvas 2D (아주 얇음)', 'WebGL2 + WASM'],
+     ['번들 크기', '큼', '약 50KB', '+4.9MB (JS 2.4MB + wasm 2.5MB)'],
+     ['타임라인 1,409개 렌더', '49.0ms', '3.3ms', '—'],
+     ['시계열 185만 점 렌더', '—', '153.8ms', '39.1ms'],
+     ['상호작용 p95', '—', '7.1ms', '20.9ms'],
+     ['한 줄 평', '다 되는데 무거워요', '빠른데 다 직접 해야 해요', '강력한데 까다로워요'],
+    ],
+   }}
+  />
+ </div>
+</div>
+
+## 1. 처음엔 ECharts면 충분했어요
+
+ECharts를 고른 건 잘못된 선택이 아니었어요. 차트 종류가 많고, 옵션 객체 하나로 거의 모든 걸 표현할 수 있고, 문서와 예제도 넉넉하거든요. 대시보드에 막대 몇 개, 선 몇 개를 그릴 때는 정말 편했습니다.
+
+데이터가 커지기 시작하면서 저희가 가장 먼저 한 일은 성능 옵션을 전부 켜는 거였어요.
+
+```ts
+const series = {
+  type: 'line',
+  data: points,
+  symbol: 'none',
+  animation: false,     // 애니메이션 끄고
+  large: true,          // 대용량 모드 켜고
+  largeThreshold: 2000,
+};
+
+const option = {
+  animation: false,
+  progressive: 1000,          // 1000개씩 끊어 그리고
+  progressiveThreshold: 3000,
+  series: [series],
+};
+```
+
+켤 수 있는 건 다 켰어요. 그런데도 상황은 이랬습니다.
+
+- 탭 하나 메모리 **1.3GB**
+- 원본 배열 → 차트용 배열 → 내부 저장소로 **데이터 복사가 여러 번** 일어남
+- 직접 넣은 LTTB 샘플링과 ECharts의 `sampling` 옵션이 겹쳐서 **샘플링이 두 번** 돌고 있었음 (이건 저희 잘못이에요. 허허..)
+- 묶음을 하나 추가할 때마다 차트가 **깜빡임**
+
+깜빡임은 React `key`가 바뀌면서 차트 인스턴스를 통째로 다시 만들던 게 원인이었어요. `key`를 고정해서 인스턴스를 재사용하고, `setOption(option, { replaceMerge: ['series'] })`로 시리즈만 갈아 끼우니 해결됐습니다. 메모리도 `Float32Array`로 바꾸고 복사 경로를 줄여서 꽤 내렸고요.
+
+<Tip>
+교훈 1. 라이브러리를 바꾸기 전에, 내가 라이브러리를 잘못 쓰고 있지는 않은지부터 확인하세요. 두 번 돌던 샘플링을 찾았을 때 저희가 그랬듯이요.
+</Tip>
+
+하지만 최적화로 메울 수 있는 간격에는 한계가 있었어요. 타임라인(구간을 가로 막대로 늘어놓는 차트)은 항목이 500개를 넘으면 **요약해서** 그려야 했고, 그렇게 해도 한 번 그리는 데 49ms가 걸렸습니다.
+
+> 이때만 해도 저희는 "라이브러리 한 번만 바꾸면 끝나겠지"라고 생각했어요. 이 문장이 복선이라는 건 다들 눈치채셨죠.
+
+## 2. 잠깐 Plotly와 썸을 탔어요
+
+대량의 점을 빠르게 그리려면 WebGL을 써야 한다고 해서 Plotly의 `scattergl`을 먼저 붙여 봤어요. 결론부터 말하면 두 달 만에 코드에서 지웠습니다. 기준선 역할은 충분히 했지만, 이 정도 무게를 감수할 만한 차이는 아니었거든요.
+
+이 짧은 썸 덕분에 배운 게 하나 있어요. **"WebGL이니까 빠르겠지"는 가설일 뿐이고, 측정해 보기 전까지는 아무것도 아니다.** 이 말은 뒤에서 한 번 더 나옵니다.
+
+## 3. uPlot으로 갈아탔어요 — 50KB의 기적
+
+uPlot은 Canvas 2D 위에 아주 얇게 올라간 라이브러리예요. 약 50KB에 MIT 라이선스이고, 이름 그대로 *micro*합니다. 옵션 객체를 해석하고 레이아웃을 계산하는 무거운 층이 없어서, 데이터만 제대로 넘기면 정말 빠르게 그려요.
+
+> 타임라인 1,409개: **ECharts 49.0ms → uPlot 3.3ms**
+
+15배 빨라졌어요. 요약 없이 전부 그렸는데도요.
+
+### uPlot이 원하는 데이터 모양
+
+uPlot은 데이터를 **x축을 공유하는 정렬된 열 배열**로 받아요. `[xs, ys1, ys2, ...]` 형태요. 시리즈마다 x값이 제각각인 데이터라면 x를 합쳐서 정렬한 뒤, 값이 없는 자리를 비워 두어야 합니다.
+
+```ts
+// 모든 시리즈의 x를 합쳐 정렬하고, 각 시리즈를 그 x 축에 맞춰 펼친다
+const xs = [...new Set(series.flatMap((s) => s.x))].sort((a, b) => a - b);
+const xIndex = new Map(xs.map((x, i) => [x, i]));
+
+const ys = series.map((s) => {
+  const out: (number | null)[] = new Array(xs.length).fill(null);
+  s.x.forEach((x, i) => {
+    const v = s.y[i];
+    // uPlot은 null만 결측으로 본다. NaN을 넘기면 앞뒤 점이 이어져 버린다
+    out[xIndex.get(x)!] = Number.isFinite(v) ? v : null;
+  });
+  return out;
+});
+
+const data = [xs, ...ys];
+```
+
+주석의 경고는 실제로 겪은 일이에요. 데이터가 비어 있는 구간에 `NaN`을 넣었더니 uPlot이 그 앞뒤 점을 태연하게 이어 버렸습니다. 같은 데이터로 직접 재현해 보면 이래요.
+
+<figure>
+ <Image
+  src="/images/chart-migration/nan-vs-null.png"
+  alt="같은 데이터를 NaN으로 넘기면 빈 구간 위로 선이 이어지고, null로 넘기면 끊기는 uPlot 비교"
+  width={1680}
+  height={660}
+ />
+ <figcaption>왼쪽 차트는 거짓말을 하고 있어요</figcaption>
+</figure>
+
+끊어야 할 선이 이어지는 건 차트가 거짓말을 하는 거라서 꽤 무서운 버그예요. **결측은 `null`입니다.** 꼭 기억해 주세요.
+
+### 대신 전부 직접 만들어야 해요
+
+uPlot이 가볍다는 건 바꿔 말하면 **없는 게 많다**는 뜻이에요. 어노테이션, 다운샘플링, 스트리밍 같은 기능은 기본으로 들어 있지 않아서 플러그인과 hook으로 직접 만들어야 했습니다. 다운샘플링 임계값(3,000)도 문서에서 찾은 값이 아니라 저희가 직접 재 보고 정한 숫자예요.
+
+그중 가장 마음에 드는 건 **픽셀 열 단위 축약**이에요. 화면은 가로 1,000픽셀인데 점이 10만 개라면, 한 픽셀 열에 점이 100개씩 겹쳐요. 그 100개를 전부 `lineTo`로 이을 필요는 없습니다. 눈에 보이는 건 그 열의 **처음, 최솟값, 최댓값, 마지막** 네 점뿐이거든요.
+
+<figure>
+ <Image
+  src="/images/chart-migration/pixel-column.svg"
+  alt="한 픽셀 열에 몰린 점 100개를 처음·최솟값·최댓값·마지막 4점으로 줄이는 도식"
+  width={800}
+  height={340}
+ />
+</figure>
+
+```ts
+for (let k = from; k <= to; k++) {
+  const px = toPx(xs[k]);
+  const py = toPy(ys[k]);
+  const col = Math.round(px);
+
+  if (col === column) {        // 같은 픽셀 열이면 극값만 갱신
+    lo = Math.min(lo, py);
+    hi = Math.max(hi, py);
+    last = py;
+    continue;
+  }
+  flush();                     // 이전 열은 lo → hi → last 세 번의 lineTo로 정리
+  ctx.lineTo(px, py);
+  column = col; lo = hi = last = py;
+}
+```
+
+모양은 원본과 픽셀 단위로 똑같은데 그리는 선분 수는 열 개수 수준으로 줄어요. 공짜 점심이 있다면 이런 맛일 거예요.
+
+## 4. uPlot의 한계를 만난 날
+
+uPlot으로 갈아탄 지 한 달쯤 지났을 때 SciChart로 성능 비교 POC를 해 봤어요. "혹시 모르니까" 해 본 실험이었는데, 시계열 쪽에서 차이가 꽤 컸습니다.
+
+<Table
+ data={{
+  headers: ['185만 점, 50개 묶음', '렌더 시간', '메모리'],
+  rows: [
+   ['uPlot', '153.8ms', '기준'],
+   ['SciChart', '39.1ms (3.9배)', '19% 적음'],
+  ],
+ }}
+/>
+
+로컬 개발 장비라서 잘 나온 거 아닐까 싶어서, 실제 사용자 환경과 같은 사양으로도 측정해 봤어요. **15년 된 저사양 GPU에 레거시 OS와 브라우저가 고정된 장비**였습니다.
+
+<figure>
+ <Image
+  src="/images/chart-migration/render-time-bars.png"
+  alt="저사양 장비에서 점 개수별 SciChart와 uPlot 렌더 시간 막대그래프"
+  width={1600}
+  height={720}
+ />
+ <figcaption>이 그래프는 ECharts로 그렸어요. 막대 6개에는 그게 맞으니까요</figcaption>
+</figure>
+
+<Table
+ data={{
+  headers: ['점 개수', 'SciChart', 'uPlot', '차이'],
+  rows: [
+   ['180,599', '36.5ms', '129.4ms', '3.5배'],
+   ['265,862', '55.3ms', '143.3ms', '2.6배'],
+   ['738,648', '134.8ms', '343.4ms', '2.5배'],
+  ],
+ }}
+/>
+
+오래된 GPU에서도 WebGL이 이겼어요. 여기서 끝났다면 글이 짧았겠죠.
+
+### 하지만 측정은 공정해야 하니까요
+
+벤치마크를 하면서 저희가 밟았던 함정들이에요.
+
+- **첫 렌더 수치가 이상하게 튀었어요.** SciChart 인스턴스 여러 개가 동시에 WASM과 WebGL을 초기화하면서 서로 발목을 잡고 있었어요. 생성 작업을 큐로 직렬화하고, 렌더 완료는 3프레임을 기다린 뒤에 재도록 바꿨습니다.
+- **같은 작업이 아니었어요.** 타임라인 비교에서 ECharts는 500개가 넘는 항목을 *요약해서* 그렸고 SciChart는 701개를 *전부* 그렸어요. 하는 일이 다른데 시간만 비교하면 공정하지 않죠.
+- **중앙값만 보면 속아요.** 그래서 측정 하네스는 median과 p95를 같이 찍도록 만들었습니다.
+
+그리고 p95를 보니 반대쪽 숫자도 나왔어요.
+
+> 상호작용(줌·이동) p95: **uPlot 7.1ms vs SciChart 20.9ms** — 113번 중 18번은 끊김
+
+큰 그림은 SciChart가 빨리 그리지만, 손에 닿는 반응은 uPlot이 더 경쾌했어요. **"WebGL이니까 빠르겠지"는 가설일 뿐**이라는 말, 여기서 다시 나옵니다.
+
+## 5. "SciChart는 도입하지 않습니다" — 그리고 3주 뒤
+
+숫자를 다 모아 놓고 저희는 이렇게 결론을 냈어요.
+
+> 렌더링은 0.13~0.34초인데, **데이터를 가져오는 데 2.9~11.6초**가 걸린다.
+> SciChart로 아낄 수 있는 시간은 최대 216ms. **전체 대기 시간의 7%도 안 된다.**
+> → **병목은 렌더가 아니라 조회다. uPlot을 유지한다.**
+
+<figure>
+ <Image
+  src="/images/chart-migration/wait-time.svg"
+  alt="전체 대기 시간 중 데이터 조회가 대부분이고 렌더는 얇은 띠에 불과함을 보여주는 누적 막대"
+  width={800}
+  height={280}
+ />
+</figure>
+
+꽤 그럴듯하죠? 문서로 남기고 결정 도장까지 찍었어요.
+
+그리고 3주 뒤에 SciChart를 기본 렌더러로 바꿨습니다. (이번엔 진짜 마지막이라면서요…)
+
+변명을 하자면 판단 기준이 "지금"에서 "앞으로"로 바뀌었어요.
+
+1. **지금 당장은 큰 차이가 없어요.** 사용자가 기다리는 시간의 대부분은 여전히 조회에 들어가요.
+2. **하지만 다음 기능들이 줄 서 있었어요.** 여러 파형을 겹쳐 쌓는 Waterfall 차트, 여러 차트 사이의 시점 동기화, 어노테이션 같은 기능을 uPlot에서는 하나하나 직접 만들어야 해요. SciChart에는 대부분 들어 있고요.
+3. **데이터는 줄지 않아요.** 오늘의 18만 점은 내일 74만 점이 되고, 그때는 2.5~3.5배 차이가 체감되는 숫자가 돼요. 대용량 렌더 케이스에 미리 대비해 두기로 했습니다.
+
+<Tip>
+교훈 2. "지금의 병목"과 "1년 뒤의 병목"은 다를 수 있어요. 7%라는 숫자는 정확했지만, 그 숫자가 답한 질문은 "지금"에 대한 것이었어요.
+</Tip>
+
+## 6. SciChart, 까다로운 신입을 맞이하는 법
+
+SciChart는 강력한 만큼 까다로운 신입이었어요. 입사 첫 주에 저희가 받아 적은 주의사항을 공유할게요.
+
+### 6-1. "제 이름은 빈 문자열입니다"
+
+차트를 여러 개 띄웠는데 **마지막 하나만** 그려지는 버그가 있었어요. SciChart는 넘겨받은 div의 `id`로 내부 레이어 id를 만드는데, `id`가 없으면 모든 차트가 같은 이름을 갖게 돼요. 그러면 `getElementById`는 늘 첫 번째 요소만 돌려주고, 차트들이 서로의 자리를 빼앗습니다.
+
+```tsx
+// useId()는 ':r1:'처럼 콜론이 섞여 나와서 CSS 선택자용으로 정리해 둔다
+const hostId = `chart-${useId().replace(/:/g, '')}`;
+
+return <div id={hostId} ref={hostRef} className="h-full w-full" />;
+```
+
+부끄럽지만 이 버그는 **세 번** 났어요. POC에서 한 번, 본 화면에서 한 번, 테스트 페이지에서 또 한 번. 그래서 지금은 원인을 설명하는 긴 주석을 코드에 문신처럼 새겨 두었습니다.
+
+### 6-2. 라이선스 키가 없으면 "반쯤" 그려져요
+
+워터마크가 뜨는 정도로 끝날 줄 알았는데 아니었어요. 키가 없으면 **축과 라벨은 멀쩡히 그려지고 데이터 선만 하나도 안 그려져요.** 에러도 없이요. "데이터가 비었나?" 하고 API부터 의심하게 만드는, 아주 교묘한 증상입니다.
+
+그래서 프로덕션 빌드에서는 키가 없으면 **빌드 자체를 멈추게** 했어요.
+
+```ts
+// vite.config.ts
+if (isProduction && !env.VITE_SCICHART_LICENSE_KEY) {
+  throw new Error('VITE_SCICHART_LICENSE_KEY is not set');
+}
+```
+
+조용히 실패하는 것보다 시끄럽게 실패하는 게 언제나 낫습니다.
+
+### 6-3. 인터넷이 없는 곳에서는 CDN도 없어요
+
+SciChart는 기본적으로 wasm 파일을 CDN에서 받아 와요. 그런데 저희 서비스가 도는 곳은 외부 인터넷이 막힌 폐쇄망이었어요. 초기화가 그대로 실패했죠. Vite의 `?url` import로 wasm을 번들에 포함해서 해결했습니다.
+
+```ts
+import wasmUrl from 'scichart/_wasm/scichart2d.wasm?url';
+import wasmNoSimdUrl from 'scichart/_wasm/scichart2d-nosimd.wasm?url';
+
+SciChartSurface.configure({ wasmUrl, wasmNoSimdUrl });
+```
+
+### 6-4. WebGL이 없으면 uPlot이 받아 줘요
+
+SciChart v5부터는 WebGL2가 필수예요. 하드웨어 가속이 없어서 소프트웨어 렌더러(SwiftShader)로 도는 환경에서는 차트 하나도 제대로 그리지 못했어요. 그래서 uPlot을 버리지 않고 **폴백**으로 남겼습니다.
+
+```ts
+let sciChartFailed = false; // 한 번 실패하면 이번 세션 동안은 기억해 둔다
+
+export const resolveRenderer = (): 'scichart' | 'uplot' => {
+  if (import.meta.env.VITE_CHART_RENDERER === 'uplot') return 'uplot';
+  if (sciChartFailed) return 'uplot';
+  return hasHardwareWebGL() ? 'scichart' : 'uplot';
+};
+
+// hasHardwareWebGL() 안에서는 렌더러 이름에 'swiftshader'가 있으면 false
+```
+
+각 차트는 "어떤 렌더러로 그릴지"를 몰라도 되도록 **렌더러 계약**(contract)을 하나 두고, 그 뒤에 SciChart 구현과 uPlot 구현을 나란히 붙였어요. 덕분에 uPlot에 들였던 공(픽셀 열 축약, null 처리, 화면 밖 카드 반영 미루기)이 하나도 버려지지 않았습니다.
+
+<figure>
+ <Image
+  src="/images/chart-migration/renderer-contract.svg"
+  alt="화면 컴포넌트가 렌더러 계약을 거쳐 WebGL 여부에 따라 SciChart 또는 uPlot으로 분기하는 구조"
+  width={800}
+  height={400}
+ />
+</figure>
+
+### 6-5. 그 밖에 받아 적은 것들
+
+- 브라우저의 WebGL 컨텍스트는 **16개 정도가 한계**예요. 차트가 많은 화면이라면 컨텍스트를 공유해야 해요.
+- 컨텍스트를 공유하면 포인터와 줌 입력이 **가장 최근 인스턴스로만** 가는 경우가 있어요.
+- wasm 메모리는 GC가 치워 주지 않아요. 언마운트할 때 **`delete()`를 직접** 불러야 합니다.
+- jsdom에서는 테스트가 안 돼요. 단위 테스트는 uPlot 쪽에서, SciChart는 브라우저 테스트로 나눴습니다.
+- 번들은 **+4.9MB**예요. 처음 한 번은 꽤 아파요.
+
+## 7. 결과
+
+<Table
+ data={{
+  headers: ['', 'Before', 'After'],
+  rows: [
+   ['기본 렌더러', 'ECharts', 'SciChart (WebGL 없으면 uPlot)'],
+   ['타임라인 1,409개', '49.0ms', '3.3ms (uPlot)'],
+   ['시계열 18만 점 (저사양 장비)', '129.4ms (uPlot)', '36.5ms (SciChart)'],
+   ['시계열 185만 점 메모리', 'uPlot 기준', '−19% (SciChart)'],
+   ['화면 밖 차트', '매번 갱신', '보일 때 몰아서 반영'],
+  ],
+ }}
+/>
+
+ECharts는 여전히 일부 화면에 남아 있어요. 막대 몇 개짜리 대시보드에 WebGL을 들고 갈 이유는 없으니까요.
+
+## 8. 다시 돌아간다면
+
+**세 번의 전환을 한 줄씩 정리하면 이래요.**
+
+1. **ECharts → uPlot**: 옵션 해석과 레이아웃 계산이 무거웠어요. 가벼운 Canvas로 바꾸고 15배 빨라졌습니다.
+2. **uPlot 다듬기**: 없는 기능은 직접 만들었어요. 이때 만든 것들이 결국 폴백의 밑천이 됐습니다.
+3. **uPlot → SciChart**: 지금의 7%가 아니라 다음 기능과 더 커질 데이터를 보고 골랐어요. 대신 폴백은 꼭 남겼습니다.
+
+다시 한다면 이렇게 할 거예요.
+
+- **처음부터 렌더러 계약을 만들 거예요.** 라이브러리를 바꿀 때마다 화면 코드까지 같이 흔들렸던 게 가장 큰 비용이었어요.
+- **벤치마크는 첫날부터 실제 사용자 장비에서** 돌릴 거예요. 개발 장비의 숫자는 기분만 좋게 해 줘요.
+- **"렌더가 병목인가?"를 먼저 물을 거예요.** 저희는 이 질문에 "아니오"라고 답해 놓고도 SciChart로 갔지만, 적어도 그 이유를 알고 갔습니다.
+
+아직 못다 한 것도 있어요. SciChart v6는 WebGPU를 먼저 쓰는데, 저희 사용자 브라우저는 아직 WebGPU를 지원하지 않아요. 그래서 후속편 제목은 아마 "*SciChart v5 → v6: 네 번째 전환은 없다고 했잖아요*"가 되지 않을까 싶습니다.
+
+여러분 팀은 차트 라이브러리를 몇 번 바꾸셨나요? 댓글로 여러분의 "이번엔 진짜 마지막"을 들려주세요. 🙌

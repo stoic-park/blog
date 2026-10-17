@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="800" height="280" rx="16" fill="#f8fafc"/>
+  <text x="400" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">사용자가 기다리는 시간, 어디에 쓰이나요?</text>
+
+  <g font-size="13" fill="#334155">
+    <text x="90" y="106" text-anchor="end">가벼운 조회</text>
+    <rect x="100" y="85" width="174" height="32" rx="4" fill="#cbd5e1"/>
+    <text x="187" y="106" text-anchor="middle">조회 2.9s</text>
+    <rect x="274" y="85" width="8" height="32" fill="#8b5cf6"/>
+
+    <text x="90" y="176" text-anchor="end">무거운 조회</text>
+    <rect x="100" y="155" width="580" height="32" rx="4" fill="#cbd5e1"/>
+    <text x="390" y="176" text-anchor="middle">조회 11.6s</text>
+    <rect x="680" y="155" width="20" height="32" fill="#8b5cf6"/>
+  </g>
+
+  <line x1="690" y1="152" x2="690" y2="124" stroke="#8b5cf6"/>
+  <rect x="560" y="70" width="210" height="52" rx="10" fill="#fff" stroke="#8b5cf6"/>
+  <text x="665" y="92" text-anchor="middle" font-size="12" fill="#5b21b6">렌더 0.13~0.34s</text>
+  <text x="665" y="110" text-anchor="middle" font-size="12" fill="#5b21b6">여기를 줄이려고 4.9MB를?</text>
+
+  <g font-size="12" fill="#64748b">
+    <rect x="100" y="222" width="14" height="14" fill="#cbd5e1"/><text x="120" y="234">데이터 조회</text>
+    <rect x="210" y="222" width="14" height="14" fill="#8b5cf6"/><text x="230" y="234">렌더</text>
+    <text x="700" y="234" text-anchor="end">SciChart로 아끼는 시간: 최대 216ms (전체의 7% 미만)</text>
+  </g>
+</svg>

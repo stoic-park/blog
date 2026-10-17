@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 300" width="800" height="300" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="800" height="300" rx="16" fill="#f8fafc"/>
+  <text x="400" y="40" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">차트 라이브러리 이동 경로</text>
+
+  <line x1="80" y1="170" x2="720" y2="170" stroke="#cbd5e1" stroke-width="4" stroke-linecap="round"/>
+
+  <circle cx="100" cy="170" r="14" fill="#64748b"/>
+  <text x="100" y="210" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">ECharts</text>
+  <text x="100" y="230" text-anchor="middle" font-size="12" fill="#64748b">다 되는데 무거움</text>
+
+  <path d="M100 156 Q 190 110 280 156" fill="none" stroke="#94a3b8" stroke-width="2" stroke-dasharray="6 6"/>
+  <circle cx="280" cy="170" r="10" fill="#fff" stroke="#94a3b8" stroke-width="3"/>
+  <text x="280" y="210" text-anchor="middle" font-size="14" fill="#64748b">(Plotly)</text>
+  <text x="280" y="230" text-anchor="middle" font-size="12" fill="#94a3b8">두 달 썸</text>
+
+  <circle cx="460" cy="170" r="14" fill="#0ea5e9"/>
+  <text x="460" y="210" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">uPlot</text>
+  <text x="460" y="230" text-anchor="middle" font-size="12" fill="#64748b">빠른데 다 직접</text>
+
+  <text x="575" y="158" text-anchor="middle" font-size="12" fill="#dc2626">"도입 안 함" ✖</text>
+  <text x="590" y="192" text-anchor="middle" font-size="12" fill="#16a34a">3주 뒤 ✔</text>
+
+  <circle cx="700" cy="170" r="16" fill="#8b5cf6"/>
+  <text x="700" y="210" text-anchor="middle" font-size="16" font-weight="700" fill="#0f172a">SciChart</text>
+  <text x="700" y="230" text-anchor="middle" font-size="12" fill="#64748b">강력한데 까다로움</text>
+
+  <g font-size="12" fill="#334155">
+    <rect x="40" y="70" width="120" height="30" rx="15" fill="#fff" stroke="#cbd5e1"/>
+    <text x="100" y="90" text-anchor="middle">이번엔 진짜 마지막</text>
+    <rect x="400" y="70" width="120" height="30" rx="15" fill="#fff" stroke="#cbd5e1"/>
+    <text x="460" y="90" text-anchor="middle">이번엔 진짜 마지막</text>
+    <rect x="610" y="70" width="170" height="30" rx="15" fill="#fff" stroke="#8b5cf6"/>
+    <text x="695" y="90" text-anchor="middle">이번엔 진짜 마지막(아마도)</text>
+  </g>
+
+  <text x="400" y="275" text-anchor="middle" font-size="12" fill="#94a3b8">ECharts는 지금도 단순한 대시보드에 남아 있어요</text>
+</svg>

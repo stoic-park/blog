@@ -1,0 +1,35 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 340" width="800" height="340" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="800" height="340" rx="16" fill="#f8fafc"/>
+  <text x="400" y="38" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">픽셀 한 열에 몰린 점은 4개면 충분해요</text>
+
+  <rect x="140" y="70" width="120" height="220" fill="#e0f2fe" stroke="#7dd3fc"/>
+  <text x="200" y="312" text-anchor="middle" font-size="13" fill="#334155">픽셀 1열 = 점 100개</text>
+  <polyline fill="none" stroke="#0ea5e9" stroke-width="1.5"
+    points="140,180 146,150 152,210 158,120 164,230 170,140 176,200 182,100 188,250 194,160 200,90 206,220 212,130 218,260 224,170 230,110 236,240 242,150 248,200 254,175 260,190"/>
+  <g fill="#0ea5e9">
+    <circle cx="146" cy="150" r="2.5"/><circle cx="152" cy="210" r="2.5"/><circle cx="158" cy="120" r="2.5"/>
+    <circle cx="164" cy="230" r="2.5"/><circle cx="170" cy="140" r="2.5"/><circle cx="176" cy="200" r="2.5"/>
+    <circle cx="182" cy="100" r="2.5"/><circle cx="188" cy="250" r="2.5"/><circle cx="194" cy="160" r="2.5"/>
+    <circle cx="200" cy="90" r="2.5"/><circle cx="206" cy="220" r="2.5"/><circle cx="212" cy="130" r="2.5"/>
+    <circle cx="218" cy="260" r="2.5"/><circle cx="224" cy="170" r="2.5"/><circle cx="230" cy="110" r="2.5"/>
+    <circle cx="236" cy="240" r="2.5"/><circle cx="242" cy="150" r="2.5"/><circle cx="248" cy="200" r="2.5"/>
+  </g>
+  <text x="200" y="62" text-anchor="middle" font-size="12" fill="#64748b">(확대한 모습)</text>
+
+  <line x1="300" y1="180" x2="480" y2="180" stroke="#94a3b8" stroke-width="3"/>
+  <polygon points="480,172 496,180 480,188" fill="#94a3b8"/>
+  <text x="390" y="165" text-anchor="middle" font-size="13" fill="#334155">처음 · 최솟값 · 최댓값 · 마지막</text>
+  <text x="390" y="205" text-anchor="middle" font-size="12" fill="#64748b">lineTo 100번 → 3번</text>
+
+  <rect x="540" y="70" width="120" height="220" fill="#ede9fe" stroke="#c4b5fd"/>
+  <text x="600" y="312" text-anchor="middle" font-size="13" fill="#334155">화면에 보이는 모양은 그대로</text>
+  <line x1="600" y1="90" x2="600" y2="260" stroke="#8b5cf6" stroke-width="3"/>
+  <polyline fill="none" stroke="#8b5cf6" stroke-width="1.5" points="540,180 600,180"/>
+  <polyline fill="none" stroke="#8b5cf6" stroke-width="1.5" points="600,190 660,190"/>
+  <g font-size="11" fill="#5b21b6">
+    <circle cx="600" cy="180" r="4" fill="#8b5cf6"/><text x="610" y="176">처음</text>
+    <circle cx="600" cy="90" r="4" fill="#8b5cf6"/><text x="610" y="94">극값(위)</text>
+    <circle cx="600" cy="260" r="4" fill="#8b5cf6"/><text x="610" y="264">극값(아래)</text>
+    <circle cx="600" cy="190" r="4" fill="#8b5cf6"/><text x="610" y="206">마지막</text>
+  </g>
+</svg>
