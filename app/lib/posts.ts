@@ -2,8 +2,28 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 
+// 카테고리 = 글의 큰 분류(하나만). 세부 키워드는 tags로.
+export const CATEGORIES = ['frontend', 'domain', 'ai', 'retrospective'] as const
+export type Category = (typeof CATEGORIES)[number]
+export const CATEGORY_LABELS: Record<Category, string> = {
+ frontend: '프론트엔드',
+ domain: '도메인',
+ ai: 'AI',
+ retrospective: '회고',
+}
+
+export function assertCategory(value: unknown, file: string): Category {
+ if (!CATEGORIES.includes(value as Category)) {
+  throw new Error(
+   `${file}: frontmatter category가 없거나 잘못됨 (${String(value)}). 허용: ${CATEGORIES.join(', ')}`,
+  )
+ }
+ return value as Category
+}
+
 type Metadata = {
  title: string
+ category: Category
  publishedAt: string
  summary: string
  image?: string
@@ -17,33 +37,33 @@ type Metadata = {
 }
 
 function extractFirstImage(content: string): string | undefined {
-  // 코드 블록 제외
-  const withoutCode = content.replace(/```[\s\S]*?```/g, '')
-  // Markdown 이미지: ![alt](url)
-  const md = withoutCode.match(/!\[[^\]]*\]\(([^)\s]+)/)
-  if (md) return md[1]
-  // JSX Image/img: src="..." or src='...'
-  const jsx = withoutCode.match(/<(?:Image|img)[^>]*\s+src=["']([^"']+)["']/)
-  if (jsx) return jsx[1]
-  return undefined
+ // 코드 블록 제외
+ const withoutCode = content.replace(/```[\s\S]*?```/g, '')
+ // Markdown 이미지: ![alt](url)
+ const md = withoutCode.match(/!\[[^\]]*\]\(([^)\s]+)/)
+ if (md) return md[1]
+ // JSX Image/img: src="..." or src='...'
+ const jsx = withoutCode.match(/<(?:Image|img)[^>]*\s+src=["']([^"']+)["']/)
+ if (jsx) return jsx[1]
+ return undefined
 }
 
 function parseFrontmatter(fileContent: string) {
-  const { data, content } = matter(fileContent)
-  // tags가 문자열이면 배열로 변환
-  if (typeof data.tags === 'string') {
-    data.tags = data.tags.split(',').map((t: string) => t.trim())
-  }
-  // series.order 숫자 보장
-  if (data.series && typeof data.series.order === 'string') {
-    data.series.order = Number(data.series.order)
-  }
-  // frontmatter에 image가 없으면 본문 첫 이미지 사용
-  if (!data.image) {
-    const firstImage = extractFirstImage(content)
-    if (firstImage) data.image = firstImage
-  }
-  return { metadata: data as Metadata, content }
+ const { data, content } = matter(fileContent)
+ // tags가 문자열이면 배열로 변환
+ if (typeof data.tags === 'string') {
+  data.tags = data.tags.split(',').map((t: string) => t.trim())
+ }
+ // series.order 숫자 보장
+ if (data.series && typeof data.series.order === 'string') {
+  data.series.order = Number(data.series.order)
+ }
+ // frontmatter에 image가 없으면 본문 첫 이미지 사용
+ if (!data.image) {
+  const firstImage = extractFirstImage(content)
+  if (firstImage) data.image = firstImage
+ }
+ return { metadata: data as Metadata, content }
 }
 
 function getMDXFiles(dir: string) {
@@ -60,6 +80,7 @@ function getMDXData(dir: string) {
  return mdxFiles.map((file) => {
   let { metadata, content } = readMDXFile(path.join(dir, file))
   let slug = path.basename(file, path.extname(file))
+  metadata.category = assertCategory(metadata.category, file)
 
   return {
    metadata,
@@ -137,7 +158,10 @@ export function slugify(str: string) {
 }
 
 // ID 중복 방지를 위한 함수
-export function generateUniqueId(baseId: string, existingIds: Set<string>): string {
+export function generateUniqueId(
+ baseId: string,
+ existingIds: Set<string>,
+): string {
  let uniqueId = baseId
  let counter = 1
 

@@ -1,8 +1,18 @@
 import { getBlogPosts } from 'app/lib/posts'
 import { PostCard } from './PostCard'
 
-export function BlogPosts({ selectedTag }: { selectedTag?: string }) {
+export function BlogPosts({
+ selectedCategory,
+ selectedTag,
+}: {
+ selectedCategory?: string
+ selectedTag?: string
+}) {
  let allBlogs = getBlogPosts()
+
+ if (selectedCategory) {
+  allBlogs = allBlogs.filter((post) => post.metadata.category === selectedCategory)
+ }
 
  if (selectedTag) {
   allBlogs = allBlogs.filter((post) =>

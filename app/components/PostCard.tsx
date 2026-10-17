@@ -1,11 +1,12 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatDate } from 'app/lib/posts'
+import { formatDate, CATEGORY_LABELS, type Category } from 'app/lib/posts'
 
 type PostCardProps = {
   slug: string
   metadata: {
     title: string
+    category: Category
     publishedAt: string
     summary: string
     image?: string
@@ -42,11 +43,9 @@ export function PostCard({ slug, metadata }: PostCardProps) {
       </div>
       <div className="md:col-span-8">
         <div className="flex items-center flex-wrap gap-4 mb-3">
-          {metadata.tags?.[0] && (
-            <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
-              {metadata.tags[0].replace('#', '')}
-            </span>
-          )}
+          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
+            {CATEGORY_LABELS[metadata.category]}
+          </span>
           <time className="text-[10px] tracking-widest uppercase text-on-surface-variant">
             {formatDate(metadata.publishedAt, false)}
           </time>
