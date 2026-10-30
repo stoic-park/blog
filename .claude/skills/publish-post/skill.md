@@ -13,6 +13,7 @@ description: 드래프트 포스트를 발행하는 스킬. "발행해줘", "pub
 
 - [ ] `title` 존재 및 적절한 길이 (60자 이내 권장)
 - [ ] `publishedAt` 형식 확인 (`YYYY-MM-DD`), 없으면 오늘 날짜 사용
+- [ ] `category` 존재, frontend | domain | ai | retrospective 중 하나 (없거나 틀리면 빌드 실패)
 - [ ] `summary` 존재 (150자 이내 권장)
 - [ ] `draft: true` **제거** (발행 시 반드시 삭제)
 
@@ -23,7 +24,20 @@ description: 드래프트 포스트를 발행하는 스킬. "발행해줘", "pub
 - [ ] 외부 이미지 URL이 허용된 도메인 (`githubusercontent.com`)인지 확인
 - [ ] Callout type이 올바른지 확인 (tip/note/warning/error/info)
 
-### 3. 파일 이동
+### 3. 이미지 압축
+
+본문이 `/images/...` 로컬 이미지를 참조하면 커밋 전에 압축한다.
+
+```bash
+scripts/compress-images.sh drafts/{slug}.mdx
+```
+
+- 긴 변 1600px 초과 이미지 축소, 500KB 넘는 JPEG는 품질 80으로 재인코딩
+- 결과가 원본보다 작을 때만 덮어씀 → 여러 번 실행해도 안전
+- 출력의 `없음:` 줄은 경로 오타 → 발행 중단하고 사용자에게 보고
+- 압축 결과(전/후 KB)를 발행 완료 메시지에 포함
+
+### 4. 파일 이동
 
 ```
 /drafts/{slug}.mdx → /posts/{slug}.mdx
@@ -36,7 +50,7 @@ description: 드래프트 포스트를 발행하는 스킬. "발행해줘", "pub
 
 **파일 이동 방법:** 드래프트 내용을 읽어 새 경로에 Write, 원본 드래프트 삭제 확인 후 Bash로 제거.
 
-### 4. 발행 확인
+### 5. 발행 확인
 
 파일 이동 후:
 - 새 경로에 파일 존재 확인

@@ -22,6 +22,7 @@ model: opus
 ### Frontmatter SEO
 - [ ] `title`: 명확하고 검색 의도 반영 (60자 이내 권장)
 - [ ] `summary`: 150~160자 권장, 핵심 키워드 포함
+- [ ] `category`: 필수, frontend | domain | ai | retrospective 중 하나. 업무 도메인(산업·설비·데이터 지식) 글은 `domain`
 - [ ] `tags`: 관련 태그 2~5개, 기존 태그와 일관성
 - [ ] `publishedAt`: 올바른 날짜 형식 (YYYY-MM-DD)
 - [ ] `readingTime`: 본문 분량에 맞는지 확인

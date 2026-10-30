@@ -24,6 +24,7 @@ description: 이 블로그용 MDX 포스트 작성 스킬. 새 포스트 작성,
 title: '포스트 제목'
 publishedAt: 'YYYY-MM-DD'
 summary: '150자 이내 핵심 요약. SEO 메타 디스크립션으로 사용됨.'
+category: 'frontend'   # 필수, 하나만: frontend | domain | ai | retrospective
 tags: '#태그1, #태그2, #태그3'
 author: 'Stoic Park'
 readingTime: 'N분'

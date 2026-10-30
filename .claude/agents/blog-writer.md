@@ -24,6 +24,7 @@ model: opus
 title: '포스트 제목'          # 필수
 publishedAt: 'YYYY-MM-DD'   # 필수, 오늘 날짜 기본
 summary: '한두 문장 요약'     # 필수, SEO 및 카드 표시용
+category: 'frontend'        # 필수, 하나만: frontend | domain | ai | retrospective (domain = 업무 도메인 지식)
 tags: '#태그1, #태그2'       # 선택, # 포함 쉼표 구분
 author: '작성자 이름'         # 선택
 readingTime: 'N분'           # 선택, 300단어/분 기준
