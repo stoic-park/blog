@@ -19,6 +19,18 @@ import { getBlogPosts } from 'app/lib/posts'
 // <language> - 피드 언어
 // <lastBuildDate> - 피드 마지막 업데이트 시간
 
+const XML_ESCAPES: Record<string, string> = {
+ '&': '&amp;',
+ '<': '&lt;',
+ '>': '&gt;',
+ '"': '&quot;',
+ "'": '&apos;',
+}
+
+function escapeXml(value: string) {
+ return value.replace(/[&<>"']/g, (c) => XML_ESCAPES[c])
+}
+
 export async function GET() {
  let allBlogs = await getBlogPosts()
 
@@ -32,9 +44,9 @@ export async function GET() {
   .map(
    (post) =>
     `<item>
-          <title>${post.metadata.title}</title>
-          <link>${baseUrl}/post/${post.slug}</link>
-          <description>${post.metadata.summary || ''}</description>
+          <title>${escapeXml(post.metadata.title)}</title>
+          <link>${escapeXml(`${baseUrl}/post/${post.slug}`)}</link>
+          <description>${escapeXml(post.metadata.summary || '')}</description>
           <pubDate>${new Date(
            post.metadata.publishedAt,
           ).toUTCString()}</pubDate>
@@ -56,7 +68,7 @@ export async function GET() {
 
  return new Response(rssFeed, {
   headers: {
-   'Content-Type': 'text/xml',
+   'Content-Type': 'application/rss+xml; charset=utf-8',
   },
  })
 }

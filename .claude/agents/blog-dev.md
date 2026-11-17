@@ -43,7 +43,7 @@ outline, outline-variant, primary, on-primary
 - `font-body` → Inter (기본값)
 
 ### 다크모드
-- `next-themes` 사용, selector 모드 (`dark` 클래스)
+- 자체 테마 스크립트(`app/lib/theme.ts`) + `localStorage.theme`, selector 모드 (`dark` 클래스)
 - `dark:` Tailwind 변형 사용
 
 ### 컴포넌트 추가 패턴
