@@ -205,6 +205,13 @@ html {
  @apply list-decimal pl-6;
 }
 
+/* 컴포넌트가 직접 스타일하는 영역 */
+.prose .not-prose ol,
+.prose .not-prose ul {
+ list-style: none;
+ padding-left: 0;
+}
+
 .prose > :first-child {
  /* Override removing top margin, causing layout shift */
  margin-top: 1.25em !important;
@@ -285,13 +292,13 @@ table {
 .toc-positioner {
  position: absolute;
  left: 100%;
- margin-left: 4rem;
+ margin-left: 2rem;
  align-self: flex-start;
  height: fit-content;
 }
 
 .toc-sidebar {
- width: 240px;
+ width: 200px;
  border-left: 2px solid var(--color-outline-variant);
  padding-left: 0.75rem;
  padding-bottom: 0.25rem;
@@ -361,30 +368,20 @@ table {
  font-weight: 500;
 }
 
-/* Responsive design */
-@media (max-width: 1440px) {
- .toc-wrapper {
-  margin-left: 3rem;
- }
-
- .toc-sidebar {
-  width: 220px;
- }
-}
-
-@media (max-width: 1200px) {
- .toc-wrapper {
-  margin-left: 2rem;
- }
-
- .toc-sidebar {
-  width: 200px;
- }
-}
-
-@media (max-width: 1024px) {
+/* Responsive design: 본문 896px + 간격 32px + 목차 200px이 들어가는 1440px 이상에서만 목차 표시 */
+@media (max-width: 1439px) {
  .toc-wrapper {
   display: none;
+ }
+}
+
+@media (prefers-reduced-motion: reduce) {
+ .toc-item,
+ .toc-link {
+  transition: none;
+ }
+ .toc-item-active {
+  transform: none;
  }
 }
 

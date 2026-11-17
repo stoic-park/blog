@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import { BlogPosts } from 'app/components/posts'
+import { SeriesShelf } from 'app/components/SeriesShelf'
 import {
  CATEGORY_LABELS,
  GROUP_LABELS,
@@ -40,6 +41,7 @@ export function GroupPage({
      {GROUP_LABELS[group]}
     </h1>
     <p className="text-on-surface-variant mb-12 break-keep">{GROUP_INTRO[group]}</p>
+    {!selected && !searchParams.tag && <SeriesShelf group={group} />}
     {categories.length > 1 && (
      <nav aria-label="카테고리" className="flex gap-3 flex-wrap mb-8">
       <Link
