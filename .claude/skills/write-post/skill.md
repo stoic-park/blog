@@ -63,7 +63,7 @@ description: |
 title: '포스트 제목'
 publishedAt: 'YYYY-MM-DD'
 summary: '150자 이내 핵심 요약. SEO 메타 디스크립션으로 사용됨.'
-category: 'frontend'   # 필수, 하나만: frontend | domain | ai | retrospective
+category: 'frontend'   # 필수, 하나만: frontend | ai | retrospective (Dev) · semiconductor (Domain). 그룹은 자동
 tags: '#태그1, #태그2, #태그3'
 author: 'Stoic Park'
 readingTime: 'N분'
