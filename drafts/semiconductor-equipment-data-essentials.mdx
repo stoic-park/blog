@@ -1,0 +1,147 @@
+---
+title: '반도체 설비 데이터를 다루는 프론트엔드 개발자가 꼭 알아야 할 것들'
+publishedAt: '2026-10-30'
+summary: '컨텍스트, 데이터 양, 요약 지표, 스텝 정렬, 비교 기준, 정비 이벤트. 반도체 설비 센서 데이터로 화면을 만들기 전에 알았으면 좋았을 여섯 가지예요.'
+category: 'domain'
+tags: '#반도체, #센서데이터, #FDC, #데이터시각화, #프론트엔드'
+author: 'Stoic Park'
+readingTime: '4분'
+draft: true
+---
+
+차트 한 화면에 점 수십만 개를 올렸다가 브라우저 탭 하나가 메모리 1GB를 넘긴 적이 있어요. 그 문제는 [서버 쪽 다운샘플링](/post/echarts-memory-optimization-bff)과 [차트 라이브러리 교체](/post/chart-library-migration-journey)로 풀었는데, 돌아보면 더 오래 헤맨 건 따로 있었습니다. 어떤 값을 어떤 값과 비교해야 하는지를 몰랐던 거예요.
+
+{/* TODO(경험): 도메인을 몰라서 다시 만든 화면 한두 줄 */}
+
+반도체 설비 데이터를 처음 맡았을 때 알았으면 좋았을 여섯 가지를 적어 둡니다. 개념은 공개 자료를 기준으로 했고, 출처는 맨 아래에 있어요.
+
+## 트레이스 한 줄에 붙은 정보들
+
+설비 센서 데이터의 기본 단위는 트레이스예요. 웨이퍼 한 장을 처리하는 동안 압력, 온도, 가스 유량, RF 전력 같은 값을 시간 순서대로 기록한 시계열이죠.
+
+트레이스만 봐서는 판단할 수 있는 게 없습니다. 어느 설비의 어느 챔버에서, 어떤 레시피의 몇 번째 스텝일 때 나온 값인지가 같이 있어야 해요. 현장에서는 이걸 컨텍스트라고 부르고, 대략 이런 단위로 내려갑니다.
+
+<Table
+ data={{
+  headers: ['단위', '뜻'],
+  rows: [
+   ['설비 (Tool)', '공정을 수행하는 장비 한 대'],
+   ['챔버 (Chamber)', '설비 안에서 웨이퍼를 실제로 처리하는 공간. 설비 하나에 여러 개'],
+   ['로트 (Lot)', '함께 이동하고 처리되는 웨이퍼 묶음'],
+   ['웨이퍼·슬롯', '웨이퍼 한 장과, 그 웨이퍼가 캐리어 안에서 놓인 자리'],
+   ['레시피 (Recipe)', '웨이퍼를 어떤 조건으로 처리할지 정한 절차'],
+   ['스텝 (Step)', '레시피를 이루는 단계. 단계마다 목표 온도와 압력이 다름'],
+  ],
+ }}
+/>
+
+화면을 만들 때 제일 신경 써야 하는 건 레시피와 스텝이에요. 레시피가 다르면 목표 온도부터 달라서, 같은 200도가 한쪽에선 정상이고 다른 쪽에선 이상일 수 있거든요. 비교 화면이라면 레시피 필터는 사실상 필수입니다.
+
+센서 이름, 단위, 시간도 컨텍스트의 일부로 다루는 게 안전해요. 이름과 단위는 설비나 시스템마다 다르게 들어올 수 있어서 화면에 하드코딩하기보다 매핑 테이블을 한 번 거치게 해 두는 편이 낫습니다. 시간도 마찬가지예요. 설비 시계와 서버 시계가 어긋날 수 있어서, 업계에는 둘을 NTP로 맞추는 표준(SEMI E148)이 따로 있을 정도예요. 시간대는 꼭 표시하고, 정렬할 땐 타임스탬프만 믿지 말고 처리 순서 같은 값을 같이 쓰세요.
+
+## 점이 몇 개나 되나
+
+설비 데이터는 SECS/GEM이나 EDA(Interface A) 같은 장비 통신 표준을 거쳐 들어와요. 프론트엔드가 이 표준을 직접 만질 일은 거의 없지만, 1초에 몇 번 기록되는지는 여기서 정해집니다.
+
+장비 통신 솔루션 업체 Cimetrix 자료를 보면, 예전 SECS/GEM은 1초에 한 번이 한계였고 요즘은 1초에 10번 정도를 요청하는 공장도 있다고 해요. 같은 업체는 반도체 제조사들이 설비 한 대에서 파라미터 1,000~2,000개를 초당 5~20번씩 받고 싶어 했다고 소개하는데, 계산하면 1초에 4만 개쯤 됩니다. 업체 자료라 그대로 일반화하긴 어렵지만, 웨이퍼 몇 장만 겹쳐도 점이 수십만 개를 넘는 이유로는 충분하죠.
+
+수집 주기가 설비마다 다르다는 점도 같이 기억해 두면 좋아요. 여러 설비를 한 차트에 올리면서 점이 일정한 간격으로 온다고 가정하면 x축이 틀어집니다.
+
+<Warning>
+점을 줄일 때 구간 평균을 쓰면 몇 개짜리 짧은 스파이크가 사라져요. 공정 데이터에선 그게 바로 찾던 이상일 수 있어서, 구간의 최솟값과 최댓값을 남기는 Min-Max나 모양을 보존하는 LTTB를 씁니다.
+</Warning>
+
+## 원본보다 요약을 먼저 본다
+
+처음엔 원본 트레이스를 전부 불러와 그려야 정확한 화면이라고 생각했어요. 실제 모니터링은 반대로 흘러갑니다.
+
+설비 이상을 감지하고 분류하는 FDC(Fault Detection and Classification) 시스템은 레시피 스텝마다 구간을 잡고 평균, 최댓값, 최솟값, 표준편차, 기울기 같은 요약 지표를 미리 계산해 둬요. 이 값이 과거 기준이나 관리 한계를 벗어나면 알람이 울리고, 엔지니어는 그제야 그 웨이퍼의 원본 트레이스를 열어 봅니다.
+
+화면 흐름도 여기서 정해져요. 웨이퍼마다 점 하나씩 찍힌 지표 추이를 먼저 보여주고, 이상한 점을 누르면 그 웨이퍼의 원본 트레이스를 정상 웨이퍼들과 겹쳐 보여주는 식이죠. 원본은 필요할 때만 불러오니 앞에서 말한 데이터 양 문제도 같이 줄어듭니다.
+
+요구사항에는 FDC 말고도 SPC, R2R 같은 약어가 섞여 나와요. SPC(통계적 공정 관리)는 결과값을 관리 한계와 판정 규칙으로 감시하고, R2R(Run-to-Run)은 한 번 처리한 결과를 보고 다음 처리의 레시피 값을 고칩니다. 셋이 필요로 하는 화면이 서로 달라서, 어떤 약어가 붙은 요구인지부터 구분하면 범위를 잡기가 한결 쉬워요.
+
+## x축을 경과 시간으로 두면 생기는 일
+
+트레이스 여러 개를 겹칠 때 처음 떠오르는 x축은 공정 시작 후 경과 시간이에요. 그런데 같은 레시피라도 스텝 길이는 웨이퍼마다 다릅니다. "목표 압력에 닿으면 다음 스텝으로" 같은 조건이 있으면 한 웨이퍼는 3스텝에 40초, 다른 웨이퍼는 45초가 걸려요. 이걸 경과 시간으로 겹치면 4스텝부터는 서로 다른 단계를 나란히 놓고 보게 됩니다.
+
+<figure>
+ <Image
+  src="/images/equipment-data/step-align.svg"
+  alt="경과 시간 기준으로 겹치면 4스텝 상승 시점이 어긋나고, 스텝 시작 기준으로 다시 맞추면 같은 자리에 겹치는 두 웨이퍼 트레이스"
+  width={800}
+  height={320}
+ />
+ <figcaption>왼쪽에선 3스텝이 긴 웨이퍼 B 때문에 이후가 전부 밀려요</figcaption>
+</figure>
+
+그래서 각 스텝의 시작점을 0으로 다시 맞춥니다. 구현은 몇 줄이면 돼요.
+
+```typescript
+type Point = { t: number; step: number; value: number }
+
+// points는 시간순으로 정렬돼 있다고 가정
+function alignByStep(points: Point[]) {
+ const stepStart = new Map<number, number>()
+ for (const p of points) {
+  if (!stepStart.has(p.step)) stepStart.set(p.step, p.t)
+ }
+ return points.map((p) => ({
+  step: p.step,
+  x: p.t - stepStart.get(p.step)!,
+  value: p.value,
+ }))
+}
+```
+
+연구 쪽에서는 DTW(Dynamic Time Warping)로 시계열을 늘이고 줄여 맞추고, 여기에 레시피 스텝 번호를 제약으로 넣는 방법도 나와 있어요. 다만 절대 시간으로 봐야 하는 분석도 있으니 스텝 정렬을 유일한 정답으로 두진 마세요. 스텝 경계에 세로선만 그어 둬도 지금 어느 단계를 보고 있는지 훨씬 잘 읽힙니다.
+
+{/* TODO(경험): x축을 스텝 기준으로 바꾸게 된 계기 */}
+
+## 기준선 없이 그린 차트
+
+센서 값 하나만 크게 그린 차트는 깔끔해 보이는데 판단할 근거가 없어요. 그래서 공정 데이터 화면엔 거의 항상 비교 기준이 함께 깔립니다.
+
+가장 흔한 게 골든 트레이스예요. 정상적으로 처리된 웨이퍼들로 기준을 만들고, 그 범위를 띠로 깐 다음 현재 웨이퍼를 위에 겹칩니다.
+
+<figure>
+ <Image
+  src="/images/equipment-data/golden-band.svg"
+  alt="정상 웨이퍼 범위를 회색 띠로 깔고 현재 웨이퍼 트레이스를 겹친 차트. 한 지점에서 짧은 스파이크가 띠 위로 벗어나 있다"
+  width={800}
+  height={280}
+ />
+ <figcaption>띠 밖으로 튀어나온 그 한 점을 보려고 만드는 화면이에요</figcaption>
+</figure>
+
+SPC의 관리 한계는 띠 대신 위아래 가로선 두 개로 그리는 경우가 많아요. 판정 규칙으로는 Western Electric 규칙과 Nelson 규칙이 유명한데, "연속 몇 점이 한쪽으로 몰리면 이상" 같은 식이에요. 기준 점 개수가 자료마다 조금씩 다르게 소개되니, 구현 전에 현장에서 쓰는 기준부터 확인하는 게 안전합니다.
+
+챔버끼리 비교하는 것도 기본이에요. 같은 레시피를 돌리는 챔버들은 비슷한 모양이 나와야 해서, 한 챔버만 모양이 다르면 그 챔버를 점검하라는 신호가 됩니다. 비교 화면마다 챔버별로 겹쳐 보는 기능이 들어가는 이유죠.
+
+## 정비 한 번에 달라지는 그래프
+
+같은 챔버라도 기준선이 늘 같지는 않아요. 챔버를 세정하거나 예방 정비(PM)를 하고 나면 내벽 상태가 달라져서, 빈 웨이퍼를 돌려 내벽을 다시 안정시키는 시즈닝을 거칩니다. 세정 직후엔 웨이퍼를 처리할수록 결과가 조금씩 변하는 첫 웨이퍼 효과도 연구로 보고돼 있고요. 설비가 한동안 쉬었다 다시 돌 때도 챔버 온도가 달라져서, 대기 뒤에 시즈닝 웨이퍼부터 돌리는 운영 방식도 있습니다.
+
+추이 차트에서는 이런 변화가 어느 날 갑자기 달라진 값으로 보여요. 정비 시점을 차트 위에 같이 표시해 두면, 정비 직후의 변화를 설비 이상으로 오해할 일이 많이 줄어듭니다.
+
+{/* TODO(경험, 선택): 정비 직후 그래프를 보고 이상으로 오해했던 일 */}
+
+## 마치며
+
+여섯 가지 중에 차트 라이브러리 문서에 나오는 건 하나도 없어요. 점 수십만 개를 빠르게 그리는 건 라이브러리가 도와주지만, 어떤 점을 어떤 점 옆에 놓을지는 도메인을 알아야 정해지더라고요. 다음에 비슷한 데이터를 맡게 되면, 차트 옵션보다 이 여섯 가지를 먼저 확인할 것 같아요.
+
+## 참고 자료
+
+- PDF Solutions, [Analysis-Ready FDC in the Age of AI and Big Data](https://www.pdf.com/analysis-ready-fdc-in-the-age-of-ai-and-big-data-semiconductor-manufacturing/)
+- PDF Solutions, [EDA (Interface A) vs SECS/GEM for Data Collection](https://www.pdf.com/eda-interface-a-vs-secs-gem-for-data-collection/)
+- Cimetrix, [SECS/GEM FAQ](https://www.cimetrix.com/secs-gem-faq)
+- Cimetrix, [EDA Performance Testing](https://www.cimetrix.com/blog/eda-performance-testing-third-in-this-series)
+- PDF Solutions, [SEMI E148 Time Synchronization](https://www.pdf.com/standards/semi-e148-time-synchronization-and-the-ts-clock-object/)
+- PDF Solutions, US Patent 11687439, [Automatic window generation for process trace](https://patents.google.com/patent/US11687439)
+- MIT DSpace, [Step-constrained DTW 학위논문 (2024)](https://dspace.mit.edu/handle/1721.1/156276)
+- Applied Materials, US Patent 12019507, [Guardbands in substrate processing systems](https://patents.google.com/patent/US12019507)
+- BISTel, [Intelligent Chamber Matching 발표 (2018)](https://www.businesswire.com/news/home/20180614006081/en/)
+- AEC/APC Symposium 2015, [정비 이력과 연계한 FDC 사례](https://www.semiconportal.com/AECAPC/2015/abstract/MT-O-45.pdf)
+- US Patent 7067432, [첫 웨이퍼 효과](https://patents.google.com/patent/US7067432)
+- Klimecky 외, [Real-time plasma density feedback (U. Michigan)](https://grizzle.robotics.umich.edu/files/Klimecky_ICMI03.pdf)
+- US Patent 6153849, [대기 후 시즈닝](https://patents.google.com/patent/US6153849)

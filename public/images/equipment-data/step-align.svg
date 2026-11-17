@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 320" width="800" height="320" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="800" height="320" rx="16" fill="#f8fafc"/>
+  <text x="400" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">같은 두 웨이퍼, x축만 바꿨을 때</text>
+
+  <!-- 왼쪽: 경과 시간 기준 -->
+  <text x="210" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">경과 시간 기준</text>
+  <rect x="220" y="96" width="32" height="132" fill="#fee2e2"/>
+  <text x="236" y="250" text-anchor="middle" font-size="11" fill="#b91c1c">같은 시각, 다른 스텝</text>
+  <line x1="50" y1="230" x2="380" y2="230" stroke="#cbd5e1"/>
+  <polyline fill="none" stroke="#64748b" stroke-width="2.5" points="50,210 110,210 150,150 220,150 222,110 310,110 312,210 350,210"/>
+  <polyline fill="none" stroke="#8b5cf6" stroke-width="2.5" points="50,213 110,213 150,153 250,153 252,113 340,113 342,213 370,213"/>
+
+  <!-- 오른쪽: 스텝 시작 기준 -->
+  <text x="605" y="70" text-anchor="middle" font-size="14" font-weight="600" fill="#334155">스텝 시작 기준</text>
+  <g stroke="#94a3b8" stroke-dasharray="4 4">
+    <line x1="500" y1="90" x2="500" y2="230"/>
+    <line x1="540" y1="90" x2="540" y2="230"/>
+    <line x1="640" y1="90" x2="640" y2="230"/>
+    <line x1="730" y1="90" x2="730" y2="230"/>
+  </g>
+  <line x1="440" y1="230" x2="770" y2="230" stroke="#cbd5e1"/>
+  <polyline fill="none" stroke="#64748b" stroke-width="2.5" points="440,210 500,210 540,150 610,150"/>
+  <polyline fill="none" stroke="#64748b" stroke-width="2.5" points="640,110 730,110 732,210 770,210"/>
+  <polyline fill="none" stroke="#8b5cf6" stroke-width="2.5" points="440,213 500,213 540,153 640,153 642,113 730,113 732,213 770,213"/>
+  <g font-size="11" fill="#64748b" text-anchor="middle">
+    <text x="470" y="250">S1</text>
+    <text x="520" y="250">S2</text>
+    <text x="590" y="250">S3</text>
+    <text x="685" y="250">S4</text>
+    <text x="750" y="250">S5</text>
+  </g>
+
+  <!-- 범례 -->
+  <g font-size="12" fill="#475569">
+    <rect x="250" y="282" width="18" height="4" fill="#64748b"/><text x="276" y="288">웨이퍼 A</text>
+    <rect x="370" y="282" width="18" height="4" fill="#8b5cf6"/><text x="396" y="288">웨이퍼 B (3스텝이 더 김)</text>
+  </g>
+</svg>
