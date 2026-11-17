@@ -6,14 +6,14 @@ import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigati
 import { extractTocFromMdx } from 'app/lib/posts'
 import dynamic from 'next/dynamic'
 const DemoPdfBox = dynamic(
-  () => import('../../components/CustomComponents/DemoPdfBox'),
-  { ssr: false }
+ () => import('../../components/CustomComponents/DemoPdfBox'),
+ { ssr: false },
 )
 import Giscus from 'app/components/CustomComponents/Giscus'
 import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
 
 interface PostPageProps {
-  params: { slug: string }
+ params: { slug: string }
 }
 
 export async function generateStaticParams() {
