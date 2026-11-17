@@ -27,7 +27,7 @@
  --color-surface-high: #e5e2e1;
  --color-on-surface: #1c1b1b;
  --color-on-surface-variant: #474747;
- --color-outline: #777777;
+ --color-outline: #6b6b6b;
  --color-outline-variant: #c6c6c6;
  --color-primary: #000000;
  --color-on-primary: #e5e2e1;
@@ -56,7 +56,7 @@
  --color-surface-high: #2e2d2d;
  --color-on-surface: #f0edec;
  --color-on-surface-variant: #b8b5b4;
- --color-outline: #888585;
+ --color-outline: #959291;
  --color-outline-variant: #3a3838;
  --color-primary: #f0edec;
  --color-on-primary: #1c1b1b;
@@ -218,13 +218,19 @@ html {
  margin-bottom: 1.25em !important;
 }
 
-pre::-webkit-scrollbar {
- display: none;
+pre {
+ scrollbar-width: thin;
 }
 
-pre {
- -ms-overflow-style: none; /* IE and Edge */
- scrollbar-width: none; /* Firefox */
+/* 고정 헤더(64px) 아래로 목차 이동 시 제목이 가려지지 않게 */
+.prose :is(h1, h2, h3, h4)[id] {
+ scroll-margin-top: 5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+ html {
+  scroll-behavior: smooth;
+ }
 }
 
 /* Remove Safari input shadow on mobile */

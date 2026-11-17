@@ -18,7 +18,9 @@ export function SeriesNavigation({ post }: { post: Post }) {
 
  const seriesPosts = getBlogPosts()
   .filter((p) => p.metadata.series?.name === series.name)
-  .sort((a, b) => (a.metadata.series?.order || 0) - (b.metadata.series?.order || 0))
+  .sort(
+   (a, b) => (a.metadata.series?.order || 0) - (b.metadata.series?.order || 0),
+  )
 
  const currentIndex = seriesPosts.findIndex((p) => p.slug === post.slug)
  const prevPost = currentIndex > 0 ? seriesPosts[currentIndex - 1] : null

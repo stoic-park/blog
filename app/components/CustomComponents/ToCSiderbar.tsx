@@ -75,7 +75,7 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({ toc }) => {
  return (
   <div className="toc-wrapper">
    <div className="toc-positioner">
-    <nav className="toc-sidebar">
+    <nav className="toc-sidebar" aria-label="목차">
      <ul className="toc-list">
       {toc.map((item) => (
        <li
@@ -86,16 +86,6 @@ export const TocSidebar: React.FC<TocSidebarProps> = ({ toc }) => {
         <a
          href={`#${item.id}`}
          className="toc-link"
-         onClick={(e) => {
-          e.preventDefault()
-          const element = document.getElementById(item.id)
-          if (element) {
-           element.scrollIntoView({
-            behavior: 'smooth',
-            block: 'start',
-           })
-          }
-         }}
         >
          {item.text}
         </a>

@@ -13,7 +13,9 @@ export function BlogPosts({
  let allBlogs = getBlogPosts()
 
  if (group) {
-  allBlogs = allBlogs.filter((post) => groupOf(post.metadata.category) === group)
+  allBlogs = allBlogs.filter(
+   (post) => groupOf(post.metadata.category) === group,
+  )
  }
 
  if (selectedCategory) {
@@ -29,7 +31,9 @@ export function BlogPosts({
  }
 
  if (allBlogs.length === 0) {
-  return <p className="text-on-surface-variant">아직 이 분류에 쓴 글이 없습니다.</p>
+  return (
+   <p className="text-on-surface-variant">아직 이 분류에 쓴 글이 없습니다.</p>
+  )
  }
 
  return (

@@ -141,7 +141,8 @@ export default function CanvasHeroName() {
 
   return (
     <div ref={containerRef} className="w-full">
-      <canvas ref={canvasRef} className="block" />
+      <h1 className="sr-only">{NAME}</h1>
+      <canvas ref={canvasRef} className="block" aria-hidden="true" />
       <p
         className="mt-2 text-lg text-on-surface-variant transition-opacity duration-700"
         style={{ opacity: subtitleVisible ? 1 : 0 }}

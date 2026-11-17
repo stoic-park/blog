@@ -10,7 +10,7 @@ export default function Footer() {
         <div className="flex gap-8">
           <a
             href="/rss"
-            className="text-xs tracking-widest uppercase opacity-60 hover:opacity-100 transition-opacity"
+            className="text-xs tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors"
           >
             RSS
           </a>
@@ -18,12 +18,12 @@ export default function Footer() {
             href="https://github.com/stoic-park/blog"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-xs tracking-widest uppercase opacity-60 hover:opacity-100 transition-opacity"
+            className="text-xs tracking-widest uppercase text-on-surface-variant hover:text-primary transition-colors"
           >
             GitHub
           </Link>
         </div>
-        <p className="text-xs tracking-widest uppercase opacity-60">
+        <p className="text-xs tracking-widest uppercase text-on-surface-variant">
           © {new Date().getFullYear()} Stoic Park
         </p>
       </div>

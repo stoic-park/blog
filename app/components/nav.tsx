@@ -40,13 +40,20 @@ export function Navbar() {
  const pathname = usePathname()
 
  return (
-  <header className="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-xl border-b border-outline-variant">
+  <header className="fixed top-0 inset-x-0 z-50 bg-surface border-b border-outline-variant">
    <div className="flex justify-between items-center px-4 sm:px-8 h-16 max-w-4xl mx-auto w-full">
-    <Link href="/" className="font-headline font-bold tracking-tighter text-primary text-xl active:scale-95 transition-transform">
+    <Link
+     href="/"
+     className="font-headline font-bold tracking-tighter text-primary text-xl active:scale-95 transition-transform"
+    >
      Stoic Park
     </Link>
     <div className="flex items-center gap-2">
-     <nav className="flex flex-row items-center" id="nav" aria-label="내비게이션">
+     <nav
+      className="flex flex-row items-center"
+      id="nav"
+      aria-label="내비게이션"
+     >
       <div className="flex flex-row">
        {Object.entries(getNavItems()).map(([path, { name }]) => {
         const isActive = pathname === path || !!pathname?.startsWith(`${path}/`)
@@ -57,9 +64,10 @@ export function Navbar() {
           aria-current={isActive ? 'page' : undefined}
           className={`
             px-3 py-1 mx-1 text-sm font-headline font-medium tracking-tight transition-colors
-            ${isActive
+            ${
+             isActive
               ? `text-primary font-bold border-b-2 pb-0.5 ${path === '/domain' ? 'border-accent-domain' : 'border-primary'}`
-              : 'text-on-surface/60 hover:text-primary'
+              : 'text-on-surface-variant hover:text-primary'
             }
           `}
          >

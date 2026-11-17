@@ -139,7 +139,8 @@ export default function DynamicTextFlow() {
 
   return (
     <div ref={containerRef} className="w-full">
-      <canvas ref={canvasRef} className="block" />
+      <p className="sr-only">{BIO}</p>
+      <canvas ref={canvasRef} className="block" aria-hidden="true" />
     </div>
   );
 }

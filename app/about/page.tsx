@@ -31,7 +31,7 @@ const accordionSections = [
 
 export default function Page() {
  return (
-  <section className="max-w-2xl mx-auto py-12">
+  <section className="max-w-2xl mx-auto py-12 px-4 sm:px-0">
    <div className="space-y-10">
     {/* Hero: Canvas-rendered name with pretext */}
     <div className="border-b pb-8">
