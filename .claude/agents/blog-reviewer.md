@@ -22,7 +22,7 @@ model: opus
 ### Frontmatter SEO
 - [ ] `title`: 명확하고 검색 의도 반영 (60자 이내 권장)
 - [ ] `summary`: 150~160자 권장, 핵심 키워드 포함
-- [ ] `category`: 필수, frontend | domain | ai | retrospective 중 하나. 업무 도메인(산업·설비·데이터 지식) 글은 `domain`
+- [ ] `category`: 필수, frontend | ai | retrospective (Dev 그룹) 또는 semiconductor (Domain 그룹) 중 하나. 업무 도메인(산업·설비·데이터 지식) 글은 Domain 그룹 카테고리. 새 도메인 주제는 `app/lib/posts.ts`의 CATEGORY_META에 추가
 - [ ] `tags`: 관련 태그 2~5개, 기존 태그와 일관성
 - [ ] `publishedAt`: 올바른 날짜 형식 (YYYY-MM-DD)
 - [ ] `readingTime`: 본문 분량에 맞는지 확인
@@ -42,7 +42,8 @@ model: opus
 - [ ] Callout 컴포넌트 올바른 type 사용 (`<Tip>`, `<Note>`, `<Warning>`, `<Error>`, `<Info>`)
 - [ ] 이미지: 외부 URL (GitHub raw/attachments) 또는 /public/
 - [ ] 드래프트: `draft: true` 명시
-- [ ] **문체가 존댓말(~합니다/~입니다)인지** 확인. 반말 발견 시 직접 수정.
+- [ ] **문체가 존댓말(해요체 또는 합니다체)인지** 확인. 반말 발견 시 직접 수정. 해요체·합니다체 섞임은 허용.
+- [ ] **AI 티 점검표**(`.claude/skills/write-post/references/style-guide.md`) 기준 강한 신호가 없는지 확인
 - [ ] **테이블이 `<Table>` 컴포넌트**인지 확인. 마크다운 파이프 테이블(`|...|`) 발견 시 변환.
 - [ ] **도메인 민감 내용** (회사명, 프로젝트명, 내부 시스템명, 내부 도메인 용어) 직접 노출 없는지 확인. 발견 시 일반화.
 

@@ -24,7 +24,9 @@ export default function Page({
  const categories = CATEGORIES.filter((c) =>
   allPosts.some((post) => post.metadata.category === c),
  )
- const selected = searchParams.category
+ // 옛 링크 호환: domain 카테고리는 semiconductor로 개명됨. P3 그룹 라우트 리다이렉트로 대체 예정
+ const selected =
+  searchParams.category === 'domain' ? 'semiconductor' : searchParams.category
 
  return (
   <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">

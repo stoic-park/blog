@@ -24,7 +24,7 @@ model: opus
 title: '포스트 제목'          # 필수
 publishedAt: 'YYYY-MM-DD'   # 필수, 오늘 날짜 기본
 summary: '한두 문장 요약'     # 필수, SEO 및 카드 표시용
-category: 'frontend'        # 필수, 하나만: frontend | domain | ai | retrospective (domain = 업무 도메인 지식)
+category: 'frontend'        # 필수, 하나만: frontend | ai | retrospective (Dev) · semiconductor (Domain = 업무 도메인 지식). 그룹은 자동
 tags: '#태그1, #태그2'       # 선택, # 포함 쉼표 구분
 author: '작성자 이름'         # 선택
 readingTime: 'N분'           # 선택, 300단어/분 기준
@@ -44,10 +44,10 @@ series:                      # 시리즈 포스트일 경우
 
 ### 이 블로그 스타일 규약 (필수 준수)
 
-#### 문체: 존댓말(~합니다/~입니다)
-기존 모든 포스트가 존댓말로 작성됨. 반말 금지.
+#### 문체: 존댓말 (해요체 또는 합니다체)
+해요체 위주에 합니다체를 섞는 것을 권장. 반말 금지. 기존 합니다체 글을 고칠 땐 그 글 문체 유지. 상세: `.claude/skills/write-post/references/style-guide.md`
 - ❌ "구현했다", "실패했다", "이랬다"
-- ✅ "구현했습니다", "실패했습니다", "이랬습니다"
+- ✅ "구현했습니다", "실패했어요", "이랬죠"
 예외: 결론부 의도적 강조, 직접 인용, 코드 주석
 
 #### 테이블: 커스텀 `<Table>` 컴포넌트만 사용
