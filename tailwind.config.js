@@ -18,6 +18,8 @@ module.exports = {
         primary: 'var(--color-primary)',
         'on-primary': 'var(--color-on-primary)',
         'secondary-container': 'var(--color-secondary-container)',
+        'accent-dev': 'var(--color-accent-dev)',
+        'accent-domain': 'var(--color-accent-domain)',
       },
       fontFamily: {
         headline: ['var(--font-headline)'],

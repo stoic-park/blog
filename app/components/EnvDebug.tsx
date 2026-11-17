@@ -6,7 +6,7 @@ export function EnvDebug() {
  }
 
  return (
-  <div className="fixed bottom-4 right-4 bg-yellow-100 dark:bg-yellow-900 p-4 rounded-lg border text-xs z-50">
+  <div className="fixed bottom-4 right-4 bg-surface-high p-4 border border-outline-variant text-xs z-50">
    <h3 className="font-bold mb-2">환경 변수 디버깅</h3>
    <div>NODE_ENV: {process.env.NODE_ENV}</div>
    <div>NEXT_PUBLIC_SHOW_BOOKS: {process.env.NEXT_PUBLIC_SHOW_BOOKS}</div>

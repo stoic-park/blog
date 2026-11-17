@@ -4,8 +4,8 @@
 @tailwind utilities;
 
 ::selection {
- background-color: #6c757d;
- color: #fefefe;
+ background-color: var(--color-primary);
+ color: var(--color-on-primary);
 }
 
 :root {
@@ -33,6 +33,10 @@
  --color-on-primary: #e5e2e1;
  --color-secondary-container: #d5d4d4;
 
+ /* 그룹 악센트: Dev는 기본 흑백, Domain만 청회색. 라벨·활성 표시·breadcrumb에만 사용 */
+ --color-accent-dev: var(--color-primary);
+ --color-accent-domain: #3d5670;
+
  /* 폰트 패밀리 변수 */
  --font-headline: "Plus Jakarta Sans", ui-sans-serif, system-ui, sans-serif;
  --font-body: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -57,6 +61,7 @@
  --color-primary: #f0edec;
  --color-on-primary: #1c1b1b;
  --color-secondary-container: #3a3838;
+ --color-accent-domain: #a3b8cf;
 }
 .dark html, .dark body {
  color-scheme: dark;
@@ -91,11 +96,11 @@ html {
 }
 
 .prose a:hover {
- @apply text-blue-600 dark:text-blue-400;
+ @apply text-primary underline underline-offset-4;
 }
 
 .prose .anchor:after {
- @apply text-neutral-300 dark:text-neutral-700;
+ @apply text-outline-variant;
  content: '#';
 }
 
@@ -104,11 +109,11 @@ html {
 }
 
 .prose pre {
- @apply bg-neutral-50 dark:bg-neutral-900 rounded-lg overflow-x-auto border border-neutral-200 dark:border-neutral-900 py-2 px-3 text-sm;
+ @apply bg-surface-low overflow-x-auto border border-outline-variant py-2 px-3 text-sm;
 }
 
 .prose code {
- @apply px-1 py-0.5 rounded-lg;
+ @apply px-1 py-0.5;
 }
 
 .prose pre code {
@@ -147,8 +152,21 @@ html {
  }
 }
 
+.prose {
+ word-break: keep-all;
+ overflow-wrap: break-word;
+}
+
 .prose p {
- @apply my-4 text-neutral-800 dark:text-neutral-200;
+ @apply my-4 text-on-surface;
+ line-height: 1.7;
+}
+
+.prose h1,
+.prose h2,
+.prose h3,
+.prose h4 {
+ text-wrap: balance;
 }
 
 .prose h1 {
@@ -158,7 +176,7 @@ html {
 }
 
 .prose h2 {
- @apply text-xl font-medium tracking-tight mt-6 mb-2;
+ @apply text-2xl font-medium tracking-tight mt-6 mb-2;
  font-family: var(--font-headline);
  letter-spacing: -0.02em;
 }
@@ -233,12 +251,12 @@ table {
 }
 
 .prose blockquote {
- @apply pl-4 border-l-4 my-4 bg-neutral-100 text-neutral-700 border-neutral-300 dark:bg-neutral-800 dark:text-neutral-200 dark:border-neutral-600;
+ @apply pl-4 border-l-4 my-4 bg-surface-low text-on-surface-variant border-outline-variant;
 }
 
 .prose del {
  text-decoration: line-through;
- color: #888;
+ color: var(--color-outline);
 }
 
 /* Post Layout Styles */
@@ -274,27 +292,19 @@ table {
 
 .toc-sidebar {
  width: 240px;
- border-left: 2px solid #e5e7eb;
+ border-left: 2px solid var(--color-outline-variant);
  padding-left: 0.75rem;
  padding-bottom: 0.25rem;
- color: #6b7280;
+ color: var(--color-on-surface-variant);
  line-height: 1.5;
  font-size: 0.875rem;
  max-height: calc(100vh - 140px); /* 높이 증가 */
  overflow-y: auto;
  overflow-x: hidden;
- background: white;
+ background: var(--color-surface);
 }
 
 /* Dark mode support */
-.dark .toc-sidebar {
- background: #1f2937;
- border-left-color: #374151;
- color: #9ca3af;
- box-shadow:
-  0 1px 3px 0 rgba(0, 0, 0, 0.3),
-  0 1px 2px 0 rgba(0, 0, 0, 0.2);
-}
 
 .toc-sidebar::-webkit-scrollbar {
  border-radius: 1px;
@@ -306,20 +316,12 @@ table {
 }
 
 .toc-sidebar::-webkit-scrollbar-track {
- background: #f3f4f6;
+ background: var(--color-surface-low);
 }
 
 .toc-sidebar::-webkit-scrollbar-thumb {
- background: #9ca3af;
+ background: var(--color-outline);
  border-radius: 1px;
-}
-
-.dark .toc-sidebar::-webkit-scrollbar-track {
- background: #374151;
-}
-
-.dark .toc-sidebar::-webkit-scrollbar-thumb {
- background: #6b7280;
 }
 
 .toc-list {
@@ -342,34 +344,21 @@ table {
  display: block;
  text-decoration: none;
  color: inherit;
- border-radius: 0.25rem;
  transition: color 0.15s ease-in-out;
 }
 
 .toc-link:hover {
- color: #374151;
-}
-
-.dark .toc-link:hover {
- color: #f3f4f6;
+ color: var(--color-primary);
 }
 
 .toc-item-active {
- color: #1f2937;
+ color: var(--color-primary);
  transform: scale(1.02);
 }
 
 .toc-item-active .toc-link {
- color: #1f2937;
+ color: var(--color-primary);
  font-weight: 500;
-}
-
-.dark .toc-item-active {
- color: #f9fafb;
-}
-
-.dark .toc-item-active .toc-link {
- color: #f9fafb;
 }
 
 /* Responsive design */

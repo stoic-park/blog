@@ -44,7 +44,7 @@ export default function Page() {
        title="GitHub"
        target="_blank"
        rel="noopener noreferrer"
-       className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
+       className="text-on-surface-variant hover:text-primary transition-colors"
       >
        <FaGithub size={24} />
       </Link>
@@ -53,7 +53,7 @@ export default function Page() {
        title="Resume"
        target="_blank"
        rel="noopener noreferrer"
-       className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
+       className="text-on-surface-variant hover:text-primary transition-colors"
       >
        <RiNotionFill size={24} />
       </Link>
@@ -62,7 +62,7 @@ export default function Page() {
        title="Instagram"
        target="_blank"
        rel="noopener noreferrer"
-       className="text-gray-600 hover:text-black dark:text-gray-400 dark:hover:text-white transition-colors"
+       className="text-on-surface-variant hover:text-primary transition-colors"
       >
        <FaInstagram size={24} />
       </Link>
@@ -71,7 +71,7 @@ export default function Page() {
 
     {/* Bio: Dynamic text flow around profile image */}
     <div>
-     <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+     <h2 className="text-xl font-semibold mb-4 text-on-surface">
       About Me
      </h2>
      <DynamicTextFlow />
@@ -79,20 +79,20 @@ export default function Page() {
 
     {/* Experience/Skills: Animated accordion with pretext height calculation */}
     <div>
-     <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-gray-100">
+     <h2 className="text-xl font-semibold mb-4 text-on-surface">
       Experience & Skills
      </h2>
      <AnimatedAccordion sections={accordionSections} />
     </div>
 
     {/* Pretext attribution */}
-    <p className="text-xs text-gray-400 dark:text-gray-600 text-center pt-4">
+    <p className="text-xs text-outline text-center pt-4">
      Text layout powered by{' '}
      <Link
       href="https://github.com/chenglou/pretext"
       target="_blank"
       rel="noopener noreferrer"
-      className="underline hover:text-gray-600 dark:hover:text-gray-400"
+      className="underline hover:text-on-surface-variant"
      >
       @chenglou/pretext
      </Link>

@@ -87,7 +87,7 @@ export default function AnimatedAccordion({
   };
 
   return (
-    <div ref={containerRef} className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div ref={containerRef} className="w-full divide-y divide-outline-variant">
       {sections.map((section, i) => {
         const state = sectionStates[i];
         const isOpen = state.open;
@@ -98,7 +98,7 @@ export default function AnimatedAccordion({
             <button
               type="button"
               onClick={() => toggle(i)}
-              className="flex w-full items-center justify-between py-4 text-left text-base font-medium text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              className="flex w-full items-center justify-between py-4 text-left text-base font-medium text-on-surface hover:text-on-surface-variant transition-colors"
             >
               <span>{section.title}</span>
               <svg
@@ -124,7 +124,7 @@ export default function AnimatedAccordion({
                 transition: 'height 300ms ease',
               }}
             >
-              <div className="pb-4 pt-0 text-base leading-6 text-gray-600 dark:text-gray-400">
+              <div className="pb-4 pt-0 text-base leading-6 text-on-surface-variant">
                 {section.content}
               </div>
             </div>

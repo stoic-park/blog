@@ -51,7 +51,10 @@ const components = {
 
 ```
 bg-surface           text-on-surface
-bg-surface-variant   text-on-surface-variant
+bg-surface-low       text-on-surface-variant
+bg-surface-lowest    bg-surface-high
+bg-secondary-container
+text-accent-dev      text-accent-domain   (그룹 악센트: 라벨·활성 표시·breadcrumb에만)
 bg-primary           text-primary
 text-on-primary
 border-outline       border-outline-variant

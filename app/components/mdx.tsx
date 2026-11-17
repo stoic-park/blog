@@ -16,7 +16,7 @@ import {
 
 function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
  let headers = data.headers.map((header: string, index: number) => (
-  <th key={index} className="px-4 py-2 bg-gray-400 text-left font-semibold">
+  <th key={index} className="px-4 py-2 bg-surface-high text-left font-semibold">
    {header}
   </th>
  ))
@@ -33,7 +33,7 @@ function Table({ data }: { data: { headers: string[]; rows: string[][] } }) {
  return (
   <div className="overflow-x-auto mx-auto">
    <div className="min-w-[600px]">
-    <table className="mx-auto border-collapse border border-gray-300 shadow-md rounded-lg overflow-hidden">
+    <table className="mx-auto border-collapse border border-outline-variant">
      <thead>
       <tr>{headers}</tr>
      </thead>
@@ -68,7 +68,7 @@ function RoundedImage(props: React.ComponentProps<typeof Image>) {
    <div
     className={`w-full ${Number(props.width) <= 600 ? 'max-w-[600px]' : ''}`}
    >
-    <Image {...props} className="rounded-lg w-full h-auto" />
+    <Image {...props} className="w-full h-auto" />
    </div>
   </div>
  )

@@ -104,14 +104,14 @@ export default function Blog({ params }: PostPageProps) {
          }),
         }}
        />
-       <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
+       <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-on-surface">
         {post.metadata.title}
        </h1>
        {/* ToC Sidebar */}
        {toc.length > 0 && <TocSidebar toc={toc} />}
 
        {/* post content */}
-       <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
+       <div className="flex items-center mb-8 text-on-surface-variant">
         <span className="text-sm">Stoic Park</span>
         <span className="mx-2">·</span>
         <time className="text-sm" dateTime={post.metadata.publishedAt}>
@@ -119,7 +119,7 @@ export default function Blog({ params }: PostPageProps) {
         </time>
        </div>
 
-       <article className="prose dark:prose-invert max-w-none prose-lg">
+       <article className="prose">
         <SeriesNavigation post={post} />
         <CustomMDX source={post.content} components={{ DemoPdfBox }} />
         <Giscus />

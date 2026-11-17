@@ -143,7 +143,7 @@ export default function CanvasHeroName() {
     <div ref={containerRef} className="w-full">
       <canvas ref={canvasRef} className="block" />
       <p
-        className="mt-2 text-lg text-neutral-500 dark:text-neutral-400 transition-opacity duration-700"
+        className="mt-2 text-lg text-on-surface-variant transition-opacity duration-700"
         style={{ opacity: subtitleVisible ? 1 : 0 }}
       >
         Frontend Developer
