@@ -1,6 +1,19 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatDate, CATEGORY_LABELS, type Category } from 'app/lib/posts'
+import {
+  formatDate,
+  CATEGORY_LABELS,
+  GROUP_LABELS,
+  groupOf,
+  type Category,
+  type Group,
+} from 'app/lib/posts'
+
+// Tailwind가 클래스를 찾도록 리터럴로 둔다
+export const GROUP_ACCENT_TEXT: Record<Group, string> = {
+  dev: 'text-accent-dev',
+  domain: 'text-accent-domain',
+}
 
 type PostCardProps = {
   slug: string
@@ -43,7 +56,10 @@ export function PostCard({ slug, metadata }: PostCardProps) {
       </div>
       <div className="md:col-span-8">
         <div className="flex items-center flex-wrap gap-4 mb-3">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
+          <span
+            className={`text-[10px] font-bold tracking-[0.2em] uppercase ${GROUP_ACCENT_TEXT[groupOf(metadata.category)]}`}
+          >
+            {GROUP_LABELS[groupOf(metadata.category)]} ·{' '}
             {CATEGORY_LABELS[metadata.category]}
           </span>
           <time className="text-[10px] tracking-widest uppercase text-on-surface-variant">
@@ -55,7 +71,7 @@ export function PostCard({ slug, metadata }: PostCardProps) {
             </span>
           )}
         </div>
-        <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight mb-4 group-hover:text-primary transition-colors leading-tight">
+        <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight mb-4 break-keep group-hover:text-primary transition-colors leading-tight">
           {metadata.title}
         </h2>
         <p className="text-on-surface-variant leading-relaxed mb-6">

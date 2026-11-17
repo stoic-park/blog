@@ -4,6 +4,7 @@
 import { GET } from 'app/rss/route'
 
 jest.mock('app/lib/posts', () => ({
+ ...jest.requireActual('app/lib/posts'),
  getBlogPosts: () => [
   {
    slug: 'a-and-b',
@@ -26,6 +27,7 @@ describe('GET /rss', () => {
    '<description>&quot;quoted&quot; &apos;single&apos;</description>',
   )
   expect(body).not.toContain('A & B <C>')
+  expect(body).toContain('<category>Dev/프론트엔드</category>')
  })
 
  it('serves an RSS content type', async () => {

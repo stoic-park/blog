@@ -1,55 +1,59 @@
-import { BlogPosts } from 'app/components/posts'
-import { CATEGORIES, CATEGORY_LABELS, getBlogPosts } from 'app/lib/posts'
+import { redirect } from 'next/navigation'
 import Link from 'next/link'
+import { BlogPosts } from 'app/components/posts'
+import {
+ CATEGORIES,
+ GROUPS,
+ GROUP_LABELS,
+ groupOf,
+ type Category,
+} from 'app/lib/posts'
 
 export const metadata = {
- title: 'Post',
- description: 'post.',
+ title: 'Archive',
+ description: '전체 글 목록.',
 }
 
-const chipClass = (active: boolean) =>
- `px-5 py-1.5 text-[10px] font-bold tracking-widest uppercase transition-all ${
-  active
-   ? 'bg-primary text-on-primary'
-   : 'bg-surface-high text-on-surface-variant hover:bg-secondary-container'
- }`
-
+// /post는 전체 아카이브(태그 링크가 여기로 옴). 카테고리 필터는 그룹 페이지로 보낸다.
 export default function Page({
  searchParams,
 }: {
  searchParams: { category?: string; tag?: string }
 }) {
- const allPosts = getBlogPosts()
- // 글이 있는 카테고리만 탭으로 노출 (빈 탭 방지)
- const categories = CATEGORIES.filter((c) =>
-  allPosts.some((post) => post.metadata.category === c),
- )
- // 옛 링크 호환: domain 카테고리는 semiconductor로 개명됨. P3 그룹 라우트 리다이렉트로 대체 예정
- const selected =
-  searchParams.category === 'domain' ? 'semiconductor' : searchParams.category
+ const { category, tag } = searchParams
+ if (category === 'domain') redirect('/domain')
+ if (CATEGORIES.includes(category as Category)) {
+  redirect(`/${groupOf(category as Category)}?category=${category}`)
+ }
 
  return (
   <div className="mx-auto w-full px-4 sm:px-6 lg:px-8 max-w-4xl">
    <section>
-    <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter mb-12">
-     Post
+    <h1 className="text-5xl md:text-7xl font-headline font-extrabold tracking-tighter mb-4">
+     Archive
     </h1>
-    <div className="flex gap-3 flex-wrap mb-8">
-     <Link href="/post" className={chipClass(!selected && !searchParams.tag)}>
-      All
-     </Link>
-     {categories.map((c) => (
+    <p className="text-on-surface-variant mb-12">
+     {tag ? (
+      <>
+       <span className="text-on-surface">{tag}</span> 태그가 붙은 글
+      </>
+     ) : (
+      '모든 글을 최신순으로 모았습니다.'
+     )}
+    </p>
+    <nav aria-label="그룹" className="flex gap-3 flex-wrap mb-8">
+     {GROUPS.map((g) => (
       <Link
-       key={c}
-       href={selected === c ? '/post' : `/post?category=${c}`}
-       className={chipClass(selected === c)}
+       key={g}
+       href={`/${g}`}
+       className="px-5 py-1.5 text-[10px] font-bold tracking-widest uppercase bg-surface-high text-on-surface-variant hover:bg-secondary-container transition-colors"
       >
-       {CATEGORY_LABELS[c]}
+       {GROUP_LABELS[g]} →
       </Link>
      ))}
-    </div>
+    </nav>
     <div className="my-8">
-     <BlogPosts selectedCategory={selected} selectedTag={searchParams.tag} />
+     <BlogPosts selectedTag={tag} />
     </div>
    </section>
   </div>

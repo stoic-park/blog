@@ -1,23 +1,35 @@
-import { getBlogPosts } from 'app/lib/posts'
+import { getBlogPosts, groupOf, type Group } from 'app/lib/posts'
 import { PostCard } from './PostCard'
 
 export function BlogPosts({
+ group,
  selectedCategory,
  selectedTag,
 }: {
+ group?: Group
  selectedCategory?: string
  selectedTag?: string
 }) {
  let allBlogs = getBlogPosts()
 
+ if (group) {
+  allBlogs = allBlogs.filter((post) => groupOf(post.metadata.category) === group)
+ }
+
  if (selectedCategory) {
-  allBlogs = allBlogs.filter((post) => post.metadata.category === selectedCategory)
+  allBlogs = allBlogs.filter(
+   (post) => post.metadata.category === selectedCategory,
+  )
  }
 
  if (selectedTag) {
   allBlogs = allBlogs.filter((post) =>
    post.metadata.tags?.includes(selectedTag),
   )
+ }
+
+ if (allBlogs.length === 0) {
+  return <p className="text-on-surface-variant">아직 이 분류에 쓴 글이 없습니다.</p>
  }
 
  return (

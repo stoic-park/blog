@@ -1,5 +1,10 @@
 import { baseUrl } from 'app/sitemap'
-import { getBlogPosts } from 'app/lib/posts'
+import {
+ CATEGORY_LABELS,
+ GROUP_LABELS,
+ getBlogPosts,
+ groupOf,
+} from 'app/lib/posts'
 
 // baseURL/rss
 
@@ -47,6 +52,7 @@ export async function GET() {
           <title>${escapeXml(post.metadata.title)}</title>
           <link>${escapeXml(`${baseUrl}/post/${post.slug}`)}</link>
           <description>${escapeXml(post.metadata.summary || '')}</description>
+          <category>${escapeXml(`${GROUP_LABELS[groupOf(post.metadata.category)]}/${CATEGORY_LABELS[post.metadata.category]}`)}</category>
           <pubDate>${new Date(
            post.metadata.publishedAt,
           ).toUTCString()}</pubDate>

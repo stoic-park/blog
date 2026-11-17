@@ -19,7 +19,8 @@ jest.mock('next/navigation', () => ({
 }))
 
 const navItems = {
-  '/post': { name: 'Post' },
+  '/dev': { name: 'Dev' },
+  '/domain': { name: 'Domain' },
   '/about': { name: 'About' },
 }
 
@@ -34,9 +35,9 @@ describe('Navbar', () => {
     render(<Navbar />)
 
     // 블로그 링크 확인
-    const blogLink = screen.getByText('Post')
-    expect(blogLink).toBeInTheDocument()
-    expect(blogLink.closest('a')).toHaveAttribute('href', '/post')
+    expect(screen.getByText('Dev').closest('a')).toHaveAttribute('href', '/dev')
+    expect(screen.getByText('Domain').closest('a')).toHaveAttribute('href', '/domain')
+    expect(screen.queryByText('Post')).toBeNull()
   })
 
   test('renders ThemeSwitch component', () => {
@@ -67,4 +68,19 @@ describe('Navbar', () => {
       expect(link).toHaveAttribute('aria-current', 'page') // ✅ 현재 경로인지 확인
     },
   )
+})
+
+describe('Navbar group active state', () => {
+  test('하위 경로에서도 그룹 링크가 활성화된다', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/domain/anything')
+    render(<Navbar />)
+    expect(screen.getByRole('link', { name: 'Domain' })).toHaveAttribute('aria-current', 'page')
+    expect(screen.getByRole('link', { name: 'Dev' })).not.toHaveAttribute('aria-current')
+  })
+
+  test('/devtools 같은 접두 일치는 활성화하지 않는다', () => {
+    ;(usePathname as jest.Mock).mockReturnValue('/devtools')
+    render(<Navbar />)
+    expect(screen.getByRole('link', { name: 'Dev' })).not.toHaveAttribute('aria-current')
+  })
 })
