@@ -90,7 +90,7 @@ export default function RootLayout({
   <html
    lang="ko"
    className={cx(
-    'text-black bg-white dark:text-white dark:bg-black h-full',
+    'text-on-surface bg-surface h-full',
     GeistSans.variable,
     GeistMono.variable,
     plusJakartaSans.variable,

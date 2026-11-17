@@ -1,19 +1,27 @@
 import { notFound } from 'next/navigation'
 import { CustomMDX } from 'app/components/mdx'
-import { formatDate, getBlogPosts } from 'app/lib/posts'
+import Link from 'next/link'
+import {
+ CATEGORY_LABELS,
+ GROUP_LABELS,
+ formatDate,
+ getBlogPosts,
+ groupOf,
+} from 'app/lib/posts'
+import { GROUP_ACCENT_TEXT } from 'app/components/PostCard'
 import { baseUrl } from 'app/sitemap'
 import { SeriesNavigation } from 'app/components/CustomComponents/SeriesNavigation'
 import { extractTocFromMdx } from 'app/lib/posts'
 import dynamic from 'next/dynamic'
 const DemoPdfBox = dynamic(
-  () => import('../../components/CustomComponents/DemoPdfBox'),
-  { ssr: false }
+ () => import('../../components/CustomComponents/DemoPdfBox'),
+ { ssr: false },
 )
 import Giscus from 'app/components/CustomComponents/Giscus'
 import { TocSidebar } from 'app/components/CustomComponents/ToCSiderbar'
 
 interface PostPageProps {
-  params: { slug: string }
+ params: { slug: string }
 }
 
 export async function generateStaticParams() {
@@ -94,8 +102,10 @@ export default function Blog({ params }: PostPageProps) {
           dateModified: post.metadata.publishedAt,
           description: post.metadata.summary,
           image: post.metadata.image
-           ? `${baseUrl}${post.metadata.image}`
-           : `/og?title=${encodeURIComponent(post.metadata.title)}`,
+           ? post.metadata.image.startsWith('http')
+             ? post.metadata.image
+             : `${baseUrl}${post.metadata.image}`
+           : `${baseUrl}/og?title=${encodeURIComponent(post.metadata.title)}`,
           url: `${baseUrl}/post/${post.slug}`,
           author: {
            '@type': 'Person',
@@ -104,14 +114,29 @@ export default function Blog({ params }: PostPageProps) {
          }),
         }}
        />
-       <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-black dark:text-white">
+       <nav
+        aria-label="분류"
+        className={`mb-4 text-[10px] font-bold tracking-[0.2em] uppercase ${GROUP_ACCENT_TEXT[groupOf(post.metadata.category)]}`}
+       >
+        <Link href={`/${groupOf(post.metadata.category)}`} className="hover:underline underline-offset-4">
+         {GROUP_LABELS[groupOf(post.metadata.category)]}
+        </Link>
+        <span className="mx-2 text-outline" aria-hidden="true">/</span>
+        <Link
+         href={`/${groupOf(post.metadata.category)}?category=${post.metadata.category}`}
+         className="hover:underline underline-offset-4"
+        >
+         {CATEGORY_LABELS[post.metadata.category]}
+        </Link>
+       </nav>
+       <h1 className="title font-bold text-4xl md:text-5xl tracking-tight mb-6 text-on-surface [text-wrap:balance]">
         {post.metadata.title}
        </h1>
        {/* ToC Sidebar */}
        {toc.length > 0 && <TocSidebar toc={toc} />}
 
        {/* post content */}
-       <div className="flex items-center mb-8 text-gray-600 dark:text-gray-400">
+       <div className="flex items-center mb-8 text-on-surface-variant">
         <span className="text-sm">Stoic Park</span>
         <span className="mx-2">·</span>
         <time className="text-sm" dateTime={post.metadata.publishedAt}>
@@ -119,7 +144,7 @@ export default function Blog({ params }: PostPageProps) {
         </time>
        </div>
 
-       <article className="prose dark:prose-invert max-w-none prose-lg">
+       <article className="prose">
         <SeriesNavigation post={post} />
         <CustomMDX source={post.content} components={{ DemoPdfBox }} />
         <Giscus />

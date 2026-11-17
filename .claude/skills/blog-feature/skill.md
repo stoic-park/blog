@@ -51,7 +51,10 @@ const components = {
 
 ```
 bg-surface           text-on-surface
-bg-surface-variant   text-on-surface-variant
+bg-surface-low       text-on-surface-variant
+bg-surface-lowest    bg-surface-high
+bg-secondary-container
+text-accent-dev      text-accent-domain   (그룹 악센트: 라벨·활성 표시·breadcrumb에만)
 bg-primary           text-primary
 text-on-primary
 border-outline       border-outline-variant
@@ -59,7 +62,7 @@ border-outline       border-outline-variant
 
 ### 다크모드
 
-`next-themes` + CSS 변수 방식이므로 대부분 `dark:` prefix 불필요.
+자체 테마 스크립트(`app/lib/theme.ts`) + CSS 변수 방식이므로 대부분 `dark:` prefix 불필요.
 단, 일부 명시적 다크모드가 필요한 경우: `dark:bg-...`, `dark:text-...`
 
 ### 폰트 클래스

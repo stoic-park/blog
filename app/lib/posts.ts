@@ -2,20 +2,37 @@ import fs from 'fs'
 import path from 'path'
 import matter from 'gray-matter'
 
-// 카테고리 = 글의 큰 분류(하나만). 세부 키워드는 tags로.
-export const CATEGORIES = ['frontend', 'domain', 'ai', 'retrospective'] as const
-export type Category = (typeof CATEGORIES)[number]
-export const CATEGORY_LABELS: Record<Category, string> = {
- frontend: '프론트엔드',
- domain: '도메인',
- ai: 'AI',
- retrospective: '회고',
+// 분류: 그룹 > 카테고리 > 태그. frontmatter에는 category 하나만 적고 그룹은 여기서 파생.
+export const GROUPS = ['dev', 'domain'] as const
+export type Group = (typeof GROUPS)[number]
+export const GROUP_LABELS: Record<Group, string> = {
+ dev: 'Dev',
+ domain: 'Domain',
+}
+
+export const CATEGORY_META = {
+ frontend: { group: 'dev', label: '프론트엔드' },
+ ai: { group: 'dev', label: 'AI' },
+ retrospective: { group: 'dev', label: '회고' },
+ semiconductor: { group: 'domain', label: '반도체' },
+} as const satisfies Record<string, { group: Group; label: string }>
+export type Category = keyof typeof CATEGORY_META
+export const CATEGORIES = Object.keys(CATEGORY_META) as Category[]
+export const CATEGORY_LABELS = Object.fromEntries(
+ CATEGORIES.map((c) => [c, CATEGORY_META[c].label]),
+) as Record<Category, string>
+
+export function groupOf(category: Category): Group {
+ return CATEGORY_META[category].group
 }
 
 export function assertCategory(value: unknown, file: string): Category {
  if (!CATEGORIES.includes(value as Category)) {
+  const allowed = GROUPS.map(
+   (g) => `${g}(${CATEGORIES.filter((c) => groupOf(c) === g).join(', ')})`,
+  ).join(', ')
   throw new Error(
-   `${file}: frontmatter category가 없거나 잘못됨 (${String(value)}). 허용: ${CATEGORIES.join(', ')}`,
+   `${file}: frontmatter category가 없거나 잘못됨 (${String(value)}). 허용: ${allowed}`,
   )
  }
  return value as Category
@@ -99,6 +116,18 @@ export function getBlogPosts() {
  }
 
  return posts
+}
+
+export function getPostsByGroup(group: Group) {
+ return getBlogPosts().filter((post) => groupOf(post.metadata.category) === group)
+}
+
+// 글이 있는 카테고리만 (빈 탭 방지)
+export function getCategoriesInGroup(group: Group): Category[] {
+ const posts = getPostsByGroup(group)
+ return CATEGORIES.filter(
+  (c) => groupOf(c) === group && posts.some((p) => p.metadata.category === c),
+ )
 }
 
 export function formatDate(date: string, includeRelative = false) {

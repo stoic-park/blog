@@ -39,7 +39,12 @@ export const ThemeSwitch = () => {
         applyTheme(nextTheme);
     };
 
-    return <button onClick={handleToggle}>
+    return <button
+        type="button"
+        onClick={handleToggle}
+        className="p-2 -m-2"
+        aria-label={theme === "light" ? "다크 모드로 전환" : "라이트 모드로 전환"}
+    >
         <ThemeIcon theme={theme}/>
     </button>;
 };
@@ -53,7 +58,7 @@ const ThemeIcon = ({ theme }: Props) => {
   switch (theme) {
     case "light":
       return (
-        <svg
+        <svg aria-hidden="true"
           className="w-5 h-5"
           fill="none"
           viewBox="0 0 24 24"
@@ -69,7 +74,7 @@ const ThemeIcon = ({ theme }: Props) => {
       );
     case "dark":
       return (
-        <svg
+        <svg aria-hidden="true"
           className="w-5 h-5"
           fill="none"
           viewBox="0 0 24 24"

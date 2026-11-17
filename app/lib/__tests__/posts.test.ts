@@ -354,15 +354,45 @@ summary: s
 // ---------------------------------------------------------------------------
 // assertCategory
 // ---------------------------------------------------------------------------
-import { assertCategory } from '../posts'
+import {
+  assertCategory,
+  groupOf,
+  CATEGORIES,
+  GROUPS,
+  getCategoriesInGroup,
+} from '../posts'
 
 describe('assertCategory', () => {
   it('허용된 카테고리는 그대로 반환', () => {
-    expect(assertCategory('domain', 'a.mdx')).toBe('domain')
+    expect(assertCategory('semiconductor', 'a.mdx')).toBe('semiconductor')
   })
 
-  it('없거나 모르는 값이면 파일명과 함께 에러', () => {
+  it('없거나 모르는 값이면 파일명과 그룹별 허용값을 담아 에러', () => {
     expect(() => assertCategory(undefined, 'a.mdx')).toThrow('a.mdx')
-    expect(() => assertCategory('react', 'b.mdx')).toThrow('허용: frontend, domain, ai, retrospective')
+    expect(() => assertCategory('react', 'b.mdx')).toThrow(
+      '허용: dev(frontend, ai, retrospective), domain(semiconductor)',
+    )
+  })
+
+  it('폐기된 domain 카테고리는 거부', () => {
+    expect(() => assertCategory('domain', 'c.mdx')).toThrow('(domain)')
+  })
+})
+
+describe('그룹 분류', () => {
+  it('카테고리에서 그룹을 파생', () => {
+    expect(groupOf('semiconductor')).toBe('domain')
+    expect(groupOf('frontend')).toBe('dev')
+  })
+
+  it('모든 카테고리가 알려진 그룹에 속함', () => {
+    for (const c of CATEGORIES) expect(GROUPS).toContain(groupOf(c))
+  })
+
+  it('그룹 안에서 글이 있는 카테고리만 반환', () => {
+    expect(getCategoriesInGroup('domain')).toEqual(['semiconductor'])
+    const dev = getCategoriesInGroup('dev')
+    expect(dev).not.toContain('semiconductor')
+    expect(dev.length).toBeGreaterThan(0)
   })
 })

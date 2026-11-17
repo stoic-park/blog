@@ -87,7 +87,7 @@ export default function AnimatedAccordion({
   };
 
   return (
-    <div ref={containerRef} className="w-full divide-y divide-gray-200 dark:divide-gray-700">
+    <div ref={containerRef} className="w-full divide-y divide-outline-variant">
       {sections.map((section, i) => {
         const state = sectionStates[i];
         const isOpen = state.open;
@@ -98,7 +98,9 @@ export default function AnimatedAccordion({
             <button
               type="button"
               onClick={() => toggle(i)}
-              className="flex w-full items-center justify-between py-4 text-left text-base font-medium text-gray-900 dark:text-gray-100 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
+              aria-expanded={isOpen}
+              aria-controls={`accordion-panel-${i}`}
+              className="flex w-full items-center justify-between py-4 text-left text-base font-medium text-on-surface hover:text-on-surface-variant transition-colors"
             >
               <span>{section.title}</span>
               <svg
@@ -109,7 +111,7 @@ export default function AnimatedAccordion({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className="ml-4 h-4 w-4 shrink-0 transition-transform duration-300"
+                className="ml-4 h-4 w-4 shrink-0 motion-safe:transition-transform motion-safe:duration-300"
                 style={{ transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)' }}
                 aria-hidden="true"
               >
@@ -118,13 +120,15 @@ export default function AnimatedAccordion({
             </button>
 
             <div
+              id={`accordion-panel-${i}`}
+              aria-hidden={!isOpen}
+              className="motion-safe:transition-[height] motion-safe:duration-300 motion-safe:ease-in-out"
               style={{
                 height: `${contentHeight}px`,
                 overflow: 'hidden',
-                transition: 'height 300ms ease',
               }}
             >
-              <div className="pb-4 pt-0 text-base leading-6 text-gray-600 dark:text-gray-400">
+              <div className="pb-4 pt-0 text-base leading-6 text-on-surface-variant">
                 {section.content}
               </div>
             </div>

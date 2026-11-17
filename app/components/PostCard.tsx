@@ -1,70 +1,86 @@
 import Link from 'next/link'
 import Image from 'next/image'
-import { formatDate, CATEGORY_LABELS, type Category } from 'app/lib/posts'
+import {
+ formatDate,
+ CATEGORY_LABELS,
+ GROUP_LABELS,
+ groupOf,
+ type Category,
+ type Group,
+} from 'app/lib/posts'
+
+// Tailwind가 클래스를 찾도록 리터럴로 둔다
+export const GROUP_ACCENT_TEXT: Record<Group, string> = {
+ dev: 'text-accent-dev',
+ domain: 'text-accent-domain',
+}
 
 type PostCardProps = {
-  slug: string
-  metadata: {
-    title: string
-    category: Category
-    publishedAt: string
-    summary: string
-    image?: string
-    tags?: string[]
-    readingTime?: string
-  }
+ slug: string
+ metadata: {
+  title: string
+  category: Category
+  publishedAt: string
+  summary: string
+  image?: string
+  tags?: string[]
+  readingTime?: string
+ }
 }
 
 export function PostCard({ slug, metadata }: PostCardProps) {
-  return (
-    <Link
-      href={`/post/${slug}`}
-      className="group grid md:grid-cols-12 gap-8 md:gap-12 items-stretch"
-    >
-      <div
-        className={`relative md:col-span-4 w-full aspect-[1200/630] md:aspect-auto md:h-full overflow-hidden ${
-          metadata.image ? 'bg-surface-low' : 'bg-[#1c1b1b]'
-        }`}
-      >
-        {metadata.image ? (
-          <Image
-            src={metadata.image}
-            alt={metadata.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-700"
-          />
-        ) : (
-          <img
-            src={`/og?title=${encodeURIComponent(metadata.title)}${metadata.tags?.length ? `&tags=${encodeURIComponent(metadata.tags.join(','))}` : ''}`}
-            alt={metadata.title}
-            className="absolute inset-0 w-full h-full object-contain group-hover:scale-105 transition-transform duration-700"
-          />
-        )}
-      </div>
-      <div className="md:col-span-8">
-        <div className="flex items-center flex-wrap gap-4 mb-3">
-          <span className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
-            {CATEGORY_LABELS[metadata.category]}
-          </span>
-          <time className="text-[10px] tracking-widest uppercase text-on-surface-variant">
-            {formatDate(metadata.publishedAt, false)}
-          </time>
-          {metadata.readingTime && (
-            <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">
-              {metadata.readingTime}
-            </span>
-          )}
-        </div>
-        <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight mb-4 group-hover:text-primary transition-colors leading-tight">
-          {metadata.title}
-        </h2>
-        <p className="text-on-surface-variant leading-relaxed mb-6">
-          {metadata.summary}
-        </p>
-        <span className="text-sm font-bold border-b-2 border-primary pb-0.5 group-hover:border-transparent transition-all">
-          읽기 →
-        </span>
-      </div>
-    </Link>
-  )
+ return (
+  <Link
+   href={`/post/${slug}`}
+   className="group grid md:grid-cols-12 gap-8 md:gap-12 items-stretch"
+  >
+   <div
+    className={`relative md:col-span-4 w-full aspect-[1200/630] md:aspect-auto md:h-full overflow-hidden ${
+     metadata.image ? 'bg-surface-low' : 'bg-[#1c1b1b]'
+    }`}
+   >
+    {metadata.image ? (
+     <Image
+      src={metadata.image}
+      alt=""
+      fill
+      className="object-cover motion-safe:group-hover:scale-105 motion-safe:transition-transform motion-safe:duration-700"
+     />
+    ) : (
+     <img
+      src={`/og?title=${encodeURIComponent(metadata.title)}${metadata.tags?.length ? `&tags=${encodeURIComponent(metadata.tags.join(','))}` : ''}`}
+      alt=""
+      className="absolute inset-0 w-full h-full object-contain motion-safe:group-hover:scale-105 motion-safe:transition-transform motion-safe:duration-700"
+     />
+    )}
+   </div>
+   <div className="md:col-span-8">
+    <div className="flex items-center flex-wrap gap-4 mb-3">
+     <span
+      className={`text-[10px] font-bold tracking-[0.2em] uppercase ${GROUP_ACCENT_TEXT[groupOf(metadata.category)]}`}
+     >
+      {GROUP_LABELS[groupOf(metadata.category)]} ·{' '}
+      {CATEGORY_LABELS[metadata.category]}
+     </span>
+     <time className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+      {formatDate(metadata.publishedAt, false)}
+     </time>
+     {metadata.readingTime && (
+      <span className="text-[10px] tracking-widest uppercase text-on-surface-variant">
+       {metadata.readingTime}
+      </span>
+     )}
+    </div>
+    <h2 className="text-2xl md:text-3xl font-headline font-bold tracking-tight mb-4 break-keep group-hover:text-primary transition-colors leading-tight">
+     {metadata.title}
+    </h2>
+    <p className="text-on-surface-variant leading-relaxed mb-6">
+     {metadata.summary}
+    </p>
+    <span className="text-sm font-bold border-b-2 border-primary pb-0.5 group-hover:border-transparent transition-all">
+     읽기 →
+    </span>
+   </div>
+  </Link>
+ )
 }

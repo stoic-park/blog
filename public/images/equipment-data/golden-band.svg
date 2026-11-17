@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 280" width="800" height="280" font-family="-apple-system, 'Apple SD Gothic Neo', 'Noto Sans KR', sans-serif">
+  <rect width="800" height="280" rx="16" fill="#f8fafc"/>
+  <text x="400" y="36" text-anchor="middle" font-size="18" font-weight="700" fill="#0f172a">기준 띠 위에 현재 웨이퍼 겹치기</text>
+
+  <line x1="60" y1="230" x2="760" y2="230" stroke="#cbd5e1"/>
+  <!-- 정상 웨이퍼 범위 (평균 ± 일정 폭) -->
+  <polygon fill="#e2e8f0" points="60,176 200,176 260,96 560,96 620,176 760,176 760,204 620,204 560,124 260,124 200,204 60,204"/>
+  <!-- 현재 웨이퍼 -->
+  <polyline fill="none" stroke="#8b5cf6" stroke-width="2.5" points="60,192 200,191 260,112 400,111 410,112 418,78 426,112 560,110 620,191 760,190"/>
+  <circle cx="418" cy="78" r="10" fill="none" stroke="#ef4444" stroke-width="2"/>
+
+  <line x1="428" y1="74" x2="500" y2="62" stroke="#ef4444"/>
+  <rect x="500" y="46" width="250" height="34" rx="8" fill="#fff" stroke="#ef4444"/>
+  <text x="625" y="68" text-anchor="middle" font-size="12" fill="#b91c1c">띠를 벗어난 짧은 스파이크</text>
+
+  <g font-size="12" fill="#475569">
+    <rect x="250" y="248" width="18" height="12" fill="#e2e8f0"/><text x="276" y="258">정상 웨이퍼 범위</text>
+    <rect x="410" y="252" width="18" height="4" fill="#8b5cf6"/><text x="436" y="258">현재 웨이퍼</text>
+  </g>
+</svg>

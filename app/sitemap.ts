@@ -9,7 +9,7 @@ export default async function sitemap() {
  }))
 
  // 주요 정적 라우트 수집
- let routes = ['/post', '/about'].map((route) => ({
+ let routes = ['/dev', '/domain', '/post', '/about'].map((route) => ({
   url: `${baseUrl}${route}`,
   lastModified: new Date().toISOString().split('T')[0],
  }))

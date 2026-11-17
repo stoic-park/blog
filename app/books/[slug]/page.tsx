@@ -45,7 +45,7 @@ export default async function BookPage({ params }: BookPageProps) {
    <section>
     <div className="mb-8">
      <h1 className="font-bold text-3xl mb-4 tracking-tighter">{book.title}</h1>
-     <div className="flex items-center space-x-4 text-sm text-neutral-600 dark:text-neutral-400">
+     <div className="flex items-center space-x-4 text-sm text-on-surface-variant">
       <span>저자: {book.author}</span>
       <span>•</span>
       <span>{book.date}</span>

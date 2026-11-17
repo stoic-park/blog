@@ -26,7 +26,7 @@ export function PreBlock({ children, ...props }: React.DetailedHTMLProps<React.H
 
  return (
   <div className="relative group">
-   <pre className="rounded-lg p-4 bg-neutral-900 text-white overflow-x-auto border-0">
+   <pre className="p-4 overflow-x-auto">
     <code
      dangerouslySetInnerHTML={{ __html: codeHTML }}
      {...props}
@@ -36,11 +36,10 @@ export function PreBlock({ children, ...props }: React.DetailedHTMLProps<React.H
    <button
     type="button"
     onClick={handleCopy}
-    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity text-xs px-2 py-1 rounded bg-neutral-200 dark:bg-neutral-800 hover:bg-neutral-300 dark:hover:bg-neutral-700 z-10"
-    tabIndex={-1}
+    className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity text-xs px-2 py-1 bg-surface-high text-on-surface hover:bg-secondary-container z-10"
     aria-label="Copy code"
    >
-    {copied ? 'Copied!' : 'Copy'}
+    <span aria-live="polite">{copied ? 'Copied!' : 'Copy'}</span>
    </button>
   </div>
  )

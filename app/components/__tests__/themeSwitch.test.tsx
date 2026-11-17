@@ -69,3 +69,10 @@ describe('ThemeSwitch', () => {
         expect(document.documentElement.classList.contains('dark')).toBe(false);
     });
 }); 
+describe('ThemeSwitch accessible name', () => {
+  test('버튼이 다음 동작을 이름으로 알려준다', () => {
+    localStorage.setItem('theme', 'light')
+    render(<ThemeSwitch />)
+    expect(screen.getByRole('button', { name: '다크 모드로 전환' })).toBeInTheDocument()
+  })
+})

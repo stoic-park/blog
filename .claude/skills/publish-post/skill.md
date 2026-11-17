@@ -13,7 +13,7 @@ description: 드래프트 포스트를 발행하는 스킬. "발행해줘", "pub
 
 - [ ] `title` 존재 및 적절한 길이 (60자 이내 권장)
 - [ ] `publishedAt` 형식 확인 (`YYYY-MM-DD`), 없으면 오늘 날짜 사용
-- [ ] `category` 존재, frontend | domain | ai | retrospective 중 하나 (없거나 틀리면 빌드 실패)
+- [ ] `category` 존재, frontend | ai | retrospective (Dev 그룹) 또는 semiconductor (Domain 그룹) 중 하나 (없거나 틀리면 빌드 실패). 그룹은 category에서 자동으로 정해짐
 - [ ] `summary` 존재 (150자 이내 권장)
 - [ ] `draft: true` **제거** (발행 시 반드시 삭제)
 

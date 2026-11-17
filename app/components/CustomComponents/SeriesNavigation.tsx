@@ -4,24 +4,20 @@ import { getBlogPosts } from 'app/lib/posts'
 type Post = {
  metadata: {
   title: string
-  publishedAt: string
-  summary: string
-  image?: string
   series?: {
    name: string
    order: number
   }
  }
  slug: string
- content: string
 }
 
 export function SeriesNavigation({ post }: { post: Post }) {
- if (!post.metadata.series) return null
+ const series = post.metadata.series
+ if (!series) return null
 
- const allPosts = getBlogPosts()
- const seriesPosts = allPosts
-  .filter((p) => p.metadata.series?.name === post.metadata.series?.name)
+ const seriesPosts = getBlogPosts()
+  .filter((p) => p.metadata.series?.name === series.name)
   .sort(
    (a, b) => (a.metadata.series?.order || 0) - (b.metadata.series?.order || 0),
   )
@@ -32,56 +28,67 @@ export function SeriesNavigation({ post }: { post: Post }) {
   currentIndex < seriesPosts.length - 1 ? seriesPosts[currentIndex + 1] : null
 
  return (
-  <div className="my-8 p-8 bg-neutral-50 dark:bg-neutral-900 rounded-lg">
-   <h2 className="text-2xl font-bold mb-10 text-neutral-900 dark:text-neutral-100">
-    {post.metadata.series.name}
-   </h2>
-   <div className="flex flex-col space-y-3">
-    {seriesPosts.map((p, index) => (
-     <Link
-      key={p.slug}
-      href={`/post/${p.slug}`}
-      className={`flex items-center no-underline ${
-       p.slug === post.slug
-        ? 'text-blue-500 dark:text-blue-400 font-bold bg-blue-50 dark:bg-blue-900/20 px-3 py-1 rounded'
-        : 'text-neutral-800 dark:text-neutral-200 hover:text-neutral-900 dark:hover:text-neutral-100'
-      }`}
-      style={{ textDecoration: 'none' }}
-     >
-      <span className="mr-3">{index + 1}.</span>
-      {p.metadata.title}
-     </Link>
-    ))}
+  <aside
+   aria-label="시리즈"
+   className="not-prose my-10 border-l-2 border-primary bg-surface-low px-6 py-6"
+  >
+   <div className="flex items-baseline justify-between gap-4 mb-4">
+    <div className="text-[10px] font-bold tracking-[0.2em] uppercase text-outline">
+     Series
+    </div>
+    <div className="text-[10px] font-bold tracking-[0.2em] text-outline tabular-nums">
+     {currentIndex + 1} / {seriesPosts.length}
+    </div>
    </div>
-   <div className="flex items-center justify-center gap-8 mt-6">
-    {prevPost ? (
-     <Link
-      href={`/post/${prevPost.slug}`}
-      className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-blue-500 hover:text-white hover:border-transparent transition-all"
-     >
-      ←
-     </Link>
-    ) : (
-     <span className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-50">
-      ←
-     </span>
-    )}
-    <span className="text-sm text-neutral-500 dark:text-neutral-400">
-     {currentIndex + 1}/{seriesPosts.length}
-    </span>
-    {nextPost ? (
-     <Link
-      href={`/post/${nextPost.slug}`}
-      className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-500 hover:bg-blue-500 hover:text-white hover:border-transparent transition-all"
-     >
-      →
-     </Link>
-    ) : (
-     <span className="w-8 h-8 flex items-center justify-center rounded-full border border-neutral-200 dark:border-neutral-700 text-neutral-300 dark:text-neutral-600 cursor-not-allowed opacity-50">
-      →
-     </span>
-    )}
+   <div className="font-headline font-bold text-lg tracking-tight mb-4 break-keep">
+    {series.name}
    </div>
-  </div>
+   <ol className={`space-y-2 ${prevPost || nextPost ? 'mb-6' : ''}`}>
+    {seriesPosts.map((p, index) => {
+     const current = p.slug === post.slug
+     return (
+      <li key={p.slug} className="flex gap-3 text-sm break-keep">
+       <span className="tabular-nums text-outline">{index + 1}.</span>
+       {current ? (
+        <span aria-current="page" className="font-bold text-on-surface">
+         {p.metadata.title}
+        </span>
+       ) : (
+        <Link
+         href={`/post/${p.slug}`}
+         className="text-on-surface-variant hover:text-primary transition-colors"
+        >
+         {p.metadata.title}
+        </Link>
+       )}
+      </li>
+     )
+    })}
+   </ol>
+   {(prevPost || nextPost) && (
+    <div className="flex justify-between gap-4 text-sm border-t border-outline-variant pt-4">
+     {prevPost ? (
+      <Link
+       href={`/post/${prevPost.slug}`}
+       rel="prev"
+       className="text-on-surface-variant hover:text-primary transition-colors"
+      >
+       ← 이전 편
+      </Link>
+     ) : (
+      <span />
+     )}
+     {nextPost && (
+      <Link
+       href={`/post/${nextPost.slug}`}
+       rel="next"
+       className="text-on-surface-variant hover:text-primary transition-colors"
+      >
+       다음 편 →
+      </Link>
+     )}
+    </div>
+   )}
+  </aside>
  )
 }

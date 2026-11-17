@@ -1,6 +1,6 @@
 import { redirect } from 'next/navigation'
 
-// 홈 -> 포스트 리다이렉트
+// 홈 -> Dev 그룹
 export default function Page() {
- redirect('/post')
+ redirect('/dev')
 }
